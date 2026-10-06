@@ -31,3 +31,7 @@ abstract class PoemDatabase : RoomDatabase() { abstract fun progressDao(): Progr
 
 fun poemDatabase(context: Context, name: String = "tangshi.db"): PoemDatabase =
     Room.databaseBuilder(context, PoemDatabase::class.java, name).build()
+
+/** 测试用内存库（不落盘，免文件名去重） */
+fun poemInMemoryDatabase(context: Context): PoemDatabase =
+    Room.inMemoryDatabaseBuilder(context, PoemDatabase::class.java).build()
