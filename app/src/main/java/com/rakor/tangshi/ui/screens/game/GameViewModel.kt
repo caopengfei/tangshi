@@ -7,7 +7,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.rakor.tangshi.data.model.Poem
-import com.rakor.tangshi.data.repo.HomeStats
 import com.rakor.tangshi.data.repo.PoemRepository
 import com.rakor.tangshi.data.repo.ProgressRepository
 import com.rakor.tangshi.data.repo.ProgressSummary
@@ -15,11 +14,9 @@ import com.rakor.tangshi.di.AppGraph
 import com.rakor.tangshi.game.QuizGenerator
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
@@ -33,8 +30,10 @@ sealed interface Question {
 enum class GamePhase { IDLE, NEED_MORE, PLAYING, DONE }
 
 /**
- * 一轮答题状态（计划中的 GameState 字段 + phase/picked 两个实现性补充：
- * phase 区分"还没生成"与"池不足"，picked 记录本轮作答选项供答对/答错反馈上色）。
+ * 一轮答题状态（计划中的 GameState 字段 + phase/picked/finalStreak 三个实现性补充：
+ * phase 区分"还没生成"与"池不足"，picked 记录本轮作答选项供答对/答错反馈上色，
+ * finalStreak 在置 DONE 时新鲜读取（markTodayStudyLog 落账后）——结算页鼓励语用它，
+ * 避免 stats 流快照停留在落账前（当日首轮会显示昨天的连续天数）。
  */
 data class GameState(
     val phase: GamePhase = GamePhase.IDLE,
@@ -45,7 +44,8 @@ data class GameState(
     val streakInRound: Int = 0,
     val answered: Boolean = false,
     val answerWasCorrect: Boolean = false,
-    val picked: String? = null
+    val picked: String? = null,
+    val finalStreak: Int = 0
 )
 
 /**
@@ -59,14 +59,6 @@ data class GameState(
 class GameViewModel(private val poems: PoemRepository, private val progress: ProgressRepository) : ViewModel() {
 
     val all: List<Poem> = poems.loadAll()
-
-    /** 已学汇总（"已学全部"题池口径 = 有进度行的诗） */
-    val summaries: StateFlow<List<ProgressSummary>> = progress.observeAllSummaries()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    /** 统计（今日所学题池口径 + 结算页鼓励语用的连续学习天数） */
-    val stats: StateFlow<HomeStats> = progress.observeStats()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, HomeStats(0, 0, 0, emptySet()))
 
     private val _state = MutableStateFlow(GameState())
     val state: StateFlow<GameState> = _state.asStateFlow()
@@ -130,8 +122,11 @@ class GameViewModel(private val poems: PoemRepository, private val progress: Pro
             val cur = _state.value
             val next = cur.index + 1
             if (next >= cur.questions.size) {
-                progress.markTodayStudyLog()   // 规格 9：一轮完成计入当日 study_log
-                _state.value = cur.copy(phase = GamePhase.DONE)
+                // 规格 9：一轮完成计入当日 study_log；streak 落账后新鲜读取随 DONE 带给结算页
+                // （observeStats 流快照可能停留在落账前，当日首轮会把"连续 1 天"显示成 0）
+                progress.markTodayStudyLog()
+                val streak = progress.observeStats().first().streakDays
+                _state.value = cur.copy(phase = GamePhase.DONE, finalStreak = streak)
             } else {
                 _state.value = cur.copy(index = next, answered = false, answerWasCorrect = false, picked = null)
             }

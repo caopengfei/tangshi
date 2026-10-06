@@ -19,7 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +46,9 @@ import com.rakor.tangshi.ui.theme.T
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+/** 题池不足提示条的停留时长 */
+private const val HINT_DISMISS_MS = 2600L
+
 /**
  * 背诗小游戏 · 玩法选择页（规格 5.5）。
  *
@@ -67,13 +69,14 @@ fun GameSetupScreen(onBack: () -> Unit, onStart: (mode: String, scope: String) -
     val cs = rememberCoroutineScope()
 
     var mode by remember { mutableStateOf(GameViewModel.MODE_FILL) }
+    // 默认"全部"：首启今日池为空会直接拦截（规格 5.5 裁定），见规格注释
     var scope by remember { mutableStateOf(GameViewModel.SCOPE_ALL) }
     var showPoolHint by remember { mutableStateOf(false) }
 
     // 提示条自动消退
     LaunchedEffect(showPoolHint) {
         if (showPoolHint) {
-            delay(2600)
+            delay(HINT_DISMISS_MS)
             showPoolHint = false
         }
     }

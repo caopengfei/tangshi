@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rakor.tangshi.di.AppGraph
 import com.rakor.tangshi.game.QuizGenerator
+import com.rakor.tangshi.ui.components.CardShadow
 import com.rakor.tangshi.ui.components.CreamBackground
 import com.rakor.tangshi.ui.components.FocusablePillButton
 import com.rakor.tangshi.ui.components.KeyHintBar
@@ -116,10 +117,15 @@ fun GameResultScreen(correct: Int, streak: Int, onAgain: () -> Unit, onHome: () 
     }
 }
 
-/** 结算星：达标 Amber+暖影光环，未达标 Idle 无影 */
+/** 结算星：达标 Amber+暖影光环（与全应用焦点投影同色），未达标 Idle 无影 */
 @Composable
 private fun ResultStar(reached: Boolean, size: Int) {
-    Box(Modifier.then(if (reached) Modifier.shadow(10.dp, CircleShape) else Modifier)) {
+    Box(
+        Modifier.then(
+            if (reached) Modifier.shadow(10.dp, CircleShape, ambientColor = CardShadow, spotColor = CardShadow)
+            else Modifier
+        )
+    ) {
         Icon(
             Icons.Filled.Star, null,
             Modifier.size(size.dp),

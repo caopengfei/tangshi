@@ -86,7 +86,6 @@ fun GameQuestionScreen(
     val vm = gameViewModel()
     val g = AppGraph.instance
     val state by vm.state.collectAsState()
-    val stats by vm.stats.collectAsState()
 
     // 进屏开局（题池不足 → NEED_MORE 空态）
     LaunchedEffect(mode, scope) { vm.start(mode, scope) }
@@ -94,9 +93,9 @@ fun GameQuestionScreen(
     // B 返回 = 放弃本轮回玩法选择页
     BackHandler(onBack = onBack)
 
-    // 一轮完成 → 结算（correct 判星与文案；streak=当日连续学习天数，规格 5.7 鼓励语用）
+    // 一轮完成 → 结算（correct 判星与文案；streak=VM 落账后新鲜读取的当日连续学习天数）
     LaunchedEffect(state.phase) {
-        if (state.phase == GamePhase.DONE) onFinished(state.correct, stats.streakDays)
+        if (state.phase == GamePhase.DONE) onFinished(state.correct, state.finalStreak)
     }
 
     // 播放器：进屏创建、离屏释放（听音题用；填空题创建但闲置，开销可忽略）
@@ -179,6 +178,7 @@ fun GameQuestionScreen(
                             val q = (question as Question.Fill).q
                             FillBody(
                                 q = q,
+                                index = state.index,
                                 answered = state.answered,
                                 wasCorrect = state.answerWasCorrect,
                                 picked = state.picked?.firstOrNull(),
@@ -190,6 +190,7 @@ fun GameQuestionScreen(
                             val q = (question as Question.Listen).q
                             ListenBody(
                                 q = q,
+                                index = state.index,
                                 answered = state.answered,
                                 wasCorrect = state.answerWasCorrect,
                                 pickedId = state.picked,
@@ -231,10 +232,12 @@ fun GameQuestionScreen(
 /**
  * A 填空题面：诗全文 + 候选字。非目标行复用共享 PoemLine；目标行由 [BlankLine] 渲染
  * （缺字位换橙色"？"方块且不显示拼音，避免拼音提示答案）。初始焦点落第一枚候选。
+ * 题目切换的焦点复位按 index 键控（data-class 相等的相邻题目也能重新触发）。
  */
 @Composable
 private fun FillBody(
     q: QuizGenerator.FillBlank,
+    index: Int,
     answered: Boolean,
     wasCorrect: Boolean,
     picked: Char?,
@@ -243,7 +246,7 @@ private fun FillBody(
     onAnswer: (Char) -> Unit
 ) {
     val focusRequester = remember { FocusRequester() }
-    LaunchedEffect(q) {
+    LaunchedEffect(index) {
         withFrameNanos { }
         repeat(3) {
             if (runCatching { focusRequester.requestFocus() }.isSuccess) return@LaunchedEffect
@@ -323,10 +326,12 @@ private fun BlankLine(line: Line, charIndex: Int) {
 /**
  * B 听音题面：大播放圆钮（进题自动循环朗读，作答即停；可重听 3 次，用尽置灰）
  * + 提示语 + 诗名选项卡。初始焦点落播放钮；切题重新装载朗读并重置重听次数。
+ * 播放装载/重听次数/焦点复位均按 index 键控（data-class 相等的相邻题目也能重新触发）。
  */
 @Composable
 private fun ListenBody(
     q: QuizGenerator.Listen,
+    index: Int,
     answered: Boolean,
     wasCorrect: Boolean,
     pickedId: String?,
@@ -338,7 +343,7 @@ private fun ListenBody(
     var replaysLeft by remember { mutableStateOf(MAX_REPLAYS) }
 
     // 进题自动播放（循环到作答）；作答即停
-    LaunchedEffect(q) {
+    LaunchedEffect(index) {
         replaysLeft = MAX_REPLAYS
         player.playLineLoop(q.poem.id, q.lineIndex + 1)
     }
@@ -346,7 +351,7 @@ private fun ListenBody(
 
     // 初始焦点落播放钮
     val focusRequester = remember { FocusRequester() }
-    LaunchedEffect(q) {
+    LaunchedEffect(index) {
         withFrameNanos { }
         repeat(3) {
             if (runCatching { focusRequester.requestFocus() }.isSuccess) return@LaunchedEffect
@@ -414,7 +419,7 @@ private fun ListenBody(
     }
 }
 
-/** 56dp 渐变橙播放圆钮；重听次数用尽/已作答置灰（不可聚焦，焦点交还选项） */
+/** 56dp 渐变橙播放圆钮；重听次数用尽/已作答置灰（仍可聚焦但 OK 无效——焦点停留在钮上不跳跃） */
 @Composable
 private fun RoundPlayButton(
     enabled: Boolean,
