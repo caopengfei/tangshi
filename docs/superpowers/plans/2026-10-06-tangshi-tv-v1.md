@@ -1294,6 +1294,13 @@ class QuizGeneratorTest {
         assertEquals("太棒了！", QuizGenerator.message(8, streak = 5))
         assertEquals("再试一次会更棒", QuizGenerator.message(3, streak = 5))
     }
+    @Test fun `填空题答案恰出现一次（多种子回归，防FALLBACK池污染）`() {
+        repeat(100) { seed ->
+            val q = QuizGenerator.fillBlank(poems(), Random(seed))
+            assertEquals(4, q.options.size)
+            assertEquals(1, q.options.count { it == q.answer })
+        }
+    }
 }
 ```
 
@@ -1322,7 +1329,7 @@ object QuizGenerator {
         val ci = candidates.filter { it > 0 }.ifEmpty { candidates }.random(rng)   // 避开首字
         val answer = line.chars[ci].c.first()
         val distractors = (poem.lines.flatMap { it.chars.map { c -> c.c.first() } }.filter { it != answer }
-                + FALLBACK_CHARS).distinct().shuffled(rng).take(3)
+                + FALLBACK_CHARS).filter { it != answer }.distinct().shuffled(rng).take(3)  // 二次过滤: 答案在FALLBACK池中时防重复(评审修复)
         return FillBlank(poem, li, line.text, ci, answer, (distractors + answer).shuffled(rng))
     }
     fun listen(pool: List<Poem>, rng: Random): Listen {
@@ -1564,6 +1571,8 @@ PY
 ### Task 14: 内容扩充 runbook（310 首 + 全量音频）
 
 按以下循环迭代直至全量（每批 20~30 首），每批一个 commit：
+
+0. 首批前一次性加固（评审遗留）：`tools/make_poem.py` 的 `POEMS.write_text(...)` 加 `newline="\n"`（防 CRLF 提交噪音）；`PoemRepositoryTest` 增加 order 唯一性与 id 格式（kebab-case）断言（为 310 首批量导入把门）。
 
 1. 整理该批诗文与创作背景 → 写入 `tools/seed/batch-N.txt`（make_poem.py 格式）；拼音初标用 pypinyin，**人工复核多音字**（对照 `tools/tts_substitutions.json` 与 confirmedDefault；新发现字加白名单或替换表并记 `voice_script.txt`）。
 2. `python tools/make_poem.py tools/seed/batch-N.txt` → 跑 PoemRepositoryTest（对齐校验门）。
