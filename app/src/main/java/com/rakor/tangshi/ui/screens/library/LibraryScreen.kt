@@ -17,6 +17,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -64,12 +66,12 @@ private val GridGap = 12.dp
 private val GridEdgePad = 8.dp
 
 /** 筛选维（规格 5.4）：全部 / 未学习 / 学习中 / 已会背 */
-private enum class LibraryFilter(val label: String) {
+internal enum class LibraryFilter(val label: String) {
     ALL("全部"), NOT_STARTED("未学习"), LEARNING("学习中"), MASTERED("已会背")
 }
 
 /** 纯函数：按筛选维过滤诗列表。未学习 = 无进度行（NOT_STARTED 不落 DB 行） */
-private fun filterPoems(filter: LibraryFilter, poems: List<Poem>, summaries: List<ProgressSummary>): List<Poem> {
+internal fun filterPoems(filter: LibraryFilter, poems: List<Poem>, summaries: List<ProgressSummary>): List<Poem> {
     val byId = summaries.associateBy { it.poemId }
     return when (filter) {
         LibraryFilter.ALL -> poems
@@ -122,7 +124,7 @@ fun LibraryScreen(onPoem: (String) -> Unit) {
     var focusedIndex by remember { mutableStateOf(0) }
 
     val gridState = rememberLazyGridState()
-    val filtered = filterPoems(filter, all, summaries)
+    val filtered = remember(filter, all, summaries) { filterPoems(filter, all, summaries) }
     val summaryById = remember(summaries) { summaries.associateBy { it.poemId } }
 
     // 页码：当前焦点卡所在页 / 总页数（无结果时不显示）
@@ -156,10 +158,10 @@ fun LibraryScreen(onPoem: (String) -> Unit) {
 
     CreamBackground {
         Column(Modifier.fillMaxSize().padding(20.dp)) {
-            // 顶栏：标题 + 计数（右侧无返回按钮，B/返回交系统）
+            // 顶栏：标题 + 计数 | 右侧返回提示（B 走系统返回，无返回按钮）
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "全部诗词",
+                    "全部唐诗",
                     fontSize = 22.sp, letterSpacing = 4.sp,
                     color = T.TextTitle, fontWeight = FontWeight.SemiBold,
                     maxLines = 1
@@ -168,6 +170,12 @@ fun LibraryScreen(onPoem: (String) -> Unit) {
                 Text(
                     "共 ${all.size} 首 · 已学 ${summaries.size} 首",
                     fontSize = 11.sp, color = T.TextMuted, maxLines = 1
+                )
+                Text(
+                    "← 返回",
+                    Modifier.weight(1f),
+                    textAlign = TextAlign.End,
+                    color = T.TextSubtle, fontSize = 13.sp, maxLines = 1
                 )
             }
 
@@ -178,6 +186,7 @@ fun LibraryScreen(onPoem: (String) -> Unit) {
                 LibraryFilter.entries.forEach { f ->
                     FocusablePillButton(
                         f.label,
+                        if (f == LibraryFilter.MASTERED) Icons.Filled.ThumbUp else null,
                         filled = filter == f,
                         onClick = { filter = f },
                         onFocusChange = tone

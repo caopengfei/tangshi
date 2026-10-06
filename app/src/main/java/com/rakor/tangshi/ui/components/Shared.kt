@@ -16,10 +16,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -196,6 +199,7 @@ fun FocusablePillButton(
 /**
  * 状态徽章：NOT_STARTED / LEARNING+percent / MASTERED，贴底居中（位置由外部布局控制）。
  * 状态字符串与 data 层 ProgressStatus 常量对应，此处不 import data 内部类型。
+ * 已会背徽章统一 thumb_up 实心图标（规格 §4），LEARNING/未学习为纯文字。
  */
 @Composable
 fun StatusBadge(status: String, progress: Int) {
@@ -204,13 +208,18 @@ fun StatusBadge(status: String, progress: Int) {
         "LEARNING" -> Triple(T.ChipBg, T.OrangeSoft, "学习中 $progress%")
         else -> Triple(T.Idle, T.TextMuted, "未学习")
     }
-    Text(
-        label,
-        Modifier
-            .background(bg, RoundedCornerShape(10.dp))
-            .padding(horizontal = 10.dp, vertical = 2.dp),
-        color = fg
-    )
+    val container = Modifier
+        .background(bg, RoundedCornerShape(10.dp))
+        .padding(horizontal = 10.dp, vertical = 2.dp)
+    if (status == "MASTERED") {
+        Row(container, verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Filled.ThumbUp, null, Modifier.size(12.dp), tint = fg)
+            Spacer(Modifier.width(3.dp))
+            Text(label, color = fg)
+        }
+    } else {
+        Text(label, container, color = fg)
+    }
 }
 
 /** 底部按键提示条 */
