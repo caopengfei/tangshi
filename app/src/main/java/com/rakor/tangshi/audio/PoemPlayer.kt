@@ -25,6 +25,11 @@ class PoemPlayer(private val exo: ExoPlayer) {
     /** 播放失败（音频缺失等）→ UI 显示一次性提示条，消费后由 UI 复位 */
     val error = MutableStateFlow(false)
 
+    /** LINE_LOOP 激活行号（1-based；0=非循环）。每次装载的 PLAYLIST_CHANGED 与每次循环回绕的
+     *  REPEAT 都会触发 transition，且单项列表下 currentMediaItemIndex 恒为 0，
+     *  回调据此回写 loopLine 而非按索引推，避免把跟读行号覆盖成 1 */
+    private var loopLine = 0
+
     init {
         exo.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(playing: Boolean) {
@@ -32,7 +37,8 @@ class PoemPlayer(private val exo: ExoPlayer) {
             }
 
             override fun onMediaItemTransition(item: MediaItem?, reason: Int) {
-                if (exo.currentMediaItemIndex >= 0) currentLine.value = exo.currentMediaItemIndex + 1
+                currentLine.value = if (loopLine > 0) loopLine
+                else exo.currentMediaItemIndex.takeIf { it >= 0 }?.plus(1) ?: 0
             }
 
             override fun onPlayerError(error: PlaybackException) {
@@ -44,11 +50,10 @@ class PoemPlayer(private val exo: ExoPlayer) {
 
     /** 整首连读：从 startLine（1-based）起顺序播放全诗，播完即停 */
     fun playContinuous(poemId: String, lineCount: Int, startLine: Int = 1, speed: Float = 1f) {
+        loopLine = 0
         val startIndex = (startLine - 1).coerceIn(0, lineCount - 1)
         exo.setMediaItems((1..lineCount).map { lineItem(poemId, it) }, startIndex, 0)
-        // 显式 preset 起始句：首句起播不触发 onMediaItemTransition（仅后续句切换触发）。
-        // 不在 onIsPlayingChanged 里同步 currentLine——LINE_LOOP 是单项列表，
-        // currentMediaItemIndex 恒为 0，起播同步会把跟读行号覆盖成 1
+        // 显式 preset 起始句：首句起播不触发 onMediaItemTransition（仅后续句切换才反映索引）
         currentLine.value = startIndex + 1
         exo.playbackParameters = PlaybackParameters(speed)
         exo.repeatMode = Player.REPEAT_MODE_OFF
@@ -58,6 +63,7 @@ class PoemPlayer(private val exo: ExoPlayer) {
 
     /** 单句循环：只装载 line 一句并单曲循环 */
     fun playLineLoop(poemId: String, line: Int, speed: Float = 1f) {
+        loopLine = line
         exo.setMediaItems(listOf(lineItem(poemId, line)))
         exo.playbackParameters = PlaybackParameters(speed)
         exo.repeatMode = Player.REPEAT_MODE_ONE
@@ -70,7 +76,10 @@ class PoemPlayer(private val exo: ExoPlayer) {
 
     fun pause() { exo.pause() }
 
-    fun release() { exo.release() }
+    fun release() {
+        loopLine = 0
+        exo.release()
+    }
 
     private fun lineItem(poemId: String, line: Int) = MediaItem.fromUri("asset:///audio/$poemId/line$line.opus")
 }
