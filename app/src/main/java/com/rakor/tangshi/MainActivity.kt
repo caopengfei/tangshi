@@ -8,6 +8,6 @@ import com.rakor.tangshi.ui.theme.TangshiTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { TangshiTheme { androidx.compose.material3.Text("唐诗三百首") } }
+        setContent { TangshiTheme { AppNavHost() } }
     }
 }

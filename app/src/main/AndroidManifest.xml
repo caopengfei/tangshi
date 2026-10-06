@@ -3,6 +3,7 @@
     <uses-feature android:name="android.software.leanback" android:required="true" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <application
+        android:name=".TangshiApp"
         android:label="唐诗三百首"
         android:icon="@mipmap/ic_launcher"
         android:theme="@style/Theme.Tangshi"

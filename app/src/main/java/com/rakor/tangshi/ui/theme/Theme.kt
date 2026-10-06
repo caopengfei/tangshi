@@ -18,6 +18,7 @@ object T {
     val TextTitle = Color(0xFF6B4F3A); val TextBody = Color(0xFF7A6450); val TextSubtle = Color(0xFFC0987E)
     val TextMuted = Color(0xFFC0A090); val Idle = Color(0xFFF5EFE6)
     val Amber = Color(0xFFFFB347)
+    val ProgressBarBg = Color(0xFFF7ECDD)
 }
 
 private val scheme = darkColorScheme(  // TV 深色环境；实际颜色全走 T 对象
