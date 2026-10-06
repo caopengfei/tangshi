@@ -25,6 +25,8 @@ class PoemRepositoryTest {
             p.lines.forEach { line ->
                 assertEquals("《${p.title}》『${line.text}』拼音数不符",
                     hanChars(line.text).size, line.chars.size)
+                assertEquals("《${p.title}》『${line.text}』字符错位",
+                    hanChars(line.text), line.chars.map { it.c.first() })
                 line.chars.forEach { cd ->
                     assertEquals(1, cd.c.length)
                     assertTrue(cd.py.isNotBlank())
