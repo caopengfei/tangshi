@@ -19,6 +19,8 @@ object T {
     val TextTitle = Color(0xFF6B4F3A); val TextBody = Color(0xFF7A6450); val TextSubtle = Color(0xFFC0987E)
     val TextMuted = Color(0xFFC0A090); val Idle = Color(0xFFF5EFE6)
     val Amber = Color(0xFFFFB347)
+    val Correct = Color(0xFF66BB6A)   // 答题反馈绿（背诗小游戏答对高亮）
+    val Wrong = Color(0xFFE57373)     // 答题反馈红（背诗小游戏答错描边）
     val ProgressBarBg = Color(0xFFF7ECDD)
 }
 

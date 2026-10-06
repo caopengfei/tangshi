@@ -13,9 +13,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -40,7 +38,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -48,19 +45,18 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.exoplayer.ExoPlayer
 import com.rakor.tangshi.audio.PoemPlayer
-import com.rakor.tangshi.data.model.Line
 import com.rakor.tangshi.di.AppGraph
 import com.rakor.tangshi.ui.components.CreamBackground
 import com.rakor.tangshi.ui.components.FocusCard
 import com.rakor.tangshi.ui.components.FocusablePillButton
 import com.rakor.tangshi.ui.components.KeyHintBar
+import com.rakor.tangshi.ui.components.PoemLine
 import com.rakor.tangshi.ui.theme.T
 import kotlinx.coroutines.launch
 
@@ -366,42 +362,5 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                 ) { Text("再听听") }
             }
         )
-    }
-}
-
-/**
- * 单句诗行：逐字拼音（上小拼音下大字）；当前句 ChipBg 高亮 + "◀ 正在读" 指示；
- * cursor=true 时行首绘 4dp 橙色圆点，作为连读模式下"开始位置"光标（调用方保证与 highlighted 互斥）。
- * 楷体留待 Task 13 经 font 注入。
- */
-@Composable
-fun PoemLine(
-    line: Line,
-    highlighted: Boolean,
-    modifier: Modifier = Modifier,
-    font: FontFamily = FontFamily.Default,
-    cursor: Boolean = false
-) {
-    Row(
-        modifier
-            .background(if (highlighted) T.ChipBg else Color.Transparent, RoundedCornerShape(12.dp))
-            .padding(horizontal = 12.dp, vertical = 2.dp),
-        verticalAlignment = Alignment.Bottom
-    ) {
-        if (highlighted) Text("◀ 正在读", color = T.Orange, fontSize = 12.sp)
-        if (cursor) {
-            Box(
-                Modifier
-                    .padding(start = 2.dp, end = 6.dp, bottom = 11.dp)
-                    .size(4.dp)
-                    .background(T.Orange, CircleShape)
-            )
-        }
-        line.chars.forEach { cd ->
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(3.dp)) {
-                Text(cd.py, fontSize = 11.sp, color = T.OrangeSoft)
-                Text(cd.c, fontSize = 24.sp, color = T.TextTitle, fontFamily = font)
-            }
-        }
     }
 }

@@ -1,0 +1,485 @@
+package com.rakor.tangshi.ui.screens.game
+
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.media3.exoplayer.ExoPlayer
+import com.rakor.tangshi.audio.PoemPlayer
+import com.rakor.tangshi.data.model.Line
+import com.rakor.tangshi.di.AppGraph
+import com.rakor.tangshi.game.QuizGenerator
+import com.rakor.tangshi.ui.components.CardShadow
+import com.rakor.tangshi.ui.components.CreamBackground
+import com.rakor.tangshi.ui.components.FocusScale
+import com.rakor.tangshi.ui.components.FocusablePillButton
+import com.rakor.tangshi.ui.components.KeyHintBar
+import com.rakor.tangshi.ui.components.PoemLine
+import com.rakor.tangshi.ui.components.tvFocusable
+import com.rakor.tangshi.ui.theme.T
+
+/** 听音题可重听次数（自动播放一次不计入） */
+private const val MAX_REPLAYS = 3
+
+/** 选项块作答反馈 */
+private enum class Feedback { NORMAL, CORRECT, WRONG }
+
+/**
+ * 背诗小游戏 · 题面页（规格 5.6）。mode/scope 从路由参数来。
+ * - A 填空补诗：诗全文（目标行缺字为橙色"？"方块，该字拼音不显示以免提示答案）+ 4 枚候选字卡；
+ * - B 听音辨诗：进题自动循环朗读目标句（可重听 3 次）+ 诗名选项卡。
+ *
+ * 播放器生命周期：进屏创建 PoemPlayer、离屏 release；每题装载 playLineLoop 循环到作答，
+ * 作答即 pause，切题重新装载；B 键/顶栏 ← 返回 = 放弃本轮回玩法选择页（BackHandler）。
+ * 答题判定与推进在 [GameViewModel]：作答后 800ms 反馈（答对块变绿/答错块标红）自动进下一题，
+ * 一轮完成时置 DONE 并由本屏导航结算（携带答对数与当日连续学习天数）。
+ */
+@Composable
+fun GameQuestionScreen(
+    mode: String,
+    scope: String,
+    onBack: () -> Unit,
+    onFinished: (correct: Int, streakDays: Int) -> Unit
+) {
+    val vm = gameViewModel()
+    val g = AppGraph.instance
+    val state by vm.state.collectAsState()
+    val stats by vm.stats.collectAsState()
+
+    // 进屏开局（题池不足 → NEED_MORE 空态）
+    LaunchedEffect(mode, scope) { vm.start(mode, scope) }
+
+    // B 返回 = 放弃本轮回玩法选择页
+    BackHandler(onBack = onBack)
+
+    // 一轮完成 → 结算（correct 判星与文案；streak=当日连续学习天数，规格 5.7 鼓励语用）
+    LaunchedEffect(state.phase) {
+        if (state.phase == GamePhase.DONE) onFinished(state.correct, stats.streakDays)
+    }
+
+    // 播放器：进屏创建、离屏释放（听音题用；填空题创建但闲置，开销可忽略）
+    val context = LocalContext.current
+    val player = remember { PoemPlayer(ExoPlayer.Builder(context).build()) }
+    DisposableEffect(Unit) { onDispose { player.release() } }
+    var showAudioError by remember { mutableStateOf(false) }
+    LaunchedEffect(player) {
+        player.error.collect { failed ->
+            if (failed) {
+                showAudioError = true
+                player.error.value = false
+            }
+        }
+    }
+
+    // 进屏自动落焦的那次不响提示音（Task 6 模式）
+    val firstFocus = remember { mutableStateOf(true) }
+    val tone: (Boolean) -> Unit = { focused ->
+        if (focused) {
+            if (firstFocus.value) firstFocus.value = false else g.keyTone.focusMove()
+        }
+    }
+
+    CreamBackground {
+        Column(
+            Modifier.fillMaxSize().padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            when (state.phase) {
+                GamePhase.IDLE -> Box(Modifier.weight(1f).fillMaxWidth())   // 开局生成中（一帧内）
+
+                GamePhase.NEED_MORE -> {
+                    // 题池不足兜底空态（正常路径已被玩法选择页拦截）
+                    Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        val backFocus = remember { FocusRequester() }
+                        LaunchedEffect(Unit) {
+                            withFrameNanos { }
+                            backFocus.requestFocus()
+                        }
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Text(
+                                "先去学几首诗再来吧！",
+                                color = T.TextTitle, fontSize = 20.sp,
+                                letterSpacing = 2.sp, fontWeight = FontWeight.SemiBold
+                            )
+                            FocusablePillButton(
+                                "返回", filled = false,
+                                onClick = onBack, onFocusChange = tone,
+                                modifier = Modifier.focusRequester(backFocus)
+                            )
+                        }
+                    }
+                }
+
+                GamePhase.PLAYING, GamePhase.DONE -> {
+                    // 顶栏：题型·第 X 题 | 连对 | 返回提示
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            (if (state.mode == GameViewModel.MODE_FILL) "填空补诗" else "听音辨诗") +
+                                " · 第 ${state.index + 1} 题",
+                            Modifier.weight(1f),
+                            fontSize = 18.sp, letterSpacing = 3.sp,
+                            color = T.TextTitle, fontWeight = FontWeight.SemiBold,
+                            maxLines = 1
+                        )
+                        Icon(Icons.Filled.ThumbUp, null, Modifier.size(14.dp), tint = T.Orange)
+                        Spacer(Modifier.width(4.dp))
+                        Text("连对 ${state.streakInRound} 题", color = T.TextSubtle, fontSize = 12.sp)
+                        Spacer(Modifier.width(16.dp))
+                        Text("← 返回", color = T.TextSubtle, fontSize = 13.sp, maxLines = 1)
+                    }
+
+                    val question = state.questions.getOrNull(state.index)
+                    if (question != null) {
+                        if (state.mode == GameViewModel.MODE_FILL) {
+                            val q = (question as Question.Fill).q
+                            FillBody(
+                                q = q,
+                                answered = state.answered,
+                                wasCorrect = state.answerWasCorrect,
+                                picked = state.picked?.firstOrNull(),
+                                modifier = Modifier.weight(1f),
+                                tone = tone,
+                                onAnswer = vm::answerFill
+                            )
+                        } else {
+                            val q = (question as Question.Listen).q
+                            ListenBody(
+                                q = q,
+                                answered = state.answered,
+                                wasCorrect = state.answerWasCorrect,
+                                pickedId = state.picked,
+                                player = player,
+                                modifier = Modifier.weight(1f),
+                                tone = tone,
+                                onAnswer = vm::answerListen
+                            )
+                        }
+                    }
+                }
+            }
+
+            // 底部按键提示（按题型区分）
+            when (state.phase) {
+                GamePhase.PLAYING, GamePhase.DONE -> KeyHintBar(
+                    if (state.mode == GameViewModel.MODE_FILL) "◀ ▶ 选择　OK 确认" else "OK 播放　◀ ▶ 选诗"
+                )
+                GamePhase.NEED_MORE -> KeyHintBar("OK 返回")
+                GamePhase.IDLE -> {}
+            }
+        }
+
+        // 播放失败提示条（覆盖顶部；语音包缺失时听音题无法作答，可返回放弃本轮）
+        if (showAudioError) {
+            Text(
+                "音频加载失败，请检查语音包",
+                Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 58.dp)
+                    .background(T.ChipBg, RoundedCornerShape(10.dp))
+                    .padding(horizontal = 14.dp, vertical = 6.dp),
+                color = T.Orange, fontSize = 13.sp
+            )
+        }
+    }
+}
+
+/**
+ * A 填空题面：诗全文 + 候选字。非目标行复用共享 PoemLine；目标行由 [BlankLine] 渲染
+ * （缺字位换橙色"？"方块且不显示拼音，避免拼音提示答案）。初始焦点落第一枚候选。
+ */
+@Composable
+private fun FillBody(
+    q: QuizGenerator.FillBlank,
+    answered: Boolean,
+    wasCorrect: Boolean,
+    picked: Char?,
+    modifier: Modifier = Modifier,
+    tone: (Boolean) -> Unit,
+    onAnswer: (Char) -> Unit
+) {
+    val focusRequester = remember { FocusRequester() }
+    LaunchedEffect(q) {
+        withFrameNanos { }
+        repeat(3) {
+            if (runCatching { focusRequester.requestFocus() }.isSuccess) return@LaunchedEffect
+            withFrameNanos { }
+        }
+    }
+
+    Column(
+        modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        // 诗全文（重量占位，长诗也放得下——内置诗库最长 4 句）
+        Column(
+            Modifier.weight(1f).fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            q.poem.lines.forEachIndexed { i, line ->
+                if (i == q.lineIndex) BlankLine(line, q.charIndex) else PoemLine(line, highlighted = false)
+            }
+        }
+
+        // 候选字 4 枚（答对变绿 / 答错标红，800ms 后由 VM 推进下一题）
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally)
+        ) {
+            q.options.forEachIndexed { j, c ->
+                val feedback = when {
+                    answered && wasCorrect && c == picked -> Feedback.CORRECT
+                    answered && !wasCorrect && c == picked -> Feedback.WRONG
+                    else -> Feedback.NORMAL
+                }
+                OptionBlock(
+                    feedback = feedback,
+                    modifier = Modifier.then(if (j == 0) Modifier.focusRequester(focusRequester) else Modifier),
+                    onClick = { if (!answered) onAnswer(c) },
+                    onFocusChange = tone
+                ) {
+                    Text(
+                        c.toString(),
+                        Modifier.padding(horizontal = 18.dp, vertical = 6.dp),
+                        fontSize = 22.sp, letterSpacing = 2.sp,
+                        color = if (feedback == Feedback.CORRECT) Color.White else T.TextTitle,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** 目标行：第 charIndex 字替换为橙色"？"方块（尺寸与字同大）；该字拼音不显示，不提示答案 */
+@Composable
+private fun BlankLine(line: Line, charIndex: Int) {
+    Row(verticalAlignment = Alignment.Bottom) {
+        line.chars.forEachIndexed { j, cd ->
+            Column(Modifier.padding(3.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                if (j == charIndex) {
+                    Text(" ", fontSize = 11.sp)   // 拼音行占位，保持与其余字对齐
+                    Box(
+                        Modifier
+                            .background(T.Orange, RoundedCornerShape(8.dp))
+                            .padding(horizontal = 5.dp, vertical = 1.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("？", fontSize = 24.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
+                    }
+                } else {
+                    Text(cd.py, fontSize = 11.sp, color = T.OrangeSoft)
+                    Text(cd.c, fontSize = 24.sp, color = T.TextTitle)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * B 听音题面：大播放圆钮（进题自动循环朗读，作答即停；可重听 3 次，用尽置灰）
+ * + 提示语 + 诗名选项卡。初始焦点落播放钮；切题重新装载朗读并重置重听次数。
+ */
+@Composable
+private fun ListenBody(
+    q: QuizGenerator.Listen,
+    answered: Boolean,
+    wasCorrect: Boolean,
+    pickedId: String?,
+    player: PoemPlayer,
+    modifier: Modifier = Modifier,
+    tone: (Boolean) -> Unit,
+    onAnswer: (String) -> Unit
+) {
+    var replaysLeft by remember { mutableStateOf(MAX_REPLAYS) }
+
+    // 进题自动播放（循环到作答）；作答即停
+    LaunchedEffect(q) {
+        replaysLeft = MAX_REPLAYS
+        player.playLineLoop(q.poem.id, q.lineIndex + 1)
+    }
+    LaunchedEffect(answered) { if (answered) player.pause() }
+
+    // 初始焦点落播放钮
+    val focusRequester = remember { FocusRequester() }
+    LaunchedEffect(q) {
+        withFrameNanos { }
+        repeat(3) {
+            if (runCatching { focusRequester.requestFocus() }.isSuccess) return@LaunchedEffect
+            withFrameNanos { }
+        }
+    }
+
+    fun replay() {
+        if (answered || replaysLeft <= 0) return
+        replaysLeft--
+        player.playLineLoop(q.poem.id, q.lineIndex + 1)
+    }
+
+    Column(
+        modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(Modifier.height(6.dp))
+        Text("听一听，这是哪首诗？", color = T.TextBody, fontSize = 14.sp)
+
+        RoundPlayButton(
+            enabled = replaysLeft > 0 && !answered,
+            modifier = Modifier.focusRequester(focusRequester),
+            onClick = ::replay,
+            onFocusChange = tone
+        )
+        Text(
+            if (replaysLeft > 0) "可重听 $replaysLeft 次" else "重听次数已用完",
+            color = T.TextSubtle, fontSize = 12.sp
+        )
+
+        // 诗名选项（竖排；答对变绿 / 答错标红，800ms 后由 VM 推进下一题）
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            q.options.forEach { poem ->
+                val feedback = when {
+                    answered && wasCorrect && poem.id == pickedId -> Feedback.CORRECT
+                    answered && !wasCorrect && poem.id == pickedId -> Feedback.WRONG
+                    else -> Feedback.NORMAL
+                }
+                OptionBlock(
+                    feedback = feedback,
+                    onClick = { if (!answered) onAnswer(poem.id) },
+                    onFocusChange = tone
+                ) {
+                    Text(
+                        poem.title,
+                        Modifier.padding(start = 20.dp, top = 8.dp, bottom = 8.dp),
+                        fontSize = 18.sp, letterSpacing = 2.sp,
+                        color = if (feedback == Feedback.CORRECT) Color.White else T.TextTitle,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        poem.poet,
+                        Modifier.padding(end = 20.dp),
+                        fontSize = 11.sp,
+                        color = if (feedback == Feedback.CORRECT) Color.White.copy(alpha = 0.85f) else T.TextMuted,
+                        maxLines = 1
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** 56dp 渐变橙播放圆钮；重听次数用尽/已作答置灰（不可聚焦，焦点交还选项） */
+@Composable
+private fun RoundPlayButton(
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    onFocusChange: (Boolean) -> Unit = {}
+) {
+    var focused by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(if (focused) FocusScale else 1f, label = "playBtnScale")
+    Box(
+        modifier
+            .onFocusChanged {
+                focused = it.isFocused
+                onFocusChange(it.isFocused)
+            }
+            .scale(scale)
+            .shadow(if (focused) 14.dp else 6.dp, CircleShape, ambientColor = CardShadow, spotColor = CardShadow)
+            .background(
+                if (enabled) Brush.linearGradient(listOf(T.OrangeLight, T.Orange)) else SolidColor(T.Idle),
+                CircleShape
+            )
+            .border(if (focused) 3.dp else 0.dp, T.OrangeSoft, CircleShape)
+            .tvFocusable(if (enabled) onClick else null)
+            .size(56.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            Icons.Filled.VolumeUp, null,
+            Modifier.size(28.dp),
+            tint = if (enabled) Color.White else T.TextMuted
+        )
+    }
+}
+
+/**
+ * 选项块（候选字/诗名卡共用）：corner 12 自管焦点视觉（聚焦描边+放大，暖影同 Shared），
+ * 作答反馈：CORRECT=绿底白字、WRONG=红描边。content 为 RowScope（块内横向排布）。
+ */
+@Composable
+private fun OptionBlock(
+    feedback: Feedback,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    onFocusChange: (Boolean) -> Unit = {},
+    content: @Composable RowScope.() -> Unit
+) {
+    var focused by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(if (focused) FocusScale else 1f, label = "optionBlockScale")
+    val shape = RoundedCornerShape(12.dp)
+    Row(
+        modifier
+            .onFocusChanged {
+                focused = it.isFocused
+                onFocusChange(it.isFocused)
+            }
+            .scale(scale)
+            .shadow(if (focused) 14.dp else 6.dp, shape, ambientColor = CardShadow, spotColor = CardShadow)
+            .background(if (feedback == Feedback.CORRECT) T.Correct else T.Card, shape)
+            .border(
+                if (feedback == Feedback.WRONG) 3.dp else if (focused) 3.dp else 0.dp,
+                if (feedback == Feedback.WRONG) T.Wrong else T.OrangeSoft,
+                shape
+            )
+            .tvFocusable(onClick),
+        verticalAlignment = Alignment.CenterVertically,
+        content = content
+    )
+}

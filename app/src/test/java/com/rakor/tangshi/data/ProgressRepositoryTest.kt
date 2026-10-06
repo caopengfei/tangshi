@@ -84,4 +84,11 @@ class ProgressRepositoryTest {
         assertEquals(1, ProgressRepository.streakDays(setOf(today.toString(), today.minusDays(2).toString()), today))
         assertEquals(0, ProgressRepository.streakDays(emptySet(), today))
     }
+    @Test fun `游戏完成计入当日study_log`() = runTest {
+        // 规格 9：小游戏一轮完成只记 study_log（连续天数可延续），不产生任何诗的进度行
+        assertEquals(0, repo.observeStats().first().streakDays)
+        repo.markTodayStudyLog()
+        assertEquals(1, repo.observeStats().first().streakDays)
+        assertEquals(0, repo.observeAllSummaries().first().size)
+    }
 }

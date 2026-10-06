@@ -77,6 +77,9 @@ class ProgressRepository(private val db: PoemDatabase, private val lineCountOf: 
         dao.observeAll().first().filter { sameDay(it.lastPlayedAt) }.map { it.poemId }.toSet()
     suspend fun wipeAll() { dao.clearProgress(); dao.clearLog() }
 
+    /** 规格 9：背诗小游戏一轮完成计入当日 study_log（poemsTouched +1，不影响任何诗的进度/状态） */
+    suspend fun markTodayStudyLog() = touchToday()
+
     private fun sameDay(epochMs: Long): Boolean =
         Instant.ofEpochMilli(epochMs).atZone(ZoneId.systemDefault()).toLocalDate() == LocalDate.now()
 
