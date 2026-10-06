@@ -29,11 +29,6 @@ class PoemPlayer(private val exo: ExoPlayer) {
         exo.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(playing: Boolean) {
                 isPlaying.value = playing
-                // 兜底：setMediaItems 指定的起始句起播不一定触发 onMediaItemTransition，
-                // 起播时按当前项同步一次，保证 CONTINUOUS 从任意 startLine 起第一句也高亮/记进度
-                if (playing && exo.currentMediaItemIndex >= 0) {
-                    currentLine.value = exo.currentMediaItemIndex + 1
-                }
             }
 
             override fun onMediaItemTransition(item: MediaItem?, reason: Int) {
@@ -49,7 +44,12 @@ class PoemPlayer(private val exo: ExoPlayer) {
 
     /** 整首连读：从 startLine（1-based）起顺序播放全诗，播完即停 */
     fun playContinuous(poemId: String, lineCount: Int, startLine: Int = 1, speed: Float = 1f) {
-        exo.setMediaItems((1..lineCount).map { lineItem(poemId, it) }, (startLine - 1).coerceIn(0, lineCount - 1), 0)
+        val startIndex = (startLine - 1).coerceIn(0, lineCount - 1)
+        exo.setMediaItems((1..lineCount).map { lineItem(poemId, it) }, startIndex, 0)
+        // 显式 preset 起始句：首句起播不触发 onMediaItemTransition（仅后续句切换触发）。
+        // 不在 onIsPlayingChanged 里同步 currentLine——LINE_LOOP 是单项列表，
+        // currentMediaItemIndex 恒为 0，起播同步会把跟读行号覆盖成 1
+        currentLine.value = startIndex + 1
         exo.playbackParameters = PlaybackParameters(speed)
         exo.repeatMode = Player.REPEAT_MODE_OFF
         exo.prepare()
