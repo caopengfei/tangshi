@@ -34,9 +34,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
@@ -115,12 +117,15 @@ private suspend fun requestFocusWhenReady(requester: FocusRequester) {
  * - 关键字框 OK → keyboardActive=true（键盘卡描边高亮），焦点移到键盘首键 A；
  *   焦点自然移出键盘区（onFocusChanged hasFocus=false）即自动退激活态；
  * - 键盘"搜索"键 OK / 键盘激活态按 B → 收起键盘（退高亮），焦点回结果列表首行（空结果回筛选行）；
- * - "诗人"钮 OK → poetPickerOpen 浮层，焦点进浮层首项"全部诗人"；OK 选中后焦点回"诗人"钮；
+ * - "诗人"钮 OK → poetPickerOpen 浮层，焦点进浮层首项"全部诗人"；浮层白卡 focusProperties.exit
+ *   做焦点陷阱（任何向外移动弹回首项），遮罩下的背景焦点全部不可达；OK 选中后焦点回"诗人"钮；
  * - B 键三层语义：诗人浮层 > 键盘激活态 > 系统返回（退出本屏回首页）。
  *
  * 实时过滤：keyword/poetFilter 变化即重算 results（VM 持拼音缓存，matches 四参重载复用，
  * 避免每次按键重复拼接 310 首全拼）。
  */
+// 浮层焦点陷阱用 focusProperties.exit（ui 1.7 仍标 @ExperimentalComposeUiApi，行为已稳定）
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SearchScreen(onPoem: (String) -> Unit) {
     val vm = searchViewModel()
@@ -304,13 +309,21 @@ fun SearchScreen(onPoem: (String) -> Unit) {
             KeyHintBar("◀ ▲▼▶ 选择　OK 确认　B 返回", "共找到 ${results.size} 首")
         }
 
-        // 诗人浮层：半透明遮罩 + 居中白卡；首项"全部诗人"
+        // 诗人浮层：半透明遮罩 + 居中白卡；首项"全部诗人"。
+        // 焦点陷阱：白卡上 focusProperties.exit 把任何向外移动弹回首项，
+        // 杜绝 D-pad 焦点逃逸到遮罩下的筛选行/结果列表/键盘（遮罩非焦点边界）。
         if (poetPickerOpen) {
             Box(
                 Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.45f)),
                 contentAlignment = Alignment.Center
             ) {
-                FocusCard(Modifier.width(600.dp), focused = false, corner = 20) {
+                FocusCard(
+                    Modifier
+                        .width(600.dp)
+                        .focusProperties { exit = { pickerFirstFocus } },
+                    focused = false,
+                    corner = 20
+                ) {
                     Column(
                         Modifier.padding(24.dp),
                         verticalArrangement = Arrangement.spacedBy(14.dp)
