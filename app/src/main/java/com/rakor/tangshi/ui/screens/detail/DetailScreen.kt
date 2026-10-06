@@ -71,9 +71,10 @@ import kotlinx.coroutines.launch
  *
  * 模式语义（状态互斥，模式总以最后按下的按钮为准，装载即整列表替换）：
  * - 朗读（CONTINUOUS）：从 selected 句起顺序播放全诗，REPEAT_MODE_OFF，高亮随实际播放句走；
+ *   家长设置"跟读模式=逐句暂停"（默认）时每句播完自动暂停在下一句开始前，OK 继续下一句；
  * - 逐句跟读（LINE_LOOP）：循环播放 selected 句，REPEAT_MODE_ONE，高亮=选中句，
  *   此时 ◀▶ 即时切换循环句（边移动边读）；连读下 ◀▶ 只移动"从哪句开始"的光标，不打断播放。
- * 两种模式下暂停都不清除高亮。
+ * 两种模式下暂停都不清除高亮。播放倍率取家长设置（默认 1.0，作用在音频 0.85 生成基准之上）。
  */
 @Composable
 fun DetailScreen(poemId: String, onBack: () -> Unit) {
@@ -145,12 +146,17 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
         }
     }
 
-    // 按当前模式从 selected 句装载播放（模式切换即整列表替换，见类注释）
+    // 按当前模式从 selected 句装载播放（模式切换即整列表替换，见类注释）；
+    // 语速/跟读模式在启动时读 AppGraph 内存缓存（家长设置，AppGraph.startCollecting 常驻收集）
     fun startWithCurrentSelection() {
         started = true
         when (mode) {
-            PoemPlayer.Mode.CONTINUOUS -> player.playContinuous(poemId, lineCount, selected + 1)
-            PoemPlayer.Mode.LINE_LOOP -> player.playLineLoop(poemId, selected + 1)
+            PoemPlayer.Mode.CONTINUOUS -> player.playContinuous(
+                poemId, lineCount, selected + 1,
+                speed = g.speedMultiplier,
+                autoPauseBetweenLines = g.lineByLine
+            )
+            PoemPlayer.Mode.LINE_LOOP -> player.playLineLoop(poemId, selected + 1, speed = g.speedMultiplier)
         }
     }
 
@@ -160,7 +166,7 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
         if (next == selected) return
         selected = next
         // 不判 started：mode==LINE_LOOP 蕴含 started（模式只能经"逐句跟读"按钮进入，按钮同时置 started）
-        if (mode == PoemPlayer.Mode.LINE_LOOP) player.playLineLoop(poemId, selected + 1)
+        if (mode == PoemPlayer.Mode.LINE_LOOP) player.playLineLoop(poemId, selected + 1, speed = g.speedMultiplier)
     }
 
     // OK（诗行区聚焦时）：未发起过播放 → 按当前模式从 selected 句开始；否则播放/暂停

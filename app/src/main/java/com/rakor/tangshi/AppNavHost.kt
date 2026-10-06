@@ -1,17 +1,11 @@
 package com.rakor.tangshi
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.rakor.tangshi.ui.components.CreamBackground
+import androidx.compose.runtime.Composable
 import com.rakor.tangshi.ui.screens.detail.DetailScreen
 import com.rakor.tangshi.ui.screens.game.GameQuestionScreen
 import com.rakor.tangshi.ui.screens.game.GameResultScreen
@@ -20,7 +14,7 @@ import com.rakor.tangshi.ui.screens.game.GameViewModel
 import com.rakor.tangshi.ui.screens.home.HomeScreen
 import com.rakor.tangshi.ui.screens.library.LibraryScreen
 import com.rakor.tangshi.ui.screens.search.SearchScreen
-import com.rakor.tangshi.ui.theme.T
+import com.rakor.tangshi.ui.screens.settings.SettingsScreen
 
 /** 路由表（规格第 6 节）：poem/game/gameResult 带参数，Routes.poem(id)/game(mode,scope)/
  *  gameResult(correct,streak,mode,scope) 生成实际地址（query 参数在导航层显式声明默认值） */
@@ -109,16 +103,6 @@ fun AppNavHost() {
                 onHome = { nav.popBackStack(Routes.HOME, false) }
             )
         }
-        composable(Routes.SETTINGS) { Placeholder("家长设置") }     // Task 11
-    }
-}
-
-/** 未实现屏幕的占位（Task 7-11 逐个替换） */
-@Composable
-private fun Placeholder(title: String) {
-    CreamBackground {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(title, color = T.TextTitle)
-        }
+        composable(Routes.SETTINGS) { SettingsScreen() }
     }
 }
