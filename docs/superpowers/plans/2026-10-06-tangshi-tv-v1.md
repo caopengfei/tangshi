@@ -1388,7 +1388,7 @@ class SettingsRepository(private val context: Context) {
 }
 ```
 
-- [ ] **Step 2: SettingsScreen**（规格 5.8：双列卡片[语速 慢0.9/正常1.0/快1.15、跟读模式逐句暂停✓/连续、提示音开✓/关、清除进度→对话框二次确认→wipeAll→回首页]、底栏"关于：版本 1.0 · 唐诗数据来源说明"）。AppGraph.keyTone 的 enabled 改为 `runBlocking { settings.first().keyTone }` 的缓存读（KeyTonePlayer 调用在主线程，用内存缓存字段 + Flow collect 更新实现，禁 runBlocking——落地时 AppGraph 持有 `@Volatile var keyToneEnabled` 并在 Application 里启动协程收集 settings 更新）。
+- [ ] **Step 2: SettingsScreen**（规格 5.8：双列卡片[语速 慢0.9/正常1.0/快1.15、跟读模式逐句暂停✓/连续、提示音开✓/关、清除进度→对话框二次确认→wipeAll]、底栏"关于：版本 1.0 · 唐诗数据来源说明"）。AppGraph.keyTone 的 enabled 改为 `runBlocking { settings.first().keyTone }` 的缓存读（KeyTonePlayer 调用在主线程，用内存缓存字段 + Flow collect 更新实现，禁 runBlocking——落地时 AppGraph 持有 `@Volatile var keyToneEnabled` 并在 Application 里启动协程收集 settings 更新）。**执行裁定（2026-10-06 评审）**：清除进度后**留在本页**显示"已清除全部学习进度"提示条（2.6s 消失），不回首页——与 GameSetupScreen 提示条模式一致。
 - [ ] **Step 3: 冒烟 + Commit** —— `git add -A && git commit -m "feat: 家长设置（语速倍率/跟读模式/提示音/清除进度二次确认）"`
 
 ---
