@@ -1,8 +1,54 @@
 唐诗三百首 语音生成对照稿
 ==========================
 A 节 · 逐句对照稿（诗 id / 行号 / 显示文本 / TTS 输入文本——替换后）
-  （控制者生成时回填；当前为空）
+  jing-ye-si L1: 床前明月光，
+  jing-ye-si L2: 疑是地上霜。
+  jing-ye-si L3: 举头望明月，
+  jing-ye-si L4: 低头思故乡。
+  yong-e L1: 鹅，鹅，鹅，
+  yong-e L2: 曲项向天歌。
+  yong-e L3: 白毛浮绿水，
+  yong-e L4: 红掌拨清波。
+  chun-xiao L1: 春眠不觉晓，
+  chun-xiao L2: 处处闻啼鸟。
+  chun-xiao L3: 夜来风雨声，
+  chun-xiao L4: 花落知多少。
+  min-nong L1: 锄禾日当午，
+  min-nong L2: 汗滴禾下土。
+  min-nong L3: 谁知盘中餐，
+  min-nong L4: 粒粒皆辛苦。
+  deng-que-lou L1: 白日依山尽，
+  deng-que-lou L2: 黄河入海流。
+  deng-que-lou L3: 欲穷千里目，
+  deng-que-lou L4: 更上一层楼。
+  xiang-si L1: 红豆生南国，
+  xiang-si L2: 春来发几枝。
+  xiang-si L3: 愿君多采撷，
+  xiang-si L4: 此物最相思。
+  wang-lu-shan-pu-bu L1: 日照香炉生紫烟，
+  wang-lu-shan-pu-bu L2: 遥看瀑布挂前川。
+  wang-lu-shan-pu-bu L3: 飞流直下三千尺，
+  wang-lu-shan-pu-bu L4: 疑是银河落九天。
+  feng-qiao-ye-bo L1: 月落乌啼霜满天，
+  feng-qiao-ye-bo L2: 江枫渔火对愁眠。
+  feng-qiao-ye-bo L3: 姑苏城外寒山寺，
+  feng-qiao-ye-bo L4: 夜半钟声到客船。
+  gu-lang-yu-xing L1: 小时不识月，
+  gu-lang-yu-xing L2: 呼作白玉盘。
+  gu-lang-yu-xing L3: 又疑瑶台镜，
+  gu-lang-yu-xing L4: 飞在青云端。
+  shan-xing L1: 远上寒山石径斜，
+  shan-xing L2: 白云生处有人家。
+  shan-xing L3: 停车坐爱枫林晚，
+  shan-xing L4: 霜叶红于二月花。
+  （种子集 40 句，2026-10-06 生成；显示文本=TTS 输入=无替换）
 B 节 · 同音字替换记录（裁定人/日期/诗id/原字→替字/理由）
   （控制者 --check-only 裁定时回填；当前为空）
 C 节 · confirmedDefault 白名单依据
   思=sī 曲=qū 拨=bō：Azure 神经语音默认读音正确（三字经项目同引擎实践，2026-10）
+  2026-10-06 种子集批量裁定（71 字，裁定人：协调者）：pypinyin heteronym 列出的 alternate 读音均为
+  字典罕用音（如 前:jiǎn 月:rù 明:mèng），Azure 引擎在诗句语境读默认音；教材定音已在 poems.json
+  拼音层与 UI 呈现，TTS 输入保持原文（不做 1:1 替换）。含语境敏感字：斜xié(教材今读) 看kàn
+  处chù 觉jué 落luò 石shí 车chē 发fā 一(变调由引擎自动) 不(同) 少shǎo(多少) 当dāng 知zhī
+  中zhōng 谁shuí 更gèng 尽jìn 作zuò 识shí 采cǎi 台tái——全部按默认音白名单，试听抽查兜底；
+  抽听发现误读时按 B 节流程加 1:1 替换并重生成该句。
