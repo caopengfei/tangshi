@@ -14,12 +14,15 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Backspace
 import androidx.compose.material.icons.filled.Edit
@@ -41,7 +44,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -114,11 +116,12 @@ private suspend fun requestFocusWhenReady(requester: FocusRequester) {
  *
  * 焦点状态机：
  * - 进屏初始焦点落"诗人"筛选钮；
- * - 关键字框 OK → keyboardActive=true（键盘卡描边高亮），焦点移到键盘首键 A；
- *   焦点自然移出键盘区（onFocusChanged hasFocus=false）即自动退激活态；
+ * - 关键字框 OK → 焦点移到键盘首键 A；键盘卡 hasFocus 双向驱动 keyboardActive
+ *   （D-pad 从结果区直接进键盘同样亮激活边框），移出键盘区自动退激活；
  * - 键盘"搜索"键 OK / 键盘激活态按 B → 收起键盘（退高亮），焦点回结果列表首行（空结果回筛选行）；
- * - "诗人"钮 OK → poetPickerOpen 浮层，焦点进浮层首项"全部诗人"；浮层白卡 focusProperties.exit
- *   做焦点陷阱（任何向外移动弹回首项），遮罩下的背景焦点全部不可达；OK 选中后焦点回"诗人"钮；
+ * - "诗人"钮 OK → poetPickerOpen 浮层，焦点进浮层首项"全部诗人"；浮层白卡限高 420dp +
+ *   选项列滚动（聚焦视口外项自动带入），focusProperties.exit 做焦点陷阱（任何向外移动
+ *   弹回首项），遮罩下背景焦点全部不可达；OK 选中后焦点回"诗人"钮；
  * - B 键三层语义：诗人浮层 > 键盘激活态 > 系统返回（退出本屏回首页）。
  *
  * 实时过滤：keyword/poetFilter 变化即重算 results（VM 持拼音缓存，matches 四参重载复用，
@@ -137,9 +140,13 @@ fun SearchScreen(onPoem: (String) -> Unit) {
     var keyboardActive by remember { mutableStateOf(false) }
     var poetPickerOpen by remember { mutableStateOf(false) }
 
-    // 实时结果（照 Task 8 filterPoems 的 remember 派生模式；拼音键走 VM 缓存）
+    // 实时结果（照 Task 8 filterPoems 的 remember 派生模式；拼音键走 VM 缓存、关键字键
+    // 每键只 stripTone 一次，每首诗只剩两次 contains——310 首逐键过滤无重编译/重复去声调）
     val results = remember(vm.all, vm.pinyinKeys, poetFilter, keyword) {
-        vm.all.filter { SearchMatcher.matches(it, poetFilter, keyword, vm.pinyinKeys.getValue(it.id)) }
+        val keywordKey = SearchMatcher.stripTone(keyword.trim())
+        vm.all.filter {
+            SearchMatcher.matches(it, poetFilter, keyword, vm.pinyinKeys.getValue(it.id), keywordKey)
+        }
     }
     // 诗人浮层选项：首项"全部诗人"（选中=不过滤），其余"姓名 诗数"
     val poetOptions: List<Pair<String, Int?>> =
@@ -152,7 +159,6 @@ fun SearchScreen(onPoem: (String) -> Unit) {
     val pickerFirstFocus = remember { FocusRequester() }
 
     LaunchedEffect(Unit) { requestFocusWhenReady(poetBtnFocus) }
-    LaunchedEffect(keyboardActive) { if (keyboardActive) requestFocusWhenReady(firstKeyFocus) }
     LaunchedEffect(poetPickerOpen) { if (poetPickerOpen) requestFocusWhenReady(pickerFirstFocus) }
 
     // 进屏自动落焦的那次不响提示音（Task 6 模式）
@@ -216,7 +222,9 @@ fun SearchScreen(onPoem: (String) -> Unit) {
                     text = "诗名/诗句关键字：" + keyword.ifEmpty { "点按输入" } + "▏",
                     icon = Icons.Filled.Edit,
                     filled = false,
-                    onClick = { keyboardActive = true },
+                    // 键盘键常驻组合（requester 恒已挂载），直接移焦点即可；激活边框由
+                    // 键盘卡 hasFocus 双向驱动（见下方 onFocusChanged），此处无需置位
+                    onClick = { runCatching { firstKeyFocus.requestFocus() } },
                     onFocusChange = tone
                 )
             }
@@ -257,12 +265,13 @@ fun SearchScreen(onPoem: (String) -> Unit) {
                     }
                 }
 
-                // 右：屏幕键盘白卡；keyboardActive=激活态（描边高亮），焦点移出键盘区自动退激活
+                // 右：屏幕键盘白卡；hasFocus 双向驱动激活态（描边高亮）——D-pad 直接进键盘
+                // 同样亮边框，移出键盘区自动退激活
                 FocusCard(
                     Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .onFocusChanged { if (!it.hasFocus && keyboardActive) keyboardActive = false },
+                        .onFocusChanged { keyboardActive = it.hasFocus },
                     focused = keyboardActive,
                     corner = 18
                 ) {
@@ -306,20 +315,22 @@ fun SearchScreen(onPoem: (String) -> Unit) {
             }
 
             Spacer(Modifier.height(10.dp))
-            KeyHintBar("◀ ▲▼▶ 选择　OK 确认　B 返回", "共找到 ${results.size} 首")
+            KeyHintBar("◀ ▲▼▶ 选择　OK 确认　B 返回")   // 计数只留结果列底部一处
         }
 
         // 诗人浮层：半透明遮罩 + 居中白卡；首项"全部诗人"。
+        // 白卡限高 + 选项列滚动：310 首后诗人可达数十，防裁剪项"隐形却可聚焦"；
         // 焦点陷阱：白卡上 focusProperties.exit 把任何向外移动弹回首项，
         // 杜绝 D-pad 焦点逃逸到遮罩下的筛选行/结果列表/键盘（遮罩非焦点边界）。
         if (poetPickerOpen) {
             Box(
-                Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.45f)),
+                Modifier.fillMaxSize().background(T.Scrim),
                 contentAlignment = Alignment.Center
             ) {
                 FocusCard(
                     Modifier
                         .width(600.dp)
+                        .heightIn(max = 420.dp)
                         .focusProperties { exit = { pickerFirstFocus } },
                     focused = false,
                     corner = 20
@@ -332,15 +343,20 @@ fun SearchScreen(onPoem: (String) -> Unit) {
                             Text("选择诗人", fontSize = 18.sp, color = T.TextTitle, fontWeight = FontWeight.SemiBold)
                             Text("▲▼◀▶ 移动　OK 选中　B 关闭", fontSize = 12.sp, color = T.TextSubtle)
                         }
-                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            poetOptions.chunked(4).forEach { rowItems ->
+                        // 选项列可滚动：聚焦视口外选项时 bring-into-view 自动滚入
+                        Column(
+                            Modifier.verticalScroll(rememberScrollState()),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            poetOptions.withIndex().chunked(4).forEach { rowItems ->
                                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                    rowItems.forEach { (name, count) ->
+                                    rowItems.forEach { (index, option) ->
                                         PickerItem(
-                                            text = name + (count?.let { " $it" } ?: ""),
-                                            modifier = if (name == "全部诗人") Modifier.focusRequester(pickerFirstFocus) else Modifier,
+                                            text = option.first + (option.second?.let { " $it" } ?: ""),
+                                            // index 0 = 全部诗人（poetFilter=null），不按字符串判定
+                                            modifier = if (index == 0) Modifier.focusRequester(pickerFirstFocus) else Modifier,
                                             onClick = {
-                                                poetFilter = name.takeIf { it != "全部诗人" }
+                                                poetFilter = if (index == 0) null else option.first
                                                 closePoetPicker()
                                             },
                                             onFocusChange = tone

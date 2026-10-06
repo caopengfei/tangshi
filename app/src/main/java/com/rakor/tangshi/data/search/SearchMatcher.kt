@@ -3,6 +3,9 @@ package com.rakor.tangshi.data.search
 import com.rakor.tangshi.data.model.Poem
 import java.text.Normalizer
 
+/** 组合变音符正则：顶层只编译一次（此前 stripTone 内联 Regex，每次过滤每诗重编译） */
+private val COMBINING_MARKS = Regex("\\p{M}+")
+
 /**
  * 搜索匹配纯函数（规格 5.3）。
  *
@@ -14,17 +17,27 @@ import java.text.Normalizer
  */
 object SearchMatcher {
 
-    /** 测试锚定的三参入口；VM 持拼音缓存过滤时走四参重载避免重复拼接 */
+    /** 测试锚定的三参入口；VM 热路径走五参重载（预构建两类键，每诗仅两次 contains） */
     fun matches(poem: Poem, poetFilter: String?, keyword: String): Boolean =
-        matches(poem, poetFilter, keyword, pinyinKey(poem))
+        matches(poem, poetFilter, keyword, pinyinKey(poem), stripTone(keyword.trim()))
 
-    /** [pinyin] 为调用方预构建的全拼键（见 [pinyinKey]），语义与三参版完全一致 */
-    internal fun matches(poem: Poem, poetFilter: String?, keyword: String, pinyin: String): Boolean {
+    /**
+     * 热路径重载：[pinyin] 为该诗预构建的全拼键（见 [pinyinKey]），[keywordKey] 为
+     * stripTone(keyword.trim())——循环不变量，调用方每个按键只算一次；
+     * 语义与三参版完全一致，每首诗只剩汉字文本 / 拼音键两次 contains。
+     */
+    internal fun matches(
+        poem: Poem,
+        poetFilter: String?,
+        keyword: String,
+        pinyin: String,
+        keywordKey: String
+    ): Boolean {
         if (!poetFilter.isNullOrBlank() && poem.poet != poetFilter) return false
         val kw = keyword.trim()
         if (kw.isEmpty()) return true
         val text = poem.title + poem.lines.joinToString("") { it.text }
-        return text.contains(kw) || pinyin.contains(stripTone(kw))
+        return text.contains(kw) || pinyin.contains(keywordKey)
     }
 
     /** 全诗拼音键：诗句逐字拼音去声调连写（如 chuangqianmingyueguang…），VM 初始化预构建一次 */
@@ -33,5 +46,5 @@ object SearchMatcher {
 
     /** 去声调 + 小写：NFD 分解去组合变音符（ǔ→u），供匹配与缓存共用 */
     internal fun stripTone(s: String): String =
-        Normalizer.normalize(s, Normalizer.Form.NFD).replace(Regex("\\p{M}+"), "").lowercase()
+        Normalizer.normalize(s, Normalizer.Form.NFD).replace(COMBINING_MARKS, "").lowercase()
 }
