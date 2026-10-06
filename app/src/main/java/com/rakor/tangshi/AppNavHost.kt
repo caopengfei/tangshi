@@ -14,6 +14,7 @@ import androidx.navigation.navArgument
 import com.rakor.tangshi.ui.components.CreamBackground
 import com.rakor.tangshi.ui.screens.detail.DetailScreen
 import com.rakor.tangshi.ui.screens.home.HomeScreen
+import com.rakor.tangshi.ui.screens.library.LibraryScreen
 import com.rakor.tangshi.ui.theme.T
 
 /** 路由表（规格第 6 节）：poem/game 带参数，Routes.poem(id)/game(mode) 生成实际地址 */
@@ -54,7 +55,7 @@ fun AppNavHost() {
             )
         }
         composable(Routes.SEARCH) { Placeholder("搜索唐诗") }       // Task 9
-        composable(Routes.LIBRARY) { Placeholder("全部唐诗") }      // Task 8
+        composable(Routes.LIBRARY) { LibraryScreen(onPoem = { nav.navigate(Routes.poem(it)) }) }
         composable(Routes.GAME_SETUP) { Placeholder("背诗小游戏") }  // Task 10
         composable(Routes.GAME) { Placeholder("游戏题面") }         // Task 10
         composable(Routes.GAME_RESULT) { Placeholder("游戏结算") }   // Task 10
