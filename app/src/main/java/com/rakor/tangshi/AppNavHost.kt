@@ -6,10 +6,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.rakor.tangshi.ui.components.CreamBackground
+import com.rakor.tangshi.ui.screens.detail.DetailScreen
 import com.rakor.tangshi.ui.screens.home.HomeScreen
 import com.rakor.tangshi.ui.theme.T
 
@@ -41,7 +44,15 @@ fun AppNavHost() {
                 onSettings = { nav.navigate(Routes.SETTINGS) }
             )
         }
-        composable(Routes.POEM) { Placeholder("详情学习页") }       // Task 7
+        composable(
+            Routes.POEM,
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
+        ) { entry ->
+            DetailScreen(
+                poemId = entry.arguments?.getString("id") ?: "",
+                onBack = { nav.popBackStack() }
+            )
+        }
         composable(Routes.SEARCH) { Placeholder("搜索唐诗") }       // Task 9
         composable(Routes.LIBRARY) { Placeholder("全部唐诗") }      // Task 8
         composable(Routes.GAME_SETUP) { Placeholder("背诗小游戏") }  // Task 10
