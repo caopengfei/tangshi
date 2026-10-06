@@ -1562,6 +1562,8 @@ PY
 
 ### Task 13: 模拟器全流程冒烟 + 收尾
 
+- [ ] **Step 0（评审遗留，收尾必查）：** ① 规格第 6 节"菜单键映射至家长设置入口"——在 MainActivity 全局按键处理实现（KEYCODE_MENU → 导航 settings）；② 规格 4 节"诗体内容用楷体系（KaiTi 回退）"——诗文渲染处（详情页 PoemLine/首页诗句）应用楷体 FontFamily；③ 首页 CTA"开始/继续诵读"条件文案已实现（Task 6 修复）。
+
 - [ ] **Step 1:** 全流程手测清单（TV 模拟器 1080p）：首页焦点可见→详情页连读高亮逐句移动→跟读单句循环→我会背了确认→首页统计变化→全部唐诗筛选/翻页/OK 进详情→搜索（诗人浮层过滤 + `jingyesi` 全拼命中 + 键盘输入）→游戏一轮（A 填空 4 选项/听音重听 3 次上限/结算星级与文案正确）→设置语速改"慢"后朗读明显变慢（变速不变调）→提示音关→清除进度二次确认后统计归零。
 - [ ] **Step 2:** `./gradlew :app:testDebugUnitTest` 全绿；`./gradlew :app:assembleRelease` 成功（R8 收敛 icons-extended 体积）。
 - [ ] **Step 3:** Commit —— `git add -A && git commit -m "chore: V1 冒烟通过"`

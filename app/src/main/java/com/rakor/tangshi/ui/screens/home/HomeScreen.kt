@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,6 +49,7 @@ import com.rakor.tangshi.data.repo.HomeStats
 import com.rakor.tangshi.data.repo.PoemRepository
 import com.rakor.tangshi.data.repo.ProgressRepository
 import com.rakor.tangshi.data.repo.ProgressStatus
+import com.rakor.tangshi.data.repo.ProgressSummary
 import com.rakor.tangshi.di.AppGraph
 import com.rakor.tangshi.ui.components.CreamBackground
 import com.rakor.tangshi.ui.components.FocusCard
@@ -64,33 +66,57 @@ import kotlinx.coroutines.flow.stateIn
 /**
  * 首页数据：
  * - stats：统计卡（已学/连续/已会背）
- * - current：当前学习诗 —— 最近学习的诗优先（LEARNING 中 lastPlayedAt 最新），
- *   否则第一首未学，否则第一首
+ * - current：当前学习诗（选择规则见 [selectCurrent]；诗库为空时为 null，不崩）
+ * - started：当前诗是否已有进度行（决定 CTA 文案 开始/继续诵读）
  * - progress：当前诗的诵读进度%（主卡进度条，未学习为 0）
+ * - total：内置诗库总数（统计卡）
  */
 class HomeViewModel(private val poems: PoemRepository, progress: ProgressRepository) : ViewModel() {
+    val total: Int = poems.loadAll().size
+
     val stats: StateFlow<HomeStats> = progress.observeStats()
         .stateIn(viewModelScope, SharingStarted.Eagerly, HomeStats(0, 0, 0, emptySet()))
 
-    val current: StateFlow<Poem> =
+    val current: StateFlow<Poem?> =
         combine(progress.observeAllSummaries(), flowOf(poems.loadAll())) { s, all ->
-            s.filter { it.status == ProgressStatus.LEARNING }.maxByOrNull { it.lastPlayedAt }
-                ?.let { p -> all.first { it.id == p.poemId } }
-                ?: all.firstOrNull { p -> s.none { it.poemId == p.id } }
-                ?: all.first()
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, poems.loadAll().first())
+            selectCurrent(s, all)
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, poems.loadAll().firstOrNull())
+
+    val started: StateFlow<Boolean> =
+        combine(progress.observeAllSummaries(), current) { s, poem ->
+            poem != null && isStarted(s, poem)
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val progress: StateFlow<Int> =
         combine(progress.observeAllSummaries(), current) { s, poem ->
-            s.firstOrNull { it.poemId == poem.id }?.progress ?: 0
+            poem?.let { p -> s.firstOrNull { it.poemId == p.id }?.progress } ?: 0
         }.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+
+    companion object {
+        /**
+         * 首页当前诗：最近学习的诗优先（LEARNING 中 lastPlayedAt 最新），
+         * 否则第一首未学，否则第一首。全程 firstOrNull：进度行指向已删除的诗、
+         * 或诗库为空时返回 null 而不是抛异常。
+         */
+        fun selectCurrent(summaries: List<ProgressSummary>, poems: List<Poem>): Poem? =
+            summaries.filter { it.status == ProgressStatus.LEARNING }.maxByOrNull { it.lastPlayedAt }
+                ?.let { p -> poems.firstOrNull { it.id == p.poemId } }
+                ?: poems.firstOrNull { p -> summaries.none { it.poemId == p.id } }
+                ?: poems.firstOrNull()
+
+        /** 有进度行即已开始（LEARNING 或 MASTERED），决定 CTA 文案 开始/继续 */
+        fun isStarted(summaries: List<ProgressSummary>, poem: Poem): Boolean =
+            summaries.any { it.poemId == poem.id }
+    }
 }
 
-/** 手写 factory（不引 DI 框架） */
-@Composable
-private fun homeViewModel(): HomeViewModel = viewModel(factory = viewModelFactory {
+/** 手写 factory（不引 DI 框架）；顶层单例，避免每次重组重建 factory */
+private val homeViewModelFactory = viewModelFactory {
     initializer { HomeViewModel(AppGraph.instance.poems, AppGraph.instance.progress) }
-})
+}
+
+@Composable
+private fun homeViewModel(): HomeViewModel = viewModel(factory = homeViewModelFactory)
 
 /** 首页（规格 5.1）：顶栏 + 左主卡/右统计列 + 底部入口 + 按键提示 */
 @Composable
@@ -105,12 +131,19 @@ fun HomeScreen(
     val g = AppGraph.instance
     val stats by vm.stats.collectAsState()
     val poem by vm.current.collectAsState()
+    val started by vm.started.collectAsState()
     val progress by vm.progress.collectAsState()
-    val total = remember { g.poems.loadAll().size }
 
     val focusRequester = remember { FocusRequester() }
-    LaunchedEffect(Unit) { focusRequester.requestFocus() }
-    val tone: (Boolean) -> Unit = { if (it) g.keyTone.focusMove() }
+    LaunchedEffect(poem) { if (poem != null) focusRequester.requestFocus() }
+
+    // 进屏自动落焦的那次不响提示音，之后的焦点移动才响
+    val firstFocus = remember { mutableStateOf(true) }
+    val tone: (Boolean) -> Unit = { focused ->
+        if (focused) {
+            if (firstFocus.value) firstFocus.value = false else g.keyTone.focusMove()
+        }
+    }
 
     CreamBackground {
         Column(
@@ -126,7 +159,8 @@ fun HomeScreen(
                 Text(
                     "唐诗三百首",
                     fontSize = 22.sp, letterSpacing = 4.sp,
-                    color = T.TextTitle, fontWeight = FontWeight.SemiBold
+                    color = T.TextTitle, fontWeight = FontWeight.SemiBold,
+                    maxLines = 1
                 )
                 Text("小朋友，今天继续加油哦 🌞", color = T.TextSubtle)
             }
@@ -140,51 +174,55 @@ fun HomeScreen(
                     Modifier.weight(1.5f).fillMaxHeight().focusRequester(focusRequester),
                     onFocusChange = tone
                 ) {
-                    Column(
-                        Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 18.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            "当前学习 · 第 ${poem.order} 首",
-                            color = T.Orange, fontSize = 13.sp, letterSpacing = 2.sp
-                        )
-                        Row(
-                            verticalAlignment = Alignment.Bottom,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    val p = poem
+                    if (p != null) {
+                        Column(
+                            Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 18.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                poem.title,
-                                fontSize = 26.sp, letterSpacing = 4.sp,
-                                color = T.TextTitle, fontWeight = FontWeight.SemiBold
+                                "当前学习 · 第 ${p.order} 首",
+                                color = T.Orange, fontSize = 13.sp, letterSpacing = 2.sp
                             )
-                            Text(poem.poet, color = T.TextMuted)
-                        }
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            poem.lines.forEach { line ->
-                                Text(line.text, color = T.TextBody, lineHeight = 24.sp)
+                            Row(
+                                verticalAlignment = Alignment.Bottom,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Text(
+                                    p.title,
+                                    fontSize = 26.sp, letterSpacing = 4.sp,
+                                    color = T.TextTitle, fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1
+                                )
+                                Text(p.poet, color = T.TextMuted, maxLines = 1)
                             }
-                        }
-                        Spacer(Modifier.weight(1f))
-                        // 诵读进度条
-                        Box(
-                            Modifier.fillMaxWidth().height(8.dp)
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(T.ProgressBarBg)
-                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                p.lines.forEach { line ->
+                                    Text(line.text, color = T.TextBody, lineHeight = 24.sp)
+                                }
+                            }
+                            Spacer(Modifier.weight(1f))
+                            // 诵读进度条
                             Box(
-                                Modifier
-                                    .fillMaxWidth(progress.coerceIn(0, 100) / 100f)
-                                    .fillMaxHeight()
-                                    .background(Brush.horizontalGradient(listOf(T.OrangeLight, T.Orange)))
+                                Modifier.fillMaxWidth().height(8.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(T.ProgressBarBg)
+                            ) {
+                                Box(
+                                    Modifier
+                                        .fillMaxWidth(progress.coerceIn(0, 100) / 100f)
+                                        .fillMaxHeight()
+                                        .background(Brush.horizontalGradient(listOf(T.OrangeLight, T.Orange)))
+                                )
+                            }
+                            FocusablePillButton(
+                                if (started) "继 续 诵 读" else "开 始 诵 读",
+                                Icons.Filled.PlayArrow,
+                                filled = true,
+                                onClick = { onPoem(p.id) },
+                                onFocusChange = tone
                             )
                         }
-                        FocusablePillButton(
-                            "继 续 诵 读",
-                            Icons.Filled.PlayArrow,
-                            filled = true,
-                            onClick = { onPoem(poem.id) },
-                            onFocusChange = tone
-                        )
                     }
                 }
 
@@ -193,7 +231,7 @@ fun HomeScreen(
                     Modifier.weight(1f).fillMaxHeight(),
                     verticalArrangement = Arrangement.spacedBy(9.dp, Alignment.CenterVertically)
                 ) {
-                    StatCard(Icons.Filled.MenuBook, "已学唐诗", "${stats.learned} / $total")
+                    StatCard(Icons.Filled.MenuBook, "已学唐诗", "${stats.learned} / ${vm.total}")
                     StatCard(Icons.Filled.LocalFireDepartment, "连续学习", "${stats.streakDays} 天")
                     StatCard(Icons.Filled.ThumbUp, "已会背诵", "${stats.mastered} 首")
                 }

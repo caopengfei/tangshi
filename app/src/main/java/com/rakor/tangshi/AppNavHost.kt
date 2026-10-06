@@ -22,6 +22,7 @@ object Routes {
     const val SETTINGS = "settings"
     const val POEM = "poem/{id}"
     const val GAME = "game/{mode}"
+    const val GAME_RESULT = "gameResult"
 
     fun poem(id: String) = "poem/$id"
     fun game(mode: String) = "game/$mode"
@@ -45,6 +46,7 @@ fun AppNavHost() {
         composable(Routes.LIBRARY) { Placeholder("全部唐诗") }      // Task 8
         composable(Routes.GAME_SETUP) { Placeholder("背诗小游戏") }  // Task 10
         composable(Routes.GAME) { Placeholder("游戏题面") }         // Task 10
+        composable(Routes.GAME_RESULT) { Placeholder("游戏结算") }   // Task 10
         composable(Routes.SETTINGS) { Placeholder("家长设置") }     // Task 11
     }
 }
