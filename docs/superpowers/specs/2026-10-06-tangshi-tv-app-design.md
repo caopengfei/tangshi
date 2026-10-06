@@ -21,7 +21,7 @@
 
 | 项 | 选择 |
 |---|---|
-| 语言/UI | Kotlin 2.x + Jetpack Compose for TV（androidx.tv material3） |
+| 语言/UI | Kotlin 2.x + Jetpack Compose（基础 androidx.compose.material3 + 自研 TV 焦点视觉组件；执行时定稿：不引入 androidx.tv material3，理由——焦点卡/描边/放大动效由自研 FocusCard 等组件承载，避免双主题体系。2026-10-06 记录） |
 | 播放 | Media3 ExoPlayer（逐句播放、变速不变调） |
 | 持久化 | Room（仅学习进度；诗词内容为静态 JSON 不入库） |
 | minSdk / target | 24 / 最新稳定 |
