@@ -3,6 +3,7 @@ package com.rakor.tangshi.ui.screens.detail
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,7 +13,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -31,6 +34,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -43,6 +47,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -64,8 +69,9 @@ import kotlinx.coroutines.launch
  * ProgressRepository），状态全部 hoist 在组合内，不设独立 ViewModel。
  *
  * 焦点模型：诗行区是一个焦点目标（初始焦点落这里），◀▶/OK 按键仅在其聚焦时被
- * onPreviewKeyEvent 接管并消费（B/返回等其余按键交还系统）；三个操作按钮是独立焦点
- * 目标，聚焦时 OK 触发按钮自身 onClick，二者互不拦截（兄弟节点，不在同一条预览链上）。
+ * onPreviewKeyEvent 接管并消费（B/返回等其余按键交还系统）；三个操作按钮与右侧背景卡
+ * 是独立焦点目标，聚焦时 OK 触发按钮自身 onClick，互不拦截（兄弟节点，不在同一条
+ * 预览链上）；背景卡聚焦时 ▲▼ 滚动长文。
  *
  * 模式语义（状态互斥，模式总以最后按下的按钮为准，装载即整列表替换）：
  * - 朗读（CONTINUOUS）：从 selected 句起顺序播放全诗，REPEAT_MODE_OFF，高亮随实际播放句走；
@@ -157,7 +163,8 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
         val next = (selected + delta).coerceIn(0, lineCount - 1)
         if (next == selected) return
         selected = next
-        if (mode == PoemPlayer.Mode.LINE_LOOP && started) player.playLineLoop(poemId, selected + 1)
+        // 不判 started：mode==LINE_LOOP 蕴含 started（模式只能经"逐句跟读"按钮进入，按钮同时置 started）
+        if (mode == PoemPlayer.Mode.LINE_LOOP) player.playLineLoop(poemId, selected + 1)
     }
 
     // OK（诗行区聚焦时）：未发起过播放 → 按当前模式从 selected 句开始；否则播放/暂停
@@ -170,6 +177,11 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
         PoemPlayer.Mode.LINE_LOOP -> selected
         PoemPlayer.Mode.CONTINUOUS -> currentLine - 1
     }
+
+    // 连读模式的开始位置光标：selected 尚未开始播放（currentLine==0）或已移到别句时，
+    // 在选中句上以小圆点标出"朗读将从这句开始"（调用处保证与正在读高亮互斥）；
+    // 跟读模式高亮即选中句，无需光标
+    val showCursor = mode == PoemPlayer.Mode.CONTINUOUS && (currentLine == 0 || selected != currentLine - 1)
 
     val playStatus = when {
         !started -> ""
@@ -229,7 +241,7 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         poem.lines.forEachIndexed { i, line ->
-                            PoemLine(line, highlighted = i == highlightIdx)
+                            PoemLine(line, highlighted = i == highlightIdx, cursor = showCursor && i == selected)
                         }
                     }
 
@@ -266,13 +278,43 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                     }
                 }
 
-                // 右：创作背景（静态展示卡，不可聚焦；长文滚动）
-                FocusCard(Modifier.weight(1f).fillMaxHeight(), focused = false) {
+                // 右：创作背景（可聚焦：▲▼ 滚动长文——Task 14 更长文本也可达；
+                // 内容未溢出时 ▲▼ 不消费，交还焦点系统自然移出）
+                val bgScroll = rememberScrollState()
+                val bgScrollStep = with(LocalDensity.current) { 60.dp.toPx() }
+                var bgFocused by remember { mutableStateOf(false) }
+                FocusCard(
+                    Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .onFocusChanged {
+                            bgFocused = it.isFocused
+                            tone(it.isFocused)
+                        }
+                        .onPreviewKeyEvent { e ->
+                            if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                            when (e.key) {
+                                Key.DirectionUp ->
+                                    if (bgScroll.canScrollBackward) {
+                                        scope.launch { bgScroll.scrollBy(-bgScrollStep) }
+                                        true
+                                    } else false
+                                Key.DirectionDown ->
+                                    if (bgScroll.canScrollForward) {
+                                        scope.launch { bgScroll.scrollBy(bgScrollStep) }
+                                        true
+                                    } else false
+                                else -> false
+                            }
+                        }
+                        .focusable(),
+                    focused = bgFocused
+                ) {
                     Column(
                         Modifier
                             .fillMaxSize()
                             .padding(horizontal = 18.dp, vertical = 16.dp)
-                            .verticalScroll(rememberScrollState()),
+                            .verticalScroll(bgScroll),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Text("🌙 诗人为什么写这首诗？", color = T.Orange, fontSize = 13.sp, letterSpacing = 2.sp)
@@ -300,6 +342,13 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
 
     // 我会背了 → 确认对话框（确认=标记会背 / 取消=再听听）
     if (showMasteredDialog) {
+        // 安全默认焦点：M3 对话框默认聚焦确认按钮（标记会背=不可逆动作），
+        // 等对话框窗口挂载后把初始焦点改落到"再听听"
+        val safeFocus = remember { FocusRequester() }
+        LaunchedEffect(Unit) {
+            withFrameNanos { }
+            safeFocus.requestFocus()
+        }
         AlertDialog(
             onDismissRequest = { showMasteredDialog = false },
             title = { Text("我会背了", color = T.TextTitle) },
@@ -311,15 +360,28 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                 }) { Text("标记会背") }
             },
             dismissButton = {
-                TextButton(onClick = { showMasteredDialog = false }) { Text("再听听") }
+                TextButton(
+                    onClick = { showMasteredDialog = false },
+                    modifier = Modifier.focusRequester(safeFocus)
+                ) { Text("再听听") }
             }
         )
     }
 }
 
-/** 单句诗行：逐字拼音（上小拼音下大字）；当前句 ChipBg 高亮 + "◀ 正在读" 指示。楷体留待 Task 13 经 font 注入。 */
+/**
+ * 单句诗行：逐字拼音（上小拼音下大字）；当前句 ChipBg 高亮 + "◀ 正在读" 指示；
+ * cursor=true 时行首绘 4dp 橙色圆点，作为连读模式下"开始位置"光标（调用方保证与 highlighted 互斥）。
+ * 楷体留待 Task 13 经 font 注入。
+ */
 @Composable
-fun PoemLine(line: Line, highlighted: Boolean, modifier: Modifier = Modifier, font: FontFamily = FontFamily.Default) {
+fun PoemLine(
+    line: Line,
+    highlighted: Boolean,
+    modifier: Modifier = Modifier,
+    font: FontFamily = FontFamily.Default,
+    cursor: Boolean = false
+) {
     Row(
         modifier
             .background(if (highlighted) T.ChipBg else Color.Transparent, RoundedCornerShape(12.dp))
@@ -327,6 +389,14 @@ fun PoemLine(line: Line, highlighted: Boolean, modifier: Modifier = Modifier, fo
         verticalAlignment = Alignment.Bottom
     ) {
         if (highlighted) Text("◀ 正在读", color = T.Orange, fontSize = 12.sp)
+        if (cursor) {
+            Box(
+                Modifier
+                    .padding(start = 2.dp, end = 6.dp, bottom = 11.dp)
+                    .size(4.dp)
+                    .background(T.Orange, CircleShape)
+            )
+        }
         line.chars.forEach { cd ->
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(3.dp)) {
                 Text(cd.py, fontSize = 11.sp, color = T.OrangeSoft)
