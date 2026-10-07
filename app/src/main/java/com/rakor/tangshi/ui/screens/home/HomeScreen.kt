@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocalFireDepartment
@@ -35,10 +37,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -116,6 +120,9 @@ private val homeViewModelFactory = viewModelFactory {
     initializer { HomeViewModel(AppGraph.instance.poems, AppGraph.instance.progress) }
 }
 
+/** 主卡最多完整展示的诗行数，超出显示"⋯⋯ 共 N 句"（全文在详情页） */
+private const val HOME_PREVIEW_LINES = 4
+
 @Composable
 private fun homeViewModel(): HomeViewModel = viewModel(factory = homeViewModelFactory)
 
@@ -148,8 +155,8 @@ fun HomeScreen(
 
     CreamBackground {
         Column(
-            Modifier.fillMaxSize().padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             // 顶栏：标题 + 鼓励语
             Row(
@@ -159,54 +166,84 @@ fun HomeScreen(
             ) {
                 Text(
                     "唐诗三百首",
-                    fontSize = 22.sp, letterSpacing = 4.sp,
+                    fontSize = 26.sp, letterSpacing = 5.sp,
                     color = T.TextTitle, fontWeight = FontWeight.SemiBold,
                     maxLines = 1
                 )
-                Text("小朋友，今天继续加油哦 🌞", color = T.TextSubtle)
+                Text("小朋友，今天继续加油哦 🌞", color = T.TextSubtle, fontSize = 15.sp)
             }
 
-            // 主区：左主卡 + 右统计列
+            // 主区：左主卡（整卡一个焦点落点，OK 直接开始诵读）+ 右统计列
             Row(
                 Modifier.weight(1f).fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 FocusableCard(
-                    Modifier.weight(1.5f).fillMaxHeight().focusRequester(focusRequester),
-                    onFocusChange = tone
+                    Modifier
+                        .weight(1.55f)
+                        .fillMaxHeight()
+                        .zIndex(1f)   // 聚焦放大时压过右列邻卡，避免描边被盖
+                        .focusRequester(focusRequester),
+                    scaleFactor = 1.03f,   // 大卡小倍率：1.06 会挤压两侧布局
+                    onFocusChange = tone,
+                    onClick = { poem?.let { onPoem(it.id) } }
                 ) {
                     val p = poem
-                    if (p != null) {
+                    if (p == null) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("诗库为空", color = T.TextMuted)
+                        }
+                    } else {
                         Column(
-                            Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 18.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                            Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 20.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
                                 "当前学习 · 第 ${p.order} 首",
-                                color = T.Orange, fontSize = 13.sp, letterSpacing = 2.sp
+                                color = T.Orange, fontSize = 14.sp, letterSpacing = 3.sp
                             )
+                            Spacer(Modifier.height(10.dp))
                             Row(
                                 verticalAlignment = Alignment.Bottom,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 Text(
                                     p.title,
-                                    fontSize = 26.sp, letterSpacing = 4.sp,
+                                    fontSize = 36.sp, letterSpacing = 6.sp,
                                     color = T.TextTitle, fontWeight = FontWeight.SemiBold,
-                                    maxLines = 1,
-                                    fontFamily = KaiTi
+                                    maxLines = 1, fontFamily = KaiTi
                                 )
-                                Text(p.poet, color = T.TextMuted, maxLines = 1)
+                                Text(
+                                    p.poet,
+                                    Modifier.padding(bottom = 6.dp),
+                                    color = T.TextMuted, fontSize = 17.sp, maxLines = 1
+                                )
                             }
-                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                p.lines.forEach { line ->
+                            Spacer(Modifier.height(10.dp))
+                            // 主卡是入口预览：长诗只展示前几句，进度条/CTA 靠 weight 钉在卡底
+                            Column(
+                                Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                // 截断时少展示一句，给"共 N 句"提示行留出高度，避免被进度条裁切
+                                val truncated = p.lines.size > HOME_PREVIEW_LINES
+                                val preview = p.lines.take(if (truncated) HOME_PREVIEW_LINES - 1 else p.lines.size)
+                                preview.forEach { line ->
                                     Text(
-                                        line.text, color = T.TextBody, lineHeight = 24.sp,
+                                        line.text, color = T.TextBody,
+                                        fontSize = 24.sp, lineHeight = 32.sp, letterSpacing = 2.sp,
                                         fontFamily = KaiTi
                                     )
                                 }
+                                if (preview.size < p.lines.size) {
+                                    Spacer(Modifier.height(2.dp))
+                                    Text(
+                                        "⋯⋯ 共 ${p.lines.size} 句",
+                                        color = T.TextMuted, fontSize = 14.sp, letterSpacing = 1.sp
+                                    )
+                                }
                             }
-                            Spacer(Modifier.weight(1f))
                             // 诵读进度条
                             Box(
                                 Modifier.fillMaxWidth().height(8.dp)
@@ -220,31 +257,50 @@ fun HomeScreen(
                                         .background(Brush.horizontalGradient(listOf(T.OrangeLight, T.Orange)))
                                 )
                             }
-                            FocusablePillButton(
-                                if (started) "继 续 诵 读" else "开 始 诵 读",
-                                Icons.Filled.PlayArrow,
-                                filled = true,
-                                onClick = { onPoem(p.id) },
-                                onFocusChange = tone
-                            )
+                            Spacer(Modifier.height(14.dp))
+                            // CTA 视觉（非独立焦点：整卡即焦点，OK=开始诵读）
+                            Row(
+                                Modifier
+                                    .background(
+                                        Brush.horizontalGradient(listOf(T.OrangeLight, T.Orange)),
+                                        RoundedCornerShape(20.dp)
+                                    )
+                                    .padding(horizontal = 30.dp, vertical = 11.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Filled.PlayArrow, null,
+                                    Modifier.size(26.dp), tint = Color.White
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    if (started) "继 续 诵 读" else "开 始 诵 读",
+                                    color = Color.White, fontSize = 18.sp, letterSpacing = 2.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
                         }
                     }
                 }
 
-                // 右统计列（不可聚焦，仅展示）
+                // 右统计列（不可聚焦，仅展示；三卡等分撑满与主卡同高）
                 Column(
                     Modifier.weight(1f).fillMaxHeight(),
-                    verticalArrangement = Arrangement.spacedBy(9.dp, Alignment.CenterVertically)
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    StatCard(Icons.Filled.MenuBook, "已学唐诗", "${stats.learned} / ${vm.total}")
-                    StatCard(Icons.Filled.LocalFireDepartment, "连续学习", "${stats.streakDays} 天")
-                    StatCard(Icons.Filled.ThumbUp, "已会背诵", "${stats.mastered} 首")
+                    StatCard(Icons.Filled.MenuBook, "已学唐诗", "${stats.learned} / ${vm.total}", Modifier.weight(1f))
+                    StatCard(Icons.Filled.LocalFireDepartment, "连续学习", "${stats.streakDays} 天", Modifier.weight(1f))
+                    StatCard(Icons.Filled.ThumbUp, "已会背诵", "${stats.mastered} 首", Modifier.weight(1f))
                 }
             }
 
-            // 底部入口
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                FocusablePillButton("搜索", Icons.Filled.Search, filled = false, onClick = onSearch, onFocusChange = tone)
+            // 底部入口（规格：搜索橙描边突出）
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                FocusablePillButton(
+                    "搜索", Icons.Filled.Search,
+                    filled = false, highlight = true,
+                    onClick = onSearch, onFocusChange = tone
+                )
                 FocusablePillButton("全部唐诗", filled = false, onClick = onLibrary, onFocusChange = tone)
                 FocusablePillButton("背诗小游戏", Icons.Filled.SportsEsports, filled = false, onClick = onGames, onFocusChange = tone)
                 FocusablePillButton("家长设置", Icons.Filled.Settings, filled = false, onClick = onSettings, onFocusChange = tone)
@@ -255,21 +311,26 @@ fun HomeScreen(
     }
 }
 
-/** 统计卡：图标+标签 与 数值 两端对齐 */
+/** 统计卡：圆形图标底 + 标签 + 数值两端对齐；modifier 通常传等分撑满右列 */
 @Composable
-private fun StatCard(icon: ImageVector, label: String, value: String) {
-    FocusCard(Modifier.fillMaxWidth(), focused = false, corner = 18) {
+private fun StatCard(icon: ImageVector, label: String, value: String, modifier: Modifier = Modifier) {
+    FocusCard(modifier, focused = false, corner = 18) {
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+            Modifier.fillMaxSize().padding(horizontal = 22.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(icon, null, tint = T.Orange)
-                Spacer(Modifier.width(8.dp))
-                Text(label, color = T.TextBody)
+                Box(
+                    Modifier.size(46.dp).background(T.ChipBg, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(icon, null, Modifier.size(24.dp), tint = T.Orange)
+                }
+                Spacer(Modifier.width(12.dp))
+                Text(label, color = T.TextBody, fontSize = 17.sp)
             }
-            Text(value, color = T.Orange, fontSize = 18.sp)
+            Text(value, color = T.Orange, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }

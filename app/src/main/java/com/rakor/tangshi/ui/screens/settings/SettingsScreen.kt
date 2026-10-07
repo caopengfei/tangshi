@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
@@ -59,7 +60,7 @@ private const val HINT_DISMISS_MS = 2600L
 /**
  * 家长设置（规格 5.8，无家长门直接进入）。
  *
- * 焦点模型：设置项（语速/跟读模式/提示音胶囊、清除按钮）是独立焦点目标，◀▲▼▶ 由焦点系统
+ * 焦点模型：设置项（语速/提示音胶囊、清除按钮）是独立焦点目标，◀▲▼▶ 由焦点系统
  * 自然导航；初始焦点落第一张卡第一枚胶囊（withFrameNanos 等窗口挂载后落焦，Task 6/7 模式）。
  * 选中态=胶囊 filled（与玩法范围/筛选同视觉），聚焦=描边+放大。
  *
@@ -98,7 +99,7 @@ fun SettingsScreen() {
 
     CreamBackground {
         Column(
-            Modifier.fillMaxSize().padding(20.dp),
+            Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // 顶栏：标题 | 返回提示
@@ -106,92 +107,69 @@ fun SettingsScreen() {
                 Text(
                     "家长设置",
                     Modifier.weight(1f),
-                    fontSize = 22.sp, letterSpacing = 4.sp,
+                    fontSize = 26.sp, letterSpacing = 5.sp,
                     color = T.TextTitle, fontWeight = FontWeight.SemiBold,
                     maxLines = 1
                 )
                 Text("← 返回", color = T.TextSubtle, fontSize = 13.sp, maxLines = 1)
             }
 
-            // 双列网格：4 张设置卡（corner=18 白底）
-            Column(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    SettingCard(Modifier.weight(1f).fillMaxHeight(), "朗读语速") {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            FocusablePillButton(
-                                "慢 0.9×", filled = s.speed == 0.9f,
-                                onClick = { vm.setSpeed(0.9f) },
-                                onFocusChange = tone,
-                                modifier = Modifier.focusRequester(focusRequester)
-                            )
-                            FocusablePillButton(
-                                "正常 1.0×", filled = s.speed == 1.0f,
-                                onClick = { vm.setSpeed(1.0f) },
-                                onFocusChange = tone
-                            )
-                            FocusablePillButton(
-                                "快 1.15×", filled = s.speed == 1.15f,
-                                onClick = { vm.setSpeed(1.15f) },
-                                onFocusChange = tone
-                            )
-                        }
-                        Spacer(Modifier.weight(1f))
-                        Text(
-                            "慢=适合刚学的诗，快=复习用",
-                            color = T.TextMuted, fontSize = 10.sp
-                        )
-                    }
-                    SettingCard(Modifier.weight(1f).fillMaxHeight(), "跟读模式") {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            FocusablePillButton(
-                                "逐句暂停" + if (s.lineByLine) " ✓" else "", filled = s.lineByLine,
-                                onClick = { vm.setLineByLine(true) },
-                                onFocusChange = tone
-                            )
-                            FocusablePillButton(
-                                "连续播放" + if (!s.lineByLine) " ✓" else "", filled = !s.lineByLine,
-                                onClick = { vm.setLineByLine(false) },
-                                onFocusChange = tone
-                            )
-                        }
-                        Spacer(Modifier.weight(1f))
-                        Text(
-                            "逐句暂停：读完一句停一下，等孩子跟读",
-                            color = T.TextMuted, fontSize = 10.sp
-                        )
-                    }
-                }
-                Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    SettingCard(Modifier.weight(1f).fillMaxHeight(), "按键提示音") {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            FocusablePillButton(
-                                "开" + if (s.keyTone) " ✓" else "", filled = s.keyTone,
-                                onClick = { vm.setKeyTone(true) },
-                                onFocusChange = tone
-                            )
-                            FocusablePillButton(
-                                "关" + if (!s.keyTone) " ✓" else "", filled = !s.keyTone,
-                                onClick = { vm.setKeyTone(false) },
-                                onFocusChange = tone
-                            )
-                        }
-                        Spacer(Modifier.weight(1f))
-                        Text(
-                            "移动焦点时发出短促提示音，帮助孩子确认操作",
-                            color = T.TextMuted, fontSize = 10.sp
-                        )
-                    }
-                    SettingCard(Modifier.weight(1f).fillMaxHeight(), "清除学习进度") {
-                        Text(
-                            "清空全部学习记录，需二次确认",
-                            color = T.TextMuted, fontSize = 11.sp
-                        )
-                        Spacer(Modifier.weight(1f))
-                        WipeButton(
+            // 单行三卡（corner=18 白底）：语速 | 提示音 | 清除进度
+            Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                SettingCard(Modifier.weight(1f).fillMaxHeight(), "朗读语速") {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FocusablePillButton(
+                            "慢 0.9×", filled = s.speed == 0.9f,
+                            onClick = { vm.setSpeed(0.9f) },
                             onFocusChange = tone,
-                            onClick = { showWipeDialog = true }
+                            modifier = Modifier.focusRequester(focusRequester)
+                        )
+                        FocusablePillButton(
+                            "正常 1.0×", filled = s.speed == 1.0f,
+                            onClick = { vm.setSpeed(1.0f) },
+                            onFocusChange = tone
+                        )
+                        FocusablePillButton(
+                            "快 1.15×", filled = s.speed == 1.15f,
+                            onClick = { vm.setSpeed(1.15f) },
+                            onFocusChange = tone
                         )
                     }
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        "慢=适合刚学的诗，快=复习用",
+                        color = T.TextMuted, fontSize = 10.sp
+                    )
+                }
+                SettingCard(Modifier.weight(1f).fillMaxHeight(), "按键提示音") {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FocusablePillButton(
+                            "开" + if (s.keyTone) " ✓" else "", filled = s.keyTone,
+                            onClick = { vm.setKeyTone(true) },
+                            onFocusChange = tone
+                        )
+                        FocusablePillButton(
+                            "关" + if (!s.keyTone) " ✓" else "", filled = !s.keyTone,
+                            onClick = { vm.setKeyTone(false) },
+                            onFocusChange = tone
+                        )
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        "移动焦点时发出短促提示音，帮助孩子确认操作",
+                        color = T.TextMuted, fontSize = 10.sp
+                    )
+                }
+                SettingCard(Modifier.weight(1f).fillMaxHeight(), "清除学习进度") {
+                    Text(
+                        "清空全部学习记录，需二次确认",
+                        color = T.TextMuted, fontSize = 11.sp
+                    )
+                    Spacer(Modifier.weight(1f))
+                    WipeButton(
+                        onFocusChange = tone,
+                        onClick = { showWipeDialog = true }
+                    )
                 }
             }
 
@@ -291,7 +269,6 @@ class SettingsViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsRepository.Settings())
 
     fun setSpeed(v: Float) = viewModelScope.launch { settingsRepo.setSpeed(v) }
-    fun setLineByLine(v: Boolean) = viewModelScope.launch { settingsRepo.setLineByLine(v) }
     fun setKeyTone(v: Boolean) = viewModelScope.launch { settingsRepo.setKeyTone(v) }
 
     /** 清空全部学习记录 + study_log（Home/Library 各流由 Room 自动刷新） */

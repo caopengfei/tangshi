@@ -56,7 +56,9 @@ import com.rakor.tangshi.ui.components.CreamBackground
 import com.rakor.tangshi.ui.components.FocusScale
 import com.rakor.tangshi.ui.components.FocusablePillButton
 import com.rakor.tangshi.ui.components.KeyHintBar
+import com.rakor.tangshi.ui.components.PoemCharCell
 import com.rakor.tangshi.ui.components.PoemLine
+import com.rakor.tangshi.ui.components.POEM_CHAR_CELL
 import com.rakor.tangshi.ui.components.tvFocusable
 import com.rakor.tangshi.ui.theme.KaiTi
 import com.rakor.tangshi.ui.theme.T
@@ -123,7 +125,7 @@ fun GameQuestionScreen(
 
     CreamBackground {
         Column(
-            Modifier.fillMaxSize().padding(20.dp),
+            Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             when (state.phase) {
@@ -259,10 +261,10 @@ private fun FillBody(
         modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // 诗全文（重量占位，长诗也放得下——内置诗库最长 4 句）
+        // 诗全文（重量占位，长诗也放得下——内置诗库最长 4 句；垂直居中避免与选项间挖大空）
         Column(
             Modifier.weight(1f).fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            verticalArrangement = Arrangement.Center
         ) {
             q.poem.lines.forEachIndexed { i, line ->
                 if (i == q.lineIndex) BlankLine(line, q.charIndex) else PoemLine(line, highlighted = false)
@@ -302,10 +304,14 @@ private fun FillBody(
 /** 目标行：第 charIndex 字替换为橙色"？"方块（尺寸与字同大）；该字拼音不显示，不提示答案 */
 @Composable
 private fun BlankLine(line: Line, charIndex: Int) {
-    Row(verticalAlignment = Alignment.Bottom) {
+    // 水平 12dp 与 PoemLine 的行内边距一致；单字格同用 POEM_CHAR_CELL，目标行与其余诗行对齐
+    Row(Modifier.padding(horizontal = 12.dp), verticalAlignment = Alignment.Bottom) {
         line.chars.forEachIndexed { j, cd ->
-            Column(Modifier.padding(3.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                if (j == charIndex) {
+            if (j == charIndex) {
+                Column(
+                    Modifier.width(POEM_CHAR_CELL),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Text(" ", fontSize = 11.sp)   // 拼音行占位，保持与其余字对齐
                     Box(
                         Modifier
@@ -315,10 +321,9 @@ private fun BlankLine(line: Line, charIndex: Int) {
                     ) {
                         Text("？", fontSize = 24.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
                     }
-                } else {
-                    Text(cd.py, fontSize = 11.sp, color = T.OrangeSoft)
-                    Text(cd.c, fontSize = 24.sp, color = T.TextTitle, fontFamily = KaiTi)
                 }
+            } else {
+                PoemCharCell(cd.py, cd.c)
             }
         }
     }
@@ -368,7 +373,7 @@ private fun ListenBody(
 
     Column(
         modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(Modifier.height(6.dp))

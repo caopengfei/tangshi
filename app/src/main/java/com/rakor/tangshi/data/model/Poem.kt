@@ -4,7 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable data class Poem(val id: String, val order: Int, val title: String,
                               val poet: String, val dynasty: String,
-                              val lines: List<Line>, val background: String)
+                              val lines: List<Line>, val background: String,
+                              val meaning: String = "")
 @Serializable data class Line(val text: String, val chars: List<CharPy>)
 @Serializable data class CharPy(val c: String, val py: String)
 

@@ -158,12 +158,12 @@ fun LibraryScreen(onPoem: (String) -> Unit) {
     }
 
     CreamBackground {
-        Column(Modifier.fillMaxSize().padding(20.dp)) {
+        Column(Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 20.dp)) {
             // 顶栏：标题 + 计数 | 右侧返回提示（B 走系统返回，无返回按钮）
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     "全部唐诗",
-                    fontSize = 22.sp, letterSpacing = 4.sp,
+                    fontSize = 26.sp, letterSpacing = 5.sp,
                     color = T.TextTitle, fontWeight = FontWeight.SemiBold,
                     maxLines = 1
                 )

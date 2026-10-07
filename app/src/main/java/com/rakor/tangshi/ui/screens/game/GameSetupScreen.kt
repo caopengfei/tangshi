@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -104,15 +105,15 @@ fun GameSetupScreen(onBack: () -> Unit, onStart: (mode: String, scope: String) -
 
     CreamBackground {
         Column(
-            Modifier.fillMaxSize().padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             // 顶栏：标题 | 返回提示
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     "背诗小游戏",
                     Modifier.weight(1f),
-                    fontSize = 22.sp, letterSpacing = 4.sp,
+                    fontSize = 26.sp, letterSpacing = 5.sp,
                     color = T.TextTitle, fontWeight = FontWeight.SemiBold,
                     maxLines = 1
                 )
@@ -122,7 +123,7 @@ fun GameSetupScreen(onBack: () -> Unit, onStart: (mode: String, scope: String) -
             // 主区：玩法大卡 ×2 | 题目范围
             Row(
                 Modifier.weight(1f).fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 GameModeCard(
                     Icons.Filled.ThumbUp, "填空补诗", "诗里缺了个字，选出来！",
@@ -139,12 +140,12 @@ fun GameSetupScreen(onBack: () -> Unit, onStart: (mode: String, scope: String) -
                     onClick = { startWith(GameViewModel.MODE_LISTEN) }
                 )
 
-                // 右列：题目范围（竖排三选一，filled=选中，与全部唐诗页筛选同视觉）
+                // 右列：题目范围（竖排三选一，filled=选中，与全部唐诗页筛选同视觉；整列垂直居中）
                 Column(
                     Modifier.weight(0.8f).fillMaxHeight(),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    verticalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterVertically)
                 ) {
-                    Text("题目范围", color = T.TextSubtle, fontSize = 11.sp, letterSpacing = 2.sp)
+                    Text("题目范围", color = T.TextSubtle, fontSize = 12.sp, letterSpacing = 2.sp)
                     listOf(
                         GameViewModel.SCOPE_TODAY to "今日所学",
                         GameViewModel.SCOPE_LEARNED to "已学全部",
@@ -206,22 +207,22 @@ private fun GameModeCard(
         focused = focused || selected
     ) {
         Column(
-            Modifier.fillMaxSize().padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.weight(0.8f))
-            Icon(icon, null, Modifier.size(34.dp), tint = T.Orange)
+            Spacer(Modifier.weight(1f))
+            Icon(icon, null, Modifier.size(40.dp), tint = T.Orange)
+            Spacer(Modifier.height(12.dp))
             Text(
                 title,
-                fontSize = 20.sp, letterSpacing = 3.sp,
+                fontSize = 22.sp, letterSpacing = 3.sp,
                 color = T.TextTitle, fontWeight = FontWeight.SemiBold,
                 maxLines = 1
             )
-            Text(subtitle, color = T.TextBody, fontSize = 13.sp, maxLines = 1)
+            Spacer(Modifier.height(6.dp))
+            Text(subtitle, color = T.TextBody, fontSize = 14.sp, maxLines = 1)
             Spacer(Modifier.weight(1f))
-            Text("${GameViewModel.ROUND_LEN} 题一轮 · 支持已学唐诗", color = T.TextSubtle, fontSize = 11.sp)
-            Spacer(Modifier.weight(0.8f))
+            Text("${GameViewModel.ROUND_LEN} 题一轮 · 支持已学唐诗", color = T.TextSubtle, fontSize = 12.sp)
         }
     }
 }

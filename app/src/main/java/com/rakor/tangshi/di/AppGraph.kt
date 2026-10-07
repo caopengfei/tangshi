@@ -23,12 +23,10 @@ class AppGraph(context: Context) {
     val progress = ProgressRepository(poemDatabase(context)) { id -> poems.byId(id)?.lines?.size ?: 4 }
     val settings = SettingsRepository(context)
 
-    // 首次 DataStore 落盘前默认值兜底（与 Settings 默认一致：正常语速/逐句暂停/提示音开）
+    // 首次 DataStore 落盘前默认值兜底（与 Settings 默认一致：正常语速/提示音开）
     @Volatile var keyToneEnabled: Boolean = true
         private set
     @Volatile var speedMultiplier: Float = 1.0f
-        private set
-    @Volatile var lineByLine: Boolean = true
         private set
 
     val keyTone = KeyTonePlayer { keyToneEnabled }
@@ -41,7 +39,6 @@ class AppGraph(context: Context) {
             settings.settings.collect {
                 keyToneEnabled = it.keyTone
                 speedMultiplier = it.speed
-                lineByLine = it.lineByLine
             }
         }
     }

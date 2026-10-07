@@ -70,7 +70,7 @@ fun GameResultScreen(correct: Int, streak: Int, onAgain: () -> Unit, onHome: () 
 
     CreamBackground {
         Column(
-            Modifier.fillMaxSize().padding(20.dp),
+            Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // 中央：三星 + 答对数 + 鼓励语

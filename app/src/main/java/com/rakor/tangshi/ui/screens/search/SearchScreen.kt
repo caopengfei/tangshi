@@ -190,14 +190,14 @@ fun SearchScreen(onPoem: (String) -> Unit) {
     BackHandler(enabled = poetPickerOpen) { closePoetPicker() }
 
     CreamBackground {
-        Column(Modifier.fillMaxSize().padding(20.dp)) {
+        Column(Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 20.dp)) {
             // 顶栏：珊瑚橙线条放大镜 + 标题 | 右返回提示
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Filled.Search, null, tint = T.Orange)
                 Spacer(Modifier.width(8.dp))
                 Text(
                     "搜索唐诗",
-                    fontSize = 22.sp, letterSpacing = 4.sp,
+                    fontSize = 26.sp, letterSpacing = 5.sp,
                     color = T.TextTitle, fontWeight = FontWeight.SemiBold,
                     maxLines = 1
                 )

@@ -12,8 +12,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -21,6 +25,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -70,17 +75,31 @@ import kotlinx.coroutines.launch
  * 是独立焦点目标，聚焦时 OK 触发按钮自身 onClick，互不拦截（兄弟节点，不在同一条
  * 预览链上）；背景卡聚焦时 ▲▼ 滚动长文。
  *
- * 模式语义（状态互斥，模式总以最后按下的按钮为准，装载即整列表替换）：
- * - 朗读（CONTINUOUS）：从 selected 句起顺序播放全诗，REPEAT_MODE_OFF，高亮随实际播放句走；
- *   家长设置"跟读模式=逐句暂停"（默认）时每句播完自动暂停在下一句开始前，OK 继续下一句；
- * - 逐句跟读（LINE_LOOP）：循环播放 selected 句，REPEAT_MODE_ONE，高亮=选中句，
- *   此时 ◀▶ 即时切换循环句（边移动边读）；连读下 ◀▶ 只移动"从哪句开始"的光标，不打断播放。
+ * 播放语义（两键模型，替代原"朗读整首/逐句跟读"）：
+ * - 朗读：只朗读箭头所指句，播完即停、不切下一句（播完回空闲，箭头回到目标位置）；
+ *   连读生效时禁用（灰显、跳过焦点）。
+ * - 连读：整首循环开关——从第 1 句顺序播到末句后回卷句首，往复直到再按一次"连读"停止；
+ *   生效时按钮 filled 高亮，◀▶ 为循环内跳句。
+ * - OK（诗行区聚焦）：空闲 → 朗读箭头句；播放/暂停中 → 播放/暂停。
+ * 箭头（selected）：空闲=朗读目标；连读中自动跟随播放位置；单句播放中可移开指定下一句目标。
+ * 切诗：顶栏"第 N 首"两侧 ◀▶ 芯片（首/末尾对应侧禁用）或遥控频道键 CH-/CH+；切换即重建
+ * 播放器与进度观察，光标/滚动复位，焦点落回诗行区。
+ * 原家长设置"跟读模式（逐句暂停/连续播放）"随本模型移除。
  * 两种模式下暂停都不清除高亮。播放倍率取家长设置（默认 1.0，作用在音频 0.85 生成基准之上）。
  */
+/** 指示槽宽度：容纳"◀ 正在读"徽章（12sp 约占 52dp），起始光标圆点同挂此槽 */
+private val INDICATOR_SLOT = 60.dp
+
 @Composable
 fun DetailScreen(poemId: String, onBack: () -> Unit) {
     val g = AppGraph.instance
-    val poem = remember(poemId) { g.poems.byId(poemId) }
+    // 页内当前诗：顶栏 ◀▶ 芯片 / 频道键切换时改写；播放器、进度观察、光标均随 key 重建复位
+    var currentPoemId by remember { mutableStateOf(poemId) }
+    val poems = remember { g.poems.loadAll() }
+    val poemIndex = poems.indexOfFirst { it.id == currentPoemId }
+    val prevPoem = poems.getOrNull(poemIndex - 1)
+    val nextPoem = poems.getOrNull(poemIndex + 1)
+    val poem = remember(currentPoemId) { g.poems.byId(currentPoemId) }
     if (poem == null) {
         // 路由参数异常的兜底，正常导航不会走到
         CreamBackground {
@@ -91,40 +110,44 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
         return
     }
 
-    val total = remember { g.poems.loadAll().size }
     val lineCount = poem.lines.size
     val scope = rememberCoroutineScope()
 
     // B 键返回 = 系统返回键，显式接 onBack 保持路由契约
     BackHandler(onBack = onBack)
 
-    // 播放器：进屏创建、离屏释放
+    // 播放器：进屏创建、离屏释放、切诗重建
     val context = LocalContext.current
-    val player = remember(poemId) { PoemPlayer(ExoPlayer.Builder(context).build()) }
+    val player = remember(currentPoemId) { PoemPlayer(ExoPlayer.Builder(context).build()) }
     val currentLine by player.currentLine.collectAsState()
     val isPlaying by player.isPlaying.collectAsState()
+    val shape by player.shape.collectAsState()
 
-    var selected by remember { mutableStateOf(0) }   // 0-based 选中句（◀▶ 移动）
-    var mode by remember { mutableStateOf(PoemPlayer.Mode.CONTINUOUS) }
-    var started by remember { mutableStateOf(false) } // 本次进屏是否发起过播放（OK 未播放过=开始）
+    var selected by remember(currentPoemId) { mutableStateOf(0) }   // 0-based 箭头句：空闲=朗读目标；连读=跟随播放位置
     var showMasteredDialog by remember { mutableStateOf(false) }
     var showAudioError by remember { mutableStateOf(false) }
+    var poemAreaFocused by remember { mutableStateOf(false) }   // 诗行卡聚焦视觉（橙描边）
 
     // 本诗进度（底部提示条）
-    val progressState by remember(poemId) { g.progress.observeProgress(poemId) }.collectAsState(initial = null)
+    val progressState by remember(currentPoemId) { g.progress.observeProgress(currentPoemId) }.collectAsState(initial = null)
     val progress = progressState?.progress ?: 0
 
     // 打开事件（只打开不播放不落行，repo 内为显式接缝）；离屏释放播放器
-    DisposableEffect(poemId) {
-        scope.launch { g.progress.onPoemOpened(poemId) }
+    DisposableEffect(currentPoemId) {
+        scope.launch { g.progress.onPoemOpened(currentPoemId) }
         onDispose { player.release() }
     }
 
     // 播到哪句记哪句（repo 对行号有集合去重+越界过滤，重复调用安全）
-    LaunchedEffect(poemId) {
+    LaunchedEffect(currentPoemId) {
         player.currentLine.collect { line ->
-            if (line > 0) g.progress.onLinePlayed(poemId, line - 1)
+            if (line > 0) g.progress.onLinePlayed(currentPoemId, line - 1)
         }
+    }
+
+    // 连读中播放推进 → 箭头跟随到当前句（光标=播放位置）；单句朗读的箭头即目标句，无需跟随
+    LaunchedEffect(currentLine) {
+        if (shape == PoemPlayer.Shape.LOOP && currentLine > 0) selected = currentLine - 1
     }
 
     // 播放失败 → 顶部提示条（常驻至离屏；复位 error 使后续失败可再次触发）
@@ -147,58 +170,47 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
         }
     }
 
-    // 按当前模式从 selected 句装载播放（模式切换即整列表替换，见类注释）；
-    // 语速/跟读模式在启动时读 AppGraph 内存缓存（家长设置，AppGraph.startCollecting 常驻收集）
-    fun startWithCurrentSelection() {
-        started = true
-        when (mode) {
-            PoemPlayer.Mode.CONTINUOUS -> player.playContinuous(
-                poemId, lineCount, selected + 1,
-                speed = g.speedMultiplier,
-                autoPauseBetweenLines = g.lineByLine
-            )
-            PoemPlayer.Mode.LINE_LOOP -> player.playLineLoop(poemId, selected + 1, speed = g.speedMultiplier)
-        }
+    // 朗读：只读箭头所指句（selected），播完即停，不切下一句
+    fun readSelectedLine() {
+        player.playLineOnce(currentPoemId, selected + 1, speed = g.speedMultiplier)
     }
 
-    // ◀▶：移动选中句（coerce 到范围）；跟读模式下即时切句循环，连读下只移动光标
+    // ◀▶：移动箭头句（coerce 到范围）；连读中 = 循环内跳句继续，空闲/单句时仅移动朗读目标
     fun moveSelection(delta: Int) {
         val next = (selected + delta).coerceIn(0, lineCount - 1)
         if (next == selected) return
         selected = next
-        // 不判 started：mode==LINE_LOOP 蕴含 started（模式只能经"逐句跟读"按钮进入，按钮同时置 started）
-        if (mode == PoemPlayer.Mode.LINE_LOOP) player.playLineLoop(poemId, selected + 1, speed = g.speedMultiplier)
+        if (shape == PoemPlayer.Shape.LOOP) player.seekToLine(selected + 1)
     }
 
-    // OK（诗行区聚焦时）：未发起过播放 → 按当前模式从 selected 句开始；否则播放/暂停
+    // OK（诗行区聚焦时）：空闲 → 朗读箭头句；播放/暂停中 → 播放/暂停
     fun okOnPoemArea() {
-        if (!started) startWithCurrentSelection() else player.togglePause()
+        if (shape == PoemPlayer.Shape.IDLE) readSelectedLine()
+        else player.togglePause()
     }
 
-    // 高亮句（0-based）：跟读=选中句；连读=实际播放句（currentLine 0=无高亮）；暂停不清除
-    val highlightIdx = when (mode) {
-        PoemPlayer.Mode.LINE_LOOP -> selected
-        PoemPlayer.Mode.CONTINUOUS -> currentLine - 1
-    }
+    // 高亮句（0-based）：播放/暂停中显示所在句（连读随播放推进；暂停不清除），空闲清除
+    val highlightIdx = if (shape != PoemPlayer.Shape.IDLE && currentLine > 0) currentLine - 1 else -1
 
     // 连读模式的开始位置光标：selected 尚未开始播放（currentLine==0）或已移到别句时，
     // 在选中句上以小圆点标出"朗读将从这句开始"（调用处保证与正在读高亮互斥）；
     // 跟读模式高亮即选中句，无需光标
-    val showCursor = mode == PoemPlayer.Mode.CONTINUOUS && (currentLine == 0 || selected != currentLine - 1)
+    // 箭头：空闲时恒显示（朗读目标）；播放/暂停中与播放位置不重合（用户移开）时显示
+    val showCursor = shape == PoemPlayer.Shape.IDLE || selected != currentLine - 1
 
     val playStatus = when {
-        !started -> ""
-        isPlaying -> (if (mode == PoemPlayer.Mode.LINE_LOOP) "跟读中" else "朗读中") +
+        shape == PoemPlayer.Shape.IDLE -> ""
+        isPlaying -> (if (shape == PoemPlayer.Shape.LOOP) "连读中" else "朗读中") +
             " · 第 ${currentLine.coerceAtLeast(1)} 句"
         else -> "已暂停"
     }
 
     CreamBackground {
         Column(
-            Modifier.fillMaxSize().padding(20.dp),
+            Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // 顶栏：返回提示 | 诗名·朝代·诗人 | 序号
+            // 顶栏：返回提示 | 诗名·朝代·诗人 | ◀ 上一首 · 序号 · 下一首 ▶
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     "← 返回（B 键返回）",
@@ -206,66 +218,125 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                     color = T.TextSubtle, fontSize = 13.sp, maxLines = 1
                 )
                 Text(
-                    "${poem.title} · ${poem.dynasty} · ${poem.poet}",
+                    "${poem.title} · ${poem.poet}",
                     Modifier.weight(2f),
                     textAlign = TextAlign.Center,
-                    color = T.TextTitle, fontSize = 22.sp, letterSpacing = 4.sp,
+                    color = T.TextTitle, fontSize = 24.sp, letterSpacing = 4.sp,
                     fontWeight = FontWeight.SemiBold, maxLines = 1,
                     fontFamily = KaiTi
                 )
-                Text(
-                    "第 ${poem.order} / $total 首",
+                Row(
                     Modifier.weight(1f),
-                    textAlign = TextAlign.End,
-                    color = T.TextSubtle, fontSize = 11.sp, maxLines = 1
-                )
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.End)
+                ) {
+                    // 切诗芯片：到首/末尾时对应侧禁用；频道键 CH-/CH+ 为等价捷径
+                    FocusablePillButton(
+                        "◀", filled = false,
+                        enabled = prevPoem != null,
+                        onClick = { prevPoem?.let { currentPoemId = it.id } },
+                        onFocusChange = tone
+                    )
+                    Text(
+                        "第 ${poem.order} / ${poems.size} 首",
+                        color = T.TextSubtle, fontSize = 11.sp, maxLines = 1
+                    )
+                    FocusablePillButton(
+                        "▶", filled = false,
+                        enabled = nextPoem != null,
+                        onClick = { nextPoem?.let { currentPoemId = it.id } },
+                        onFocusChange = tone
+                    )
+                }
             }
 
             // 主区：左诗文跟读 + 操作按钮 | 右创作背景
             Row(
                 Modifier.weight(1f).fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(Modifier.weight(1.4f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    // 诗行区 = 一个焦点目标（初始焦点落这里），◀▶/OK 在其聚焦时生效
-                    Column(
+                Column(Modifier.weight(1.4f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    // 诗行卡 = 一个焦点目标（初始焦点落这里，聚焦橙描边），◀▶/OK 在其聚焦时生效
+                    FocusCard(
                         Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
                             .focusRequester(focusRequester)
-                            .onFocusChanged { tone(it.isFocused) }
+                            .onFocusChanged {
+                                poemAreaFocused = it.isFocused
+                                tone(it.isFocused)
+                            }
                             .onPreviewKeyEvent { e ->
                                 if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
                                 when (e.key) {
                                     Key.DirectionLeft -> { moveSelection(-1); true }
                                     Key.DirectionRight -> { moveSelection(1); true }
                                     Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> { okOnPoemArea(); true }
-                                    else -> false   // 其余按键（含 B/返回）交还系统
+                                    Key.ChannelUp -> { nextPoem?.let { currentPoemId = it.id }; true }    // CH+ 下一首
+                                    Key.ChannelDown -> { prevPoem?.let { currentPoemId = it.id }; true }  // CH- 上一首
+                                    else -> false   // 其余按键（含 B/返回、▲▼焦点）交还系统
                                 }
                             }
                             .focusable(),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                        focused = poemAreaFocused
                     ) {
-                        poem.lines.forEachIndexed { i, line ->
-                            PoemLine(line, highlighted = i == highlightIdx, cursor = showCursor && i == selected)
+                        // 诗块整体在卡内居中；行间仍保持同一起点（不逐行居中），字格纵向对齐。
+                        // 块宽含左侧 60dp 指示槽，居中会让文字右偏半槽，offset 抵消
+                        Box(
+                            Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(Modifier.offset(x = -INDICATOR_SLOT / 2)) {
+                                poem.lines.forEachIndexed { i, line ->
+                                Row(verticalAlignment = Alignment.Bottom) {
+                                    // 指示槽：常驻固定宽度。"正在读"徽章贴槽左，起始光标圆点贴槽右
+                                    // （紧邻诗句），诗字起点恒定，不随标记出现或逐句移动而横跳
+                                    Box(Modifier.width(INDICATOR_SLOT)) {
+                                        if (showCursor && i == selected) {
+                                            Icon(
+                                                Icons.Filled.PlayArrow, null,
+                                                Modifier
+                                                    .align(Alignment.BottomEnd)
+                                                    .padding(end = 6.dp, bottom = 6.dp)
+                                                    .size(18.dp),
+                                                tint = T.Orange
+                                            )
+                                        }
+                                        if (i == highlightIdx) {
+                                            Text(
+                                                "▶ 正在读",
+                                                Modifier.align(Alignment.BottomStart),
+                                                color = T.Orange, fontSize = 12.sp, maxLines = 1
+                                            )
+                                        }
+                                    }
+                                    PoemLine(line, highlighted = i == highlightIdx)
+                                }
+                            }
+                        }
                         }
                     }
 
-                    Spacer(Modifier.weight(1f))
-
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            // 朗读：只读箭头句；连读生效时禁用（灰显、不可聚焦）
                             FocusablePillButton(
                                 "朗读", Icons.Filled.PlayArrow, filled = true,
-                                onClick = {
-                                    mode = PoemPlayer.Mode.CONTINUOUS
-                                    startWithCurrentSelection()
-                                },
+                                enabled = shape != PoemPlayer.Shape.LOOP,
+                                onClick = { readSelectedLine() },
                                 onFocusChange = tone
                             )
+                            // 连读：整首循环开关——按一次开始（从第 1 句循环到末句回卷），再按一次停止
                             FocusablePillButton(
-                                "逐句跟读", Icons.Filled.Replay, filled = false,
+                                "连读", Icons.Filled.Replay,
+                                filled = shape == PoemPlayer.Shape.LOOP,
                                 onClick = {
-                                    mode = PoemPlayer.Mode.LINE_LOOP
-                                    startWithCurrentSelection()
+                                    if (shape == PoemPlayer.Shape.LOOP) {
+                                        player.stopPlayback()
+                                    } else {
+                                        selected = 0
+                                        player.playContinuousLoop(currentPoemId, lineCount, speed = g.speedMultiplier)
+                                    }
                                 },
                                 onFocusChange = tone
                             )
@@ -284,7 +355,7 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
 
                 // 右：创作背景（可聚焦：▲▼ 滚动长文——Task 14 更长文本也可达；
                 // 内容未溢出时 ▲▼ 不消费，交还焦点系统自然移出）
-                val bgScroll = rememberScrollState()
+                val bgScroll = remember(currentPoemId) { ScrollState(0) }
                 val bgScrollStep = with(LocalDensity.current) { 60.dp.toPx() }
                 var bgFocused by remember { mutableStateOf(false) }
                 FocusCard(
@@ -308,6 +379,8 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                                         scope.launch { bgScroll.scrollBy(bgScrollStep) }
                                         true
                                     } else false
+                                Key.ChannelUp -> { nextPoem?.let { currentPoemId = it.id }; true }    // CH+ 下一首
+                                Key.ChannelDown -> { prevPoem?.let { currentPoemId = it.id }; true }  // CH- 上一首
                                 else -> false
                             }
                         }
@@ -317,17 +390,19 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                     Column(
                         Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 18.dp, vertical = 16.dp)
+                            .padding(horizontal = 22.dp, vertical = 18.dp)
                             .verticalScroll(bgScroll),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text("🌙 诗人为什么写这首诗？", color = T.Orange, fontSize = 13.sp, letterSpacing = 2.sp)
-                        Text(poem.background, color = T.TextBody, lineHeight = 26.sp)
+                        Text("📖 这首诗的意思", color = T.Orange, fontSize = 15.sp, letterSpacing = 2.sp)
+                        Text(poem.meaning, color = T.TextBody, fontSize = 16.sp, lineHeight = 28.sp)
+                        Text("🌙 诗人为什么写这首诗？", color = T.Orange, fontSize = 15.sp, letterSpacing = 2.sp)
+                        Text(poem.background, color = T.TextBody, fontSize = 16.sp, lineHeight = 28.sp)
                     }
                 }
             }
 
-            KeyHintBar("◀ ▶ 逐句移动　OK 播放/暂停　B 返回", "已学进度 $progress%")
+            KeyHintBar("◀ ▶ 逐句移动　OK 播放/暂停　B 返回", "顶栏 ◀▶ 或 CH± 切换上一首/下一首 · 已学进度 $progress%")
         }
 
         // 播放失败提示条（覆盖在顶部，不挤压布局；常驻至离屏）
@@ -360,7 +435,7 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
             confirmButton = {
                 TextButton(onClick = {
                     showMasteredDialog = false
-                    scope.launch { g.progress.markMastered(poemId) }
+                    scope.launch { g.progress.markMastered(currentPoemId) }
                 }) { Text("标记会背") }
             },
             dismissButton = {
