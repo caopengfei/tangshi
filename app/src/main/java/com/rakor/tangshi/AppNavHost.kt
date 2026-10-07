@@ -1,11 +1,20 @@
 package com.rakor.tangshi
 
+import android.view.KeyEvent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import androidx.compose.runtime.Composable
 import com.rakor.tangshi.ui.screens.detail.DetailScreen
 import com.rakor.tangshi.ui.screens.game.GameQuestionScreen
 import com.rakor.tangshi.ui.screens.game.GameResultScreen
@@ -37,7 +46,18 @@ object Routes {
 @Composable
 fun AppNavHost() {
     val nav = rememberNavController()
-    NavHost(nav, startDestination = Routes.HOME) {
+    // 菜单键 → 家长设置（规格第 6 节）：各屏不消费 MENU，冒泡到根部统一处理；
+    // 已在设置页时忽略（launchSingleTop 防重复入栈）。对话框是独立窗口收不到，天然豁免。
+    Box(Modifier.fillMaxSize().onKeyEvent { e ->
+        if (e.key == Key.Menu &&
+            e.type == KeyEventType.KeyUp &&
+            nav.currentDestination?.route != Routes.SETTINGS
+        ) {
+            nav.navigate(Routes.SETTINGS) { launchSingleTop = true }
+            true
+        } else false
+    }) {
+        NavHost(nav, startDestination = Routes.HOME) {
         composable(Routes.HOME) {
             HomeScreen(
                 onPoem = { nav.navigate(Routes.poem(it)) },
@@ -104,5 +124,6 @@ fun AppNavHost() {
             )
         }
         composable(Routes.SETTINGS) { SettingsScreen() }
+        }
     }
 }

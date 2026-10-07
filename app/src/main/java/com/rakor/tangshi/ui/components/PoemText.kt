@@ -18,19 +18,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rakor.tangshi.data.model.Line
+import com.rakor.tangshi.ui.theme.KaiTi
 import com.rakor.tangshi.ui.theme.T
 
 /**
  * 单句诗行：逐字拼音（上小拼音下大字）；当前句 ChipBg 高亮 + "◀ 正在读" 指示；
  * cursor=true 时行首绘 4dp 橙色圆点，作为连读模式下"开始位置"光标（调用方保证与 highlighted 互斥）。
- * 自 DetailScreen 提出的 internal 共享组件（详情页/背诗小游戏题面复用）；楷体留待 Task 13 经 font 注入。
+ * 自 DetailScreen 提出的 internal 共享组件（详情页/背诗小游戏题面复用）；诗字默认楷体（规格第 4 节）。
  */
 @Composable
 internal fun PoemLine(
     line: Line,
     highlighted: Boolean,
     modifier: Modifier = Modifier,
-    font: FontFamily = FontFamily.Default,
+    font: FontFamily = KaiTi,
     cursor: Boolean = false
 ) {
     Row(

@@ -53,6 +53,7 @@ import com.rakor.tangshi.ui.components.FocusableCard
 import com.rakor.tangshi.ui.components.FocusablePillButton
 import com.rakor.tangshi.ui.components.KeyHintBar
 import com.rakor.tangshi.ui.components.StatusBadge
+import com.rakor.tangshi.ui.theme.KaiTi
 import com.rakor.tangshi.ui.theme.T
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -201,7 +202,7 @@ fun LibraryScreen(onPoem: (String) -> Unit) {
                 val cardWidth = (maxWidth - GridEdgePad * 2 - GridGap * (GRID_COLS - 1)) / GRID_COLS
                 if (filtered.isEmpty()) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("这个分类还没有诗词哦", color = T.TextSubtle)
+                        Text("这个分类还没有唐诗哦", color = T.TextSubtle)
                     }
                 } else {
                     LazyHorizontalGrid(
@@ -238,7 +239,8 @@ fun LibraryScreen(onPoem: (String) -> Unit) {
                                             fontSize = 19.sp, letterSpacing = 3.sp, lineHeight = 26.sp,
                                             color = T.TextTitle, fontWeight = FontWeight.SemiBold,
                                             textAlign = TextAlign.Center,
-                                            maxLines = 2, overflow = TextOverflow.Ellipsis
+                                            maxLines = 2, overflow = TextOverflow.Ellipsis,
+                                            fontFamily = KaiTi
                                         )
                                         Text(poem.poet, fontSize = 11.sp, color = T.TextMuted, maxLines = 1)
                                     }

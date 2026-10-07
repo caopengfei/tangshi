@@ -50,6 +50,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -68,6 +69,7 @@ import com.rakor.tangshi.ui.components.FocusableCard
 import com.rakor.tangshi.ui.components.FocusablePillButton
 import com.rakor.tangshi.ui.components.KeyHintBar
 import com.rakor.tangshi.ui.components.tvFocusable
+import com.rakor.tangshi.ui.theme.KaiTi
 import com.rakor.tangshi.ui.theme.T
 import java.text.Collator
 import java.util.Locale
@@ -390,7 +392,11 @@ private fun ResultRow(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "${poem.title} · ${poem.poet}",
+                // 诗名用楷体（规格第 4 节诗体内容），诗人仍走系统无衬线
+                buildAnnotatedString {
+                    withStyle(SpanStyle(fontFamily = KaiTi)) { append(poem.title) }
+                    append(" · ${poem.poet}")
+                },
                 Modifier.weight(1f),
                 fontSize = 15.sp, color = T.TextTitle, fontWeight = FontWeight.SemiBold,
                 maxLines = 1, overflow = TextOverflow.Ellipsis

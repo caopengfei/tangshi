@@ -56,6 +56,7 @@ import com.rakor.tangshi.ui.components.FocusCard
 import com.rakor.tangshi.ui.components.FocusableCard
 import com.rakor.tangshi.ui.components.FocusablePillButton
 import com.rakor.tangshi.ui.components.KeyHintBar
+import com.rakor.tangshi.ui.theme.KaiTi
 import com.rakor.tangshi.ui.theme.T
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -192,13 +193,17 @@ fun HomeScreen(
                                     p.title,
                                     fontSize = 26.sp, letterSpacing = 4.sp,
                                     color = T.TextTitle, fontWeight = FontWeight.SemiBold,
-                                    maxLines = 1
+                                    maxLines = 1,
+                                    fontFamily = KaiTi
                                 )
                                 Text(p.poet, color = T.TextMuted, maxLines = 1)
                             }
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 p.lines.forEach { line ->
-                                    Text(line.text, color = T.TextBody, lineHeight = 24.sp)
+                                    Text(
+                                        line.text, color = T.TextBody, lineHeight = 24.sp,
+                                        fontFamily = KaiTi
+                                    )
                                 }
                             }
                             Spacer(Modifier.weight(1f))

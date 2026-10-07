@@ -58,6 +58,7 @@ import com.rakor.tangshi.ui.components.FocusablePillButton
 import com.rakor.tangshi.ui.components.KeyHintBar
 import com.rakor.tangshi.ui.components.PoemLine
 import com.rakor.tangshi.ui.components.tvFocusable
+import com.rakor.tangshi.ui.theme.KaiTi
 import com.rakor.tangshi.ui.theme.T
 
 /** 听音题可重听次数（自动播放一次不计入） */
@@ -316,7 +317,7 @@ private fun BlankLine(line: Line, charIndex: Int) {
                     }
                 } else {
                     Text(cd.py, fontSize = 11.sp, color = T.OrangeSoft)
-                    Text(cd.c, fontSize = 24.sp, color = T.TextTitle)
+                    Text(cd.c, fontSize = 24.sp, color = T.TextTitle, fontFamily = KaiTi)
                 }
             }
         }
@@ -403,7 +404,8 @@ private fun ListenBody(
                         fontSize = 18.sp, letterSpacing = 2.sp,
                         color = if (feedback == Feedback.CORRECT) Color.White else T.TextTitle,
                         fontWeight = FontWeight.SemiBold,
-                        maxLines = 1
+                        maxLines = 1,
+                        fontFamily = KaiTi
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(

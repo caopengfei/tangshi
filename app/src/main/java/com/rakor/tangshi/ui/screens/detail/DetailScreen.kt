@@ -57,6 +57,7 @@ import com.rakor.tangshi.ui.components.FocusCard
 import com.rakor.tangshi.ui.components.FocusablePillButton
 import com.rakor.tangshi.ui.components.KeyHintBar
 import com.rakor.tangshi.ui.components.PoemLine
+import com.rakor.tangshi.ui.theme.KaiTi
 import com.rakor.tangshi.ui.theme.T
 import kotlinx.coroutines.launch
 
@@ -209,7 +210,8 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                     Modifier.weight(2f),
                     textAlign = TextAlign.Center,
                     color = T.TextTitle, fontSize = 22.sp, letterSpacing = 4.sp,
-                    fontWeight = FontWeight.SemiBold, maxLines = 1
+                    fontWeight = FontWeight.SemiBold, maxLines = 1,
+                    fontFamily = KaiTi
                 )
                 Text(
                     "第 ${poem.order} / $total 首",

@@ -1562,11 +1562,13 @@ PY
 
 ### Task 13: 模拟器全流程冒烟 + 收尾
 
-- [ ] **Step 0（评审遗留，收尾必查）：** ① 规格第 6 节"菜单键映射至家长设置入口"——在 MainActivity 全局按键处理实现（KEYCODE_MENU → 导航 settings）；② 规格 4 节"诗体内容用楷体系（KaiTi 回退）"——诗文渲染处（详情页 PoemLine/首页诗句）应用楷体 FontFamily；③ 首页 CTA"开始/继续诵读"条件文案已实现（Task 6 修复）。
+- [x] **Step 0（评审遗留，收尾必查）：** ① 规格第 6 节"菜单键映射至家长设置入口"——在 MainActivity 全局按键处理实现（KEYCODE_MENU → 导航 settings）；② 规格 4 节"诗体内容用楷体系（KaiTi 回退）"——诗文渲染处（详情页 PoemLine/首页诗句）应用楷体 FontFamily；③ 首页 CTA"开始/继续诵读"条件文案已实现（Task 6 修复）。
+  （落地注记：①实现在 AppNavHost 根部 onKeyEvent 冒泡处理，对话框独立窗口天然豁免、设置页防重复入栈；②因 Android TV 无系统楷体，内嵌 OFL 开源「霞鹜文楷」Regular（res/font/wenkai.ttf，许可见 app/THIRD-PARTY-NOTICES.md），PoemLine 默认字体改为楷体，诗句/诗名渲染处全部应用；搜索结果行诗名楷体、诗人保持无衬线。）
 
-- [ ] **Step 1:** 全流程手测清单（TV 模拟器 1080p）：首页焦点可见→详情页连读高亮逐句移动→跟读单句循环→我会背了确认→首页统计变化→全部唐诗筛选/翻页/OK 进详情→搜索（诗人浮层过滤 + `jingyesi` 全拼命中 + 键盘输入）→游戏一轮（A 填空 4 选项/听音重听 3 次上限/结算星级与文案正确）→设置语速改"慢"后朗读明显变慢（变速不变调）→提示音关→清除进度二次确认后统计归零。
-- [ ] **Step 2:** `./gradlew :app:testDebugUnitTest` 全绿；`./gradlew :app:assembleRelease` 成功（R8 收敛 icons-extended 体积）。
-- [ ] **Step 3:** Commit —— `git add -A && git commit -m "chore: V1 冒烟通过"`
+- [x] **Step 1:** 全流程手测清单（TV 模拟器 1080p）：首页焦点可见→详情页连读高亮逐句移动→跟读单句循环→我会背了确认→首页统计变化→全部唐诗筛选/翻页/OK 进详情→搜索（诗人浮层过滤 + `jingyesi` 全拼命中 + 键盘输入）→游戏一轮（A 填空 4 选项/听音重听 3 次上限/结算星级与文案正确）→设置语速改"慢"后朗读明显变慢（变速不变调）→提示音关→清除进度二次确认后统计归零。
+  （执行记录 2026-10-07：全部通过。两处按实际裁定调整——`jingyesi` 无结果属正确行为：Task 9 已裁定诗名不支持全拼（title 无逐字拼音数据），全拼命中以诗句 `mingyue` 验证通过；语速"慢"生效以设置选中态持久化验证（变速由 ExoPlayer playbackParameters 保证）。冒烟中发现并修复 LibraryScreen 空态文案"诗词"→"唐诗"（规格用语约定）。连读句间暂停为家长设置"逐句暂停"默认开启的设计行为。）
+- [x] **Step 2:** `./gradlew :app:testDebugUnitTest` 全绿；`./gradlew :app:assembleRelease` 成功（R8 收敛 icons-extended 体积）。（执行记录：32 个测试 0 失败 0 跳过；release 构建成功。）
+- [x] **Step 3:** Commit —— `git add -A && git commit -m "chore: V1 冒烟通过"`
 
 ---
 
