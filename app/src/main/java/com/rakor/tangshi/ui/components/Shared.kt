@@ -138,12 +138,15 @@ fun FocusableCard(
  *  - 未选中：白底 2dp 浅橙描边棕字；highlight 档：ChipBg 底 3dp 橙描边橙字（常驻强调/分段选中指示）
  *  - 选中（B 反色）：橙渐变填充 + 白字白图标 + [FocusScale] 放大 + 暖橙投影——焦点即最强信号
  * OK 触发 onClick（为 null 时仅可聚焦）；焦点变化回调 onFocusChange（提示音挂钩用）。
+ * segment：分段选择组成员（语速/键音/过滤/题数等）——焦点不反色填充，
+ * 保持本体底色 + 4dp 主橙描边强调（规格 §1 分段组例外）。
  */
 @Composable
 fun FocusablePillButton(
     text: String,
     icon: ImageVector? = null,
     highlight: Boolean = false,
+    segment: Boolean = false,
     enabled: Boolean = true,
     onClick: (() -> Unit)? = null,
     onFocusChange: (Boolean) -> Unit = {},
@@ -153,19 +156,20 @@ fun FocusablePillButton(
     val shape = RoundedCornerShape(18.dp)
     val scale by animateFloatAsState(if (focused) FocusScale else 1f, label = "pillFocusScale")
     val borderWidth by animateDpAsState(
-        if (focused) 0.dp else if (highlight) 3.dp else 2.dp,
+        if (focused) if (segment) 4.dp else 0.dp else if (highlight) 3.dp else 2.dp,
         label = "pillFocusBorder"
     )
-    // 底色在静态底与橙渐变间连续过渡：两端同色即纯色，两端异色即渐变（B 反色）
+    // 底色：普通按钮焦点反色为橙渐变；分段组保持本体底色（未选白底/选中浅橙底）
     val restBg = if (highlight) T.ChipBg else T.Card
-    val bgStart by animateColorAsState(if (focused) T.OrangeLight else restBg, label = "pillBgStart")
-    val bgEnd by animateColorAsState(if (focused) T.Orange else restBg, label = "pillBgEnd")
+    val bgStart by animateColorAsState(if (focused && !segment) T.OrangeLight else restBg, label = "pillBgStart")
+    val bgEnd by animateColorAsState(if (focused && !segment) T.Orange else restBg, label = "pillBgEnd")
     val textColor by animateColorAsState(
-        if (focused) Color.White else if (highlight) T.Orange else T.TextBody,
+        if (focused && !segment) Color.White else if (highlight) T.Orange else T.TextBody,
         label = "pillTextColor"
     )
     // 图标 tint 必须与底色/文字同速渐变：硬切会在过渡期出现"白图标贴白底/橙图标贴橙底"的闪隐
-    val iconTint by animateColorAsState(if (focused) Color.White else T.Orange, label = "pillIconTint")
+    // 图标色：普通按钮焦点转白；分段组恒橙
+    val iconTint by animateColorAsState(if (focused && !segment) Color.White else T.Orange, label = "pillIconTint")
     Row(
         modifier
             .onFocusChanged {
@@ -180,7 +184,8 @@ fun FocusablePillButton(
                 else Modifier
             )
             .background(Brush.horizontalGradient(listOf(bgStart, bgEnd)), shape)
-            .border(borderWidth, if (highlight) T.Orange else T.OrangeSoft, shape)
+            // 描边色：分段组焦点须升为 4dp 主橙（规格 §1），未聚焦未选中仍 2dp 浅橙
+            .border(borderWidth, if (highlight || segment && focused) T.Orange else T.OrangeSoft, shape)
             .then(if (enabled) Modifier.tvFocusable(onClick) else Modifier)
             .padding(horizontal = 20.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically

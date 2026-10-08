@@ -154,6 +154,7 @@ fun GameSetupScreen(onBack: () -> Unit, onStart: (mode: String, scope: String) -
                         FocusablePillButton(
                             label,
                             highlight = scope == value,
+                            segment = true,
                             onClick = { scope = value },
                             onFocusChange = tone
                         )
