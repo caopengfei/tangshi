@@ -443,7 +443,7 @@ private fun KeyBox(
             }
             .scale(scale)
             .background(T.ChipBg, RoundedCornerShape(KeyCorner))
-            .border(if (focused) 2.dp else 0.dp, T.Orange, RoundedCornerShape(KeyCorner))
+            .border(if (focused) 3.dp else 0.dp, T.Orange, RoundedCornerShape(KeyCorner))
             .tvFocusable(onClick),
         contentAlignment = Alignment.Center,
         content = content
@@ -468,7 +468,7 @@ private fun PickerItem(
             }
             .scale(scale)
             .background(T.ChipBg, RoundedCornerShape(12.dp))
-            .border(if (focused) 2.dp else 0.dp, T.Orange, RoundedCornerShape(12.dp))
+            .border(if (focused) 3.dp else 0.dp, T.Orange, RoundedCornerShape(12.dp))
             .tvFocusable(onClick)
             .padding(horizontal = 14.dp, vertical = 9.dp)
     ) {

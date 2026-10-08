@@ -448,7 +448,7 @@ private fun RoundPlayButton(
                 if (enabled) Brush.linearGradient(listOf(T.OrangeLight, T.Orange)) else SolidColor(T.Idle),
                 CircleShape
             )
-            .border(if (focused) 3.dp else 0.dp, T.OrangeSoft, CircleShape)
+            .border(if (focused) 3.dp else 0.dp, if (focused) Color.White else T.OrangeSoft, CircleShape)
             .tvFocusable(if (enabled) onClick else null)
             .size(56.dp),
         contentAlignment = Alignment.Center
@@ -486,8 +486,8 @@ private fun OptionBlock(
             .shadow(if (focused) 14.dp else 6.dp, shape, ambientColor = CardShadow, spotColor = CardShadow)
             .background(if (feedback == Feedback.CORRECT) T.Correct else T.Card, shape)
             .border(
-                if (feedback == Feedback.WRONG) 3.dp else if (focused) 3.dp else 0.dp,
-                if (feedback == Feedback.WRONG) T.Wrong else T.OrangeSoft,
+                if (feedback == Feedback.WRONG || focused) 3.dp else 0.dp,
+                if (feedback == Feedback.WRONG) T.Wrong else T.Orange,
                 shape
             )
             .tvFocusable(onClick),

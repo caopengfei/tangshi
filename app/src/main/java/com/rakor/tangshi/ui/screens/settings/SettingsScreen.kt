@@ -253,7 +253,7 @@ private fun WipeButton(onFocusChange: (Boolean) -> Unit, onClick: () -> Unit) {
             }
             .scale(if (focused) FocusScale else 1f)
             .background(if (focused) T.ChipBg else T.Idle, shape)
-            .border(if (focused) 2.dp else 0.dp, T.OrangeSoft, shape)
+            .border(if (focused) 3.dp else 0.dp, T.Orange, shape)
             .tvFocusable(onClick)
             .padding(horizontal = 14.dp, vertical = 6.dp),
         color = T.Orange, fontSize = 12.sp, fontWeight = FontWeight.SemiBold
