@@ -44,8 +44,10 @@ import androidx.compose.ui.unit.dp
 import com.rakor.tangshi.ui.theme.T
 
 /** 暖棕投影色（焦点规范 rgba(210,140,90)，仅用于 shadow 的 ambient/spot 着色，非界面用色）；
- *  internal 供同模块自绘焦点组件（如游戏题面的选项块）复用同一暖影 */
-internal val CardShadow = Color(0xD28C5A)
+ *  internal 供同模块自绘焦点组件（如游戏题面的选项块）复用同一暖影。
+ *  注意 Color(Int) 按 0xAARRGGBB 解析，必须写满 8 位（alpha=FF）——
+ *  写 6 位 0xD28C5A 会解析成 alpha=0 全透明，投影不可见。 */
+internal val CardShadow = Color(0xFFD28C5A)
 
 /** 焦点放大倍数（统一焦点视觉，自聚焦组件与外部布局共用） */
 val FocusScale = 1.06f

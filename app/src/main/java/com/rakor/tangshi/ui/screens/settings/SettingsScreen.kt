@@ -2,6 +2,7 @@ package com.rakor.tangshi.ui.screens.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
@@ -117,7 +119,12 @@ fun SettingsScreen() {
             // 单行三卡（corner=18 白底）：语速 | 提示音 | 清除进度
             Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 SettingCard(Modifier.weight(1f).fillMaxHeight(), "朗读语速") {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // 三枚语速胶囊总宽超出卡内可用宽（1080p TV 会被挤成竖条），
+                    // 加水平滚动：焦点右移时 Compose focus 系统自动 bring-into-view
+                    Row(
+                        Modifier.horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         FocusablePillButton(
                             "慢 0.9×", highlight = s.speed == 0.9f,
                             onClick = { vm.setSpeed(0.9f) },
