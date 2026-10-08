@@ -38,8 +38,10 @@
 在 `app/src/main/java/com/rakor/tangshi/ui/components/Shared.kt` 的 import 区（`animateDpAsState` 旁）加：
 
 ```kotlin
-import androidx.compose.animation.core.animateColorAsState
+import androidx.compose.animation.animateColorAsState
 ```
+
+（注意：不是 `animation.core`——`animateColorAsState` 在 `androidx.compose.animation` 包下，写 `.core.` 会编译报 Unresolved reference。）
 
 - [ ] **Step 2: 删除无调用点的 `PillButton`**
 
