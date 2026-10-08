@@ -134,7 +134,7 @@ fun FocusableCard(
  * 可聚焦胶囊按钮：内部自管焦点视觉（放大/描边/反色填充动效）。
  * 统一描边款本体（规格 2026-10-08 焦点样式）：
  *  - 未选中：白底 2dp 浅橙描边棕字；highlight 档：ChipBg 底 3dp 橙描边橙字（常驻强调/分段选中指示）
- *  - 选中（B 反色）：橙渐变填充 + 白字白图标 + 1.06 放大 + 暖橙投影——焦点即最强信号
+ *  - 选中（B 反色）：橙渐变填充 + 白字白图标 + [FocusScale] 放大 + 暖橙投影——焦点即最强信号
  * OK 触发 onClick（为 null 时仅可聚焦）；焦点变化回调 onFocusChange（提示音挂钩用）。
  */
 @Composable
@@ -162,6 +162,8 @@ fun FocusablePillButton(
         if (focused) Color.White else if (highlight) T.Orange else T.TextBody,
         label = "pillTextColor"
     )
+    // 图标 tint 必须与底色/文字同速渐变：硬切会在过渡期出现"白图标贴白底/橙图标贴橙底"的闪隐
+    val iconTint by animateColorAsState(if (focused) Color.White else T.Orange, label = "pillIconTint")
     Row(
         modifier
             .onFocusChanged {
@@ -182,7 +184,7 @@ fun FocusablePillButton(
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (icon != null) {
-            Icon(icon, null, tint = if (focused) Color.White else T.Orange)
+            Icon(icon, null, tint = iconTint)
             Spacer(Modifier.width(6.dp))
         }
         Text(text, color = textColor)
