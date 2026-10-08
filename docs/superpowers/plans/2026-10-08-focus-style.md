@@ -33,7 +33,7 @@
 - Modify: `app/src/main/java/com/rakor/tangshi/ui/screens/game/GameQuestionScreen.kt`（152 行）
 - Modify: `app/src/main/java/com/rakor/tangshi/ui/screens/game/GameResultScreen.kt`（105/110 行）
 
-- [ ] **Step 1: Shared.kt 加 import**
+- [x] **Step 1: Shared.kt 加 import**
 
 在 `app/src/main/java/com/rakor/tangshi/ui/components/Shared.kt` 的 import 区（`animateDpAsState` 旁）加：
 
@@ -43,11 +43,11 @@ import androidx.compose.animation.animateColorAsState
 
 （注意：不是 `animation.core`——`animateColorAsState` 在 `androidx.compose.animation` 包下，写 `.core.` 会编译报 Unresolved reference。）
 
-- [ ] **Step 2: 删除无调用点的 `PillButton`**
+- [x] **Step 2: 删除无调用点的 `PillButton`**
 
 删除 Shared.kt 第 132-165 行（KDoc `/** 渐变胶囊按钮… */` 到函数结尾 `}`），即整个 `fun PillButton(...)`。已确认全工程无调用点、无 import。
 
-- [ ] **Step 3: 重写 `FocusablePillButton`**
+- [x] **Step 3: 重写 `FocusablePillButton`**
 
 用下面代码整体替换 Shared.kt 第 167-214 行（原 KDoc + `fun FocusablePillButton`）：
 
@@ -84,6 +84,8 @@ fun FocusablePillButton(
         if (focused) Color.White else if (highlight) T.Orange else T.TextBody,
         label = "pillTextColor"
     )
+    // 图标色必须与背景/文字同帧动画：硬切会在过渡期出现白底白图标/橙底橙图标的瞬时隐没（c1e2863）
+    val iconTint by animateColorAsState(if (focused) Color.White else T.Orange, label = "pillIconTint")
     Row(
         modifier
             .onFocusChanged {
@@ -104,7 +106,7 @@ fun FocusablePillButton(
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (icon != null) {
-            Icon(icon, null, tint = if (focused) Color.White else T.Orange)
+            Icon(icon, null, tint = iconTint)
             Spacer(Modifier.width(6.dp))
         }
         Text(text, color = textColor)
@@ -114,7 +116,7 @@ fun FocusablePillButton(
 
 要点（对应规格 §1）：`filled` 参数已删除；焦点描边收到 0dp（填充分量本身就是信号）；图标未选中恒为橙（与原描边款一致），聚焦转白。
 
-- [ ] **Step 4: 调用点迁移（8 个文件，逐条精确替换）**
+- [x] **Step 4: 调用点迁移（8 个文件，逐条精确替换）**
 
 `DetailScreen.kt`：
 
@@ -191,17 +193,17 @@ filled = scope == value,   →  highlight = scope == value,
 "返回首页", Icons.Filled.Home, filled = false,       →  "返回首页", Icons.Filled.Home,
 ```
 
-- [ ] **Step 5: 全局确认无残留引用**
+- [x] **Step 5: 全局确认无残留引用**
 
 Run: `grep -rn "filled =" app/src/main/java --include=*.kt`
 Expected: 无输出（所有 `filled =` 实参已清理；`Icons.Filled.XXX` 是 `Filled.` 不匹配 `filled =`，大小写敏感不会误报）。
 
-- [ ] **Step 6: 编译验证**
+- [x] **Step 6: 编译验证**
 
 Run: `cd D:/develop/src/rakor/tangshi && ./gradlew assembleDebug -q`
 Expected: `BUILD SUCCESSFUL`（无编译错误；若报 `filled` 未声明，回查 Step 4 是否有遗漏行）。
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add -A
@@ -215,7 +217,7 @@ git commit -m "feat: 胶囊按钮统一描边款+B反色焦点——删filled参
 **Files:**
 - Modify: `app/src/main/java/com/rakor/tangshi/ui/components/Shared.kt`（`FocusCard` 71-92 行、`FocusableCard` 99-130 行）
 
-- [ ] **Step 1: FocusCard 焦点描边 4dp 主橙、阴影 18dp**
+- [x] **Step 1: FocusCard 焦点描边 4dp 主橙、阴影 18dp**
 
 将 `FocusCard` 的 modifier 链（Shared.kt 78-89 行）改为：
 
@@ -236,7 +238,7 @@ git commit -m "feat: 胶囊按钮统一描边款+B反色焦点——删filled参
 
 （变化点：阴影 `14.dp → 18.dp`；描边 `3.dp T.OrangeSoft → 4.dp T.Orange`。）
 
-- [ ] **Step 2: FocusableCard 同步加强**
+- [x] **Step 2: FocusableCard 同步加强**
 
 将 `FocusableCard` 的两处焦点值（Shared.kt 111、119、126 行附近）改为：
 
@@ -257,12 +259,12 @@ git commit -m "feat: 胶囊按钮统一描边款+B反色焦点——删filled参
 
 （变化点：描边宽 `3.dp → 4.dp`、颜色 `T.OrangeSoft → T.Orange`、阴影 `14.dp → 18.dp`。）
 
-- [ ] **Step 3: 编译验证**
+- [x] **Step 3: 编译验证**
 
 Run: `cd D:/develop/src/rakor/tangshi && ./gradlew assembleDebug -q`
 Expected: `BUILD SUCCESSFUL`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app/src/main/java/com/rakor/tangshi/ui/components/Shared.kt
@@ -278,7 +280,7 @@ git commit -m "feat: 卡片焦点描边4dp主橙+阴影18dp加强"
 - Modify: `app/src/main/java/com/rakor/tangshi/ui/screens/game/GameQuestionScreen.kt`（451、489-490 行）
 - Modify: `app/src/main/java/com/rakor/tangshi/ui/screens/settings/SettingsScreen.kt`（256 行）
 
-- [ ] **Step 1: SearchScreen 键盘键与浮层项 2dp → 3dp 主橙**
+- [x] **Step 1: SearchScreen 键盘键与浮层项 2dp → 3dp 主橙**
 
 `KeyBox`（448 行）：
 
@@ -292,7 +294,7 @@ git commit -m "feat: 卡片焦点描边4dp主橙+阴影18dp加强"
             .border(if (focused) 3.dp else 0.dp, T.Orange, RoundedCornerShape(12.dp))
 ```
 
-- [ ] **Step 2: GameQuestionScreen 语音圆钮焦点白边（橙底上橙描边不可辨）**
+- [x] **Step 2: GameQuestionScreen 语音圆钮焦点白边（橙底上橙描边不可辨）**
 
 451 行：
 
@@ -300,7 +302,7 @@ git commit -m "feat: 卡片焦点描边4dp主橙+阴影18dp加强"
             .border(if (focused) 3.dp else 0.dp, if (focused) Color.White else T.OrangeSoft, CircleShape)
 ```
 
-- [ ] **Step 3: GameQuestionScreen 选项块焦点主橙（作答反馈优先）**
+- [x] **Step 3: GameQuestionScreen 选项块焦点主橙（作答反馈优先）**
 
 489-490 行改为：
 
@@ -314,7 +316,7 @@ git commit -m "feat: 卡片焦点描边4dp主橙+阴影18dp加强"
 
 （WRONG 红描边优先于焦点橙描边；CORRECT 底色逻辑 487 行不动。）
 
-- [ ] **Step 4: SettingsScreen "清除 →" 小按钮焦点 3dp 主橙**
+- [x] **Step 4: SettingsScreen "清除 →" 小按钮焦点 3dp 主橙**
 
 256 行：
 
@@ -322,12 +324,12 @@ git commit -m "feat: 卡片焦点描边4dp主橙+阴影18dp加强"
             .border(if (focused) 3.dp else 0.dp, T.Orange, shape)
 ```
 
-- [ ] **Step 5: 编译验证**
+- [x] **Step 5: 编译验证**
 
 Run: `cd D:/develop/src/rakor/tangshi && ./gradlew assembleDebug -q`
 Expected: `BUILD SUCCESSFUL`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add -A
@@ -341,12 +343,12 @@ git commit -m "feat: 自绘小控件焦点描边统一——键位/浮层3dp主�
 **Files:**
 - 无代码改动（验证任务；发现问题回到对应任务修复后再执行本任务）
 
-- [ ] **Step 1: 既有单测回归**
+- [x] **Step 1: 既有单测回归**
 
 Run: `cd D:/develop/src/rakor/tangshi && ./gradlew testDebugUnitTest -q`
 Expected: `BUILD SUCCESSFUL`，无用例失败（与焦点无关的 data/game 层回归，确认无连带破坏）。
 
-- [ ] **Step 2: 确认模拟器在线并安装**
+- [x] **Step 2: 确认模拟器在线并安装**
 
 ```bash
 D:/develop/androidsdk/platform-tools/adb.exe devices        # 应有 emulator-5554 device；没有则先启动 szj_tv
@@ -356,7 +358,7 @@ D:/develop/androidsdk/platform-tools/adb.exe install -r app/build/outputs/apk/de
 
 Expected: `Success`
 
-- [ ] **Step 3: 启动 app 并逐屏截图（未选中基线 + 焦点态对比）**
+- [x] **Step 3: 启动 app 并逐屏截图（未选中基线 + 焦点态对比）**
 
 准备存档目录：`mkdir -p .superpowers/brainstorm/20261008-focus-100000/verify`
 
@@ -375,7 +377,7 @@ Expected: `Success`
 5. **家长设置** → `settings-focus`：语速选中项 highlight、焦点项反色；"清除 →"聚焦 3dp 橙边
 6. 返回首页按 BACK 退出到桌面
 
-- [ ] **Step 4: 逐张查看截图并核对验收标准**
+- [x] **Step 4: 逐张查看截图并核对验收标准**
 
 对每张截图确认（对照规格 §1/§2 表格）：
 - 选中按钮 = 橙渐变填充 + 白字 + 明显放大 + 暖影；未选中 = 白底描边（或 highlight 浅橙底橙字）
@@ -386,7 +388,7 @@ Expected: `Success`
 
 任一项不达标 → 记录为缺陷，回对应任务修复，重新构建安装后复查本步骤。
 
-- [ ] **Step 5: 汇报结果**
+- [x] **Step 5: 汇报结果**
 
 在最终回复中给出：构建/测试结论 + 关键截图路径 + 走查通过项清单（或缺陷与修复说明）。此任务无代码改动则不提交；有修复则随修复任务提交。
 
