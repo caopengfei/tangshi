@@ -299,8 +299,10 @@ git commit -m "feat: 卡片焦点描边4dp主橙+阴影18dp加强"
 451 行：
 
 ```kotlin
-            .border(if (focused) 3.dp else 0.dp, if (focused) Color.White else T.OrangeSoft, CircleShape)
+            .border(if (focused) 3.dp else 0.dp, if (enabled) Color.White else T.Orange, CircleShape)
 ```
+
+（9ccb521：禁用态改主橙边——禁用时底色是米白 `T.Idle`，白边对比度约 1.14:1 不可辨；`enabled` 与背景谓词同源，描边恒与自身底色成对比。）
 
 - [x] **Step 3: GameQuestionScreen 选项块焦点主橙（作答反馈优先）**
 
