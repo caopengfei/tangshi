@@ -215,7 +215,6 @@ fun SearchScreen(onPoem: (String) -> Unit) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FocusablePillButton(
                     text = "诗人：${poetFilter ?: "全部"} ▾",
-                    filled = false,
                     onClick = { poetPickerOpen = true },
                     onFocusChange = tone,
                     modifier = Modifier.focusRequester(poetBtnFocus)
@@ -223,7 +222,6 @@ fun SearchScreen(onPoem: (String) -> Unit) {
                 FocusablePillButton(
                     text = "诗名/诗句关键字：" + keyword.ifEmpty { "点按输入" } + "▏",
                     icon = Icons.Filled.Edit,
-                    filled = false,
                     // 键盘键常驻组合（requester 恒已挂载），直接移焦点即可；激活边框由
                     // 键盘卡 hasFocus 双向驱动（见下方 onFocusChanged），此处无需置位
                     onClick = { runCatching { firstKeyFocus.requestFocus() } },

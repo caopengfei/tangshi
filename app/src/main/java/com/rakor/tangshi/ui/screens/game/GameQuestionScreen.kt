@@ -149,7 +149,7 @@ fun GameQuestionScreen(
                                 letterSpacing = 2.sp, fontWeight = FontWeight.SemiBold
                             )
                             FocusablePillButton(
-                                "返回", filled = false,
+                                "返回",
                                 onClick = onBack, onFocusChange = tone,
                                 modifier = Modifier.focusRequester(backFocus)
                             )

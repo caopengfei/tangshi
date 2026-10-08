@@ -79,7 +79,7 @@ import kotlinx.coroutines.launch
  * - 朗读：只朗读箭头所指句，播完即停、不切下一句（播完回空闲，箭头回到目标位置）；
  *   连读生效时禁用（灰显、跳过焦点）。
  * - 连读：整首循环开关——从第 1 句顺序播到末句后回卷句首，往复直到再按一次"连读"停止；
- *   生效时按钮 filled 高亮，◀▶ 为循环内跳句。
+ *   生效时按钮 highlight 常驻强调，◀▶ 为循环内跳句。
  * - OK（诗行区聚焦）：空闲 → 朗读箭头句；播放/暂停中 → 播放/暂停。
  * 箭头（selected）：空闲=朗读目标；连读中自动跟随播放位置；单句播放中可移开指定下一句目标。
  * 切诗：顶栏"第 N 首"两侧 ◀▶ 芯片（首/末尾对应侧禁用）或遥控频道键 CH-/CH+；切换即重建
@@ -232,7 +232,7 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                 ) {
                     // 切诗芯片：到首/末尾时对应侧禁用；频道键 CH-/CH+ 为等价捷径
                     FocusablePillButton(
-                        "◀", filled = false,
+                        "◀",
                         enabled = prevPoem != null,
                         onClick = { prevPoem?.let { currentPoemId = it.id } },
                         onFocusChange = tone
@@ -242,7 +242,7 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                         color = T.TextSubtle, fontSize = 11.sp, maxLines = 1
                     )
                     FocusablePillButton(
-                        "▶", filled = false,
+                        "▶",
                         enabled = nextPoem != null,
                         onClick = { nextPoem?.let { currentPoemId = it.id } },
                         onFocusChange = tone
@@ -321,7 +321,7 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             // 朗读：只读箭头句；连读生效时禁用（灰显、不可聚焦）
                             FocusablePillButton(
-                                "朗读", Icons.Filled.PlayArrow, filled = true,
+                                "朗读", Icons.Filled.PlayArrow, highlight = true,
                                 enabled = shape != PoemPlayer.Shape.LOOP,
                                 onClick = { readSelectedLine() },
                                 onFocusChange = tone
@@ -329,7 +329,7 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                             // 连读：整首循环开关——按一次开始（从第 1 句循环到末句回卷），再按一次停止
                             FocusablePillButton(
                                 "连读", Icons.Filled.Replay,
-                                filled = shape == PoemPlayer.Shape.LOOP,
+                                highlight = shape == PoemPlayer.Shape.LOOP,
                                 onClick = {
                                     if (shape == PoemPlayer.Shape.LOOP) {
                                         player.stopPlayback()
@@ -341,7 +341,7 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                                 onFocusChange = tone
                             )
                             FocusablePillButton(
-                                "我会背了", Icons.Filled.ThumbUp, filled = false,
+                                "我会背了", Icons.Filled.ThumbUp,
                                 onClick = { showMasteredDialog = true },
                                 onFocusChange = tone
                             )

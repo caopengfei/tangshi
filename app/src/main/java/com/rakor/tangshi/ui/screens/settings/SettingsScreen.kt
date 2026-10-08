@@ -62,7 +62,7 @@ private const val HINT_DISMISS_MS = 2600L
  *
  * 焦点模型：设置项（语速/提示音胶囊、清除按钮）是独立焦点目标，◀▲▼▶ 由焦点系统
  * 自然导航；初始焦点落第一张卡第一枚胶囊（withFrameNanos 等窗口挂载后落焦，Task 6/7 模式）。
- * 选中态=胶囊 filled（与玩法范围/筛选同视觉），聚焦=描边+放大。
+ * 选中态=胶囊 highlight（与玩法范围/筛选同视觉），聚焦=反色橙渐变白字+放大。
  *
  * 清除学习进度：二次确认对话框，安全默认焦点=取消（不可逆动作，Task 7 模式）；
  * 确认后 wipeAll 并弹"已清除"提示条，不导航（留在本页）。
@@ -119,18 +119,18 @@ fun SettingsScreen() {
                 SettingCard(Modifier.weight(1f).fillMaxHeight(), "朗读语速") {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FocusablePillButton(
-                            "慢 0.9×", filled = s.speed == 0.9f,
+                            "慢 0.9×", highlight = s.speed == 0.9f,
                             onClick = { vm.setSpeed(0.9f) },
                             onFocusChange = tone,
                             modifier = Modifier.focusRequester(focusRequester)
                         )
                         FocusablePillButton(
-                            "正常 1.0×", filled = s.speed == 1.0f,
+                            "正常 1.0×", highlight = s.speed == 1.0f,
                             onClick = { vm.setSpeed(1.0f) },
                             onFocusChange = tone
                         )
                         FocusablePillButton(
-                            "快 1.15×", filled = s.speed == 1.15f,
+                            "快 1.15×", highlight = s.speed == 1.15f,
                             onClick = { vm.setSpeed(1.15f) },
                             onFocusChange = tone
                         )
@@ -144,12 +144,12 @@ fun SettingsScreen() {
                 SettingCard(Modifier.weight(1f).fillMaxHeight(), "按键提示音") {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FocusablePillButton(
-                            "开" + if (s.keyTone) " ✓" else "", filled = s.keyTone,
+                            "开" + if (s.keyTone) " ✓" else "", highlight = s.keyTone,
                             onClick = { vm.setKeyTone(true) },
                             onFocusChange = tone
                         )
                         FocusablePillButton(
-                            "关" + if (!s.keyTone) " ✓" else "", filled = !s.keyTone,
+                            "关" + if (!s.keyTone) " ✓" else "", highlight = !s.keyTone,
                             onClick = { vm.setKeyTone(false) },
                             onFocusChange = tone
                         )

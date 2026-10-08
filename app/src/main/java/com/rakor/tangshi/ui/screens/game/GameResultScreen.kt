@@ -43,7 +43,7 @@ import com.rakor.tangshi.ui.theme.T
  * 背诗小游戏 · 结算页（规格 5.7）。纯展示：correct/streak 从导航参数读入，
  * 星级与鼓励语用 QuizGenerator 静态方法（stars/message）。
  *
- * 两枚按钮：再来一轮（filled，初始焦点）= 重新进入同 mode+scope 的题面路由（由导航层
+ * 两枚按钮：再来一轮（highlight，初始焦点）= 重新进入同 mode+scope 的题面路由（由导航层
  * popUpTo 玩法选择页，避免旧题面残留在返回栈）；返回首页 = popBackStack 到 HOME。
  * B 键 = 返回首页（与"返回首页"语义一致，避免退回已结束的题面）。
  */
@@ -102,12 +102,12 @@ fun GameResultScreen(correct: Int, streak: Int, onAgain: () -> Unit, onHome: () 
                 horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
             ) {
                 FocusablePillButton(
-                    "再来一轮", Icons.Filled.PlayArrow, filled = true,
+                    "再来一轮", Icons.Filled.PlayArrow, highlight = true,
                     onClick = onAgain, onFocusChange = tone,
                     modifier = Modifier.focusRequester(focusRequester)
                 )
                 FocusablePillButton(
-                    "返回首页", Icons.Filled.Home, filled = false,
+                    "返回首页", Icons.Filled.Home,
                     onClick = onHome, onFocusChange = tone
                 )
             }

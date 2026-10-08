@@ -56,7 +56,7 @@ private const val HINT_DISMISS_MS = 2600L
  * 焦点模型：两张玩法大卡与右侧三枚范围胶囊都是独立焦点目标（◀▶/▲▼ 由焦点系统自然导航，
  * 与 LibraryScreen 筛选行一致）；OK 落在玩法卡上 = 以该玩法 + 当前选中范围开局。
  *
- * 选中态与聚焦分离（规格 5.5）：范围胶囊用 FocusablePillButton 的 filled=选中（与 Task 8
+ * 选中态与聚焦分离（规格 5.5）：范围胶囊用 FocusablePillButton 的 highlight=选中（与 Task 8
  * 筛选三态同视觉）；玩法卡选中态用私有 [GameModeCard]——selected 且未聚焦 = 橙描边常显
  * （复用 FocusCard 的 focused 视觉），聚焦 = 描边 + 放大动画。实现取计划中的"自组私有卡"方案。
  *
@@ -140,7 +140,7 @@ fun GameSetupScreen(onBack: () -> Unit, onStart: (mode: String, scope: String) -
                     onClick = { startWith(GameViewModel.MODE_LISTEN) }
                 )
 
-                // 右列：题目范围（竖排三选一，filled=选中，与全部唐诗页筛选同视觉；整列垂直居中）
+                // 右列：题目范围（竖排三选一，highlight=选中，与全部唐诗页筛选同视觉；整列垂直居中）
                 Column(
                     Modifier.weight(0.8f).fillMaxHeight(),
                     verticalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterVertically)
@@ -153,7 +153,7 @@ fun GameSetupScreen(onBack: () -> Unit, onStart: (mode: String, scope: String) -
                     ).forEach { (value, label) ->
                         FocusablePillButton(
                             label,
-                            filled = scope == value,
+                            highlight = scope == value,
                             onClick = { scope = value },
                             onFocusChange = tone
                         )

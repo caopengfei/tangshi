@@ -298,12 +298,12 @@ fun HomeScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 FocusablePillButton(
                     "搜索", Icons.Filled.Search,
-                    filled = false, highlight = true,
+                    highlight = true,
                     onClick = onSearch, onFocusChange = tone
                 )
-                FocusablePillButton("全部唐诗", filled = false, onClick = onLibrary, onFocusChange = tone)
-                FocusablePillButton("背诗小游戏", Icons.Filled.SportsEsports, filled = false, onClick = onGames, onFocusChange = tone)
-                FocusablePillButton("家长设置", Icons.Filled.Settings, filled = false, onClick = onSettings, onFocusChange = tone)
+                FocusablePillButton("全部唐诗", onClick = onLibrary, onFocusChange = tone)
+                FocusablePillButton("背诗小游戏", Icons.Filled.SportsEsports, onClick = onGames, onFocusChange = tone)
+                FocusablePillButton("家长设置", Icons.Filled.Settings, onClick = onSettings, onFocusChange = tone)
             }
 
             KeyHintBar("◀ ▲▼ 选择　OK 确认")

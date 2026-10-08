@@ -1,5 +1,6 @@
 package com.rakor.tangshi.ui.components
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -129,51 +130,17 @@ fun FocusableCard(
     )
 }
 
-/** 渐变胶囊按钮；focused 时描边+放大（focused 由外部控制） */
-@Composable
-fun PillButton(
-    text: String,
-    icon: ImageVector? = null,
-    filled: Boolean = true,
-    focused: Boolean = false,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val shape = RoundedCornerShape(18.dp)
-    Row(
-        modifier
-            .scale(if (focused) FocusScale else 1f)
-            .then(
-                if (filled) Modifier.background(Brush.horizontalGradient(listOf(T.OrangeLight, T.Orange)), shape)
-                else Modifier.background(T.Card, shape)
-            )
-            .border(
-                if (focused) 3.dp else if (filled) 0.dp else 2.dp,
-                if (filled && focused) Color.White else T.OrangeSoft,
-                shape
-            )
-            .tvFocusable(onClick)
-            .padding(horizontal = 20.dp, vertical = 9.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (icon != null) {
-            Icon(icon, null, tint = if (filled) Color.White else T.Orange)
-            Spacer(Modifier.width(6.dp))
-        }
-        Text(text, color = if (filled) Color.White else T.TextBody)
-    }
-}
-
 /**
- * 可聚焦胶囊按钮：内部自管焦点视觉（放大/描边动效），其余同 [PillButton]。
- * highlight：未选中态下的强调样式（橙描边+浅橙底+橙字，如首页"搜索"入口）。
+ * 可聚焦胶囊按钮：内部自管焦点视觉（放大/描边/反色填充动效）。
+ * 统一描边款本体（规格 2026-10-08 焦点样式）：
+ *  - 未选中：白底 2dp 浅橙描边棕字；highlight 档：ChipBg 底 3dp 橙描边橙字（常驻强调/分段选中指示）
+ *  - 选中（B 反色）：橙渐变填充 + 白字白图标 + 1.06 放大 + 暖橙投影——焦点即最强信号
  * OK 触发 onClick（为 null 时仅可聚焦）；焦点变化回调 onFocusChange（提示音挂钩用）。
  */
 @Composable
 fun FocusablePillButton(
     text: String,
     icon: ImageVector? = null,
-    filled: Boolean = true,
     highlight: Boolean = false,
     enabled: Boolean = true,
     onClick: (() -> Unit)? = null,
@@ -184,8 +151,16 @@ fun FocusablePillButton(
     val shape = RoundedCornerShape(18.dp)
     val scale by animateFloatAsState(if (focused) FocusScale else 1f, label = "pillFocusScale")
     val borderWidth by animateDpAsState(
-        if (focused) 3.dp else if (filled) 0.dp else if (highlight) 3.dp else 2.dp,
+        if (focused) 0.dp else if (highlight) 3.dp else 2.dp,
         label = "pillFocusBorder"
+    )
+    // 底色在静态底与橙渐变间连续过渡：两端同色即纯色，两端异色即渐变（B 反色）
+    val restBg = if (highlight) T.ChipBg else T.Card
+    val bgStart by animateColorAsState(if (focused) T.OrangeLight else restBg, label = "pillBgStart")
+    val bgEnd by animateColorAsState(if (focused) T.Orange else restBg, label = "pillBgEnd")
+    val textColor by animateColorAsState(
+        if (focused) Color.White else if (highlight) T.Orange else T.TextBody,
+        label = "pillTextColor"
     )
     Row(
         modifier
@@ -197,19 +172,20 @@ fun FocusablePillButton(
             // 禁用：半透明灰显，不可聚焦（焦点遍历跳过）、不响应点击
             .then(if (enabled) Modifier else Modifier.alpha(0.45f).focusProperties { canFocus = false })
             .then(
-                if (filled) Modifier.background(Brush.horizontalGradient(listOf(T.OrangeLight, T.Orange)), shape)
-                else Modifier.background(if (highlight) T.ChipBg else T.Card, shape)
+                if (focused) Modifier.shadow(14.dp, shape, ambientColor = CardShadow, spotColor = CardShadow)
+                else Modifier
             )
-            .border(borderWidth, if (filled && focused) Color.White else if (highlight) T.Orange else T.OrangeSoft, shape)
+            .background(Brush.horizontalGradient(listOf(bgStart, bgEnd)), shape)
+            .border(borderWidth, if (highlight) T.Orange else T.OrangeSoft, shape)
             .then(if (enabled) Modifier.tvFocusable(onClick) else Modifier)
             .padding(horizontal = 20.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (icon != null) {
-            Icon(icon, null, tint = if (filled) Color.White else T.Orange)
+            Icon(icon, null, tint = if (focused) Color.White else T.Orange)
             Spacer(Modifier.width(6.dp))
         }
-        Text(text, color = if (filled) Color.White else if (highlight) T.Orange else T.TextBody)
+        Text(text, color = textColor)
     }
 }
 

@@ -110,8 +110,8 @@ private fun libraryViewModel(): LibraryViewModel = viewModel(factory = libraryVi
  * "每页 8 张"的视觉约定由卡宽 =（可视宽 − 边缘留白×2 − 列间距×3）/ 4 保证；
  * 页码由焦点所在卡的索引推算（focusIndex / 8 + 1），显示在按键提示条右侧。
  *
- * 筛选胶囊直接复用 [FocusablePillButton]：filled = 选中态恰好给出规格要求的三种视觉
- * （选中且聚焦=实心+白描边；选中未聚焦=实心；未选中=描边），无需额外包装。
+ * 筛选胶囊直接复用 [FocusablePillButton]：highlight = 选中态（ChipBg 底 3dp 橙描边橙字），
+ * 聚焦时 B 反色（橙渐变填充白字+放大）为最强选中信号，无需额外包装。
  */
 @Composable
 fun LibraryScreen(onPoem: (String) -> Unit) {
@@ -182,13 +182,13 @@ fun LibraryScreen(onPoem: (String) -> Unit) {
 
             Spacer(Modifier.height(8.dp))
 
-            // 筛选行：选中=实心渐变白字，未选中=描边；聚焦动效由 FocusablePillButton 自管
+            // 筛选行：选中=浅橙底橙描边橙字（highlight），聚焦=反色橙渐变白字；动效由 FocusablePillButton 自管
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 LibraryFilter.entries.forEach { f ->
                     FocusablePillButton(
                         f.label,
                         if (f == LibraryFilter.MASTERED) Icons.Filled.ThumbUp else null,
-                        filled = filter == f,
+                        highlight = filter == f,
                         onClick = { filter = f },
                         onFocusChange = tone
                     )
