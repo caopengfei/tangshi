@@ -120,9 +120,10 @@ fun SettingsScreen() {
             Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 SettingCard(Modifier.weight(1f).fillMaxHeight(), "朗读语速") {
                     // 三枚语速胶囊总宽超出卡内可用宽（1080p TV 会被挤成竖条），
-                    // 加水平滚动：焦点右移时 Compose focus 系统自动 bring-into-view
+                    // 加水平滚动：焦点右移时 Compose focus 系统自动 bring-into-view；
+                    // padding 在 scroll 之后 → 视口两端各留 4dp，端点按钮的 14dp 焦点投影不被裁平
                     Row(
-                        Modifier.horizontalScroll(rememberScrollState()),
+                        Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 4.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         FocusablePillButton(
