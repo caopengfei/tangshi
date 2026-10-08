@@ -448,7 +448,7 @@ private fun RoundPlayButton(
                 if (enabled) Brush.linearGradient(listOf(T.OrangeLight, T.Orange)) else SolidColor(T.Idle),
                 CircleShape
             )
-            .border(if (focused) 3.dp else 0.dp, if (focused) Color.White else T.OrangeSoft, CircleShape)
+            .border(if (focused) 3.dp else 0.dp, if (enabled) Color.White else T.Orange, CircleShape)
             .tvFocusable(if (enabled) onClick else null)
             .size(56.dp),
         contentAlignment = Alignment.Center
