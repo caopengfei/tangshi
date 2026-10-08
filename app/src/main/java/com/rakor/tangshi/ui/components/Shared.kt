@@ -78,14 +78,14 @@ fun FocusCard(
     Column(
         modifier = modifier
             .shadow(
-                if (focused) 14.dp else 6.dp,
+                if (focused) 18.dp else 6.dp,
                 RoundedCornerShape(corner.dp),
                 ambientColor = CardShadow,
                 spotColor = CardShadow
             )
             .background(T.Card, RoundedCornerShape(corner.dp))
             .then(
-                if (focused) Modifier.border(3.dp, T.OrangeSoft, RoundedCornerShape(corner.dp))
+                if (focused) Modifier.border(4.dp, T.Orange, RoundedCornerShape(corner.dp))
                 else Modifier
             ),
         content = content
@@ -109,7 +109,7 @@ fun FocusableCard(
     var focused by remember { mutableStateOf(false) }
     val shape = RoundedCornerShape(corner.dp)
     val scale by animateFloatAsState(if (focused) scaleFactor else 1f, label = "cardFocusScale")
-    val borderWidth by animateDpAsState(if (focused) 3.dp else 0.dp, label = "cardFocusBorder")
+    val borderWidth by animateDpAsState(if (focused) 4.dp else 0.dp, label = "cardFocusBorder")
     Column(
         modifier = modifier
             .onFocusChanged {
@@ -118,13 +118,13 @@ fun FocusableCard(
             }
             .scale(scale)
             .shadow(
-                if (focused) 14.dp else 6.dp,
+                if (focused) 18.dp else 6.dp,
                 shape,
                 ambientColor = CardShadow,
                 spotColor = CardShadow
             )
             .background(T.Card, shape)
-            .border(borderWidth, T.OrangeSoft, shape)
+            .border(borderWidth, T.Orange, shape)
             .tvFocusable(onClick),
         content = content
     )
