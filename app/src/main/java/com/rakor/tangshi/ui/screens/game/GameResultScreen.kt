@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -31,12 +33,18 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.tv.material3.Button
+import androidx.tv.material3.Icon as TvIcon
+import androidx.tv.material3.Text as TvText
 import com.rakor.tangshi.di.AppGraph
 import com.rakor.tangshi.game.QuizGenerator
-import com.rakor.tangshi.ui.components.CardShadow
 import com.rakor.tangshi.ui.components.CreamBackground
-import com.rakor.tangshi.ui.components.FocusablePillButton
 import com.rakor.tangshi.ui.components.KeyHintBar
+import com.rakor.tangshi.ui.components.focusTone
+import com.rakor.tangshi.ui.components.highlightPillBorder
+import com.rakor.tangshi.ui.components.highlightPillColors
+import com.rakor.tangshi.ui.components.normalPillBorder
+import com.rakor.tangshi.ui.components.normalPillColors
 import com.rakor.tangshi.ui.theme.T
 
 /**
@@ -101,15 +109,26 @@ fun GameResultScreen(correct: Int, streak: Int, onAgain: () -> Unit, onHome: () 
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
             ) {
-                FocusablePillButton(
-                    "再来一轮", Icons.Filled.PlayArrow, highlight = true,
-                    onClick = onAgain, onFocusChange = tone,
-                    modifier = Modifier.focusRequester(focusRequester)
-                )
-                FocusablePillButton(
-                    "返回首页", Icons.Filled.Home,
-                    onClick = onHome, onFocusChange = tone
-                )
+                Button(
+                    onClick = onAgain,
+                    colors = highlightPillColors(),
+                    border = highlightPillBorder(),
+                    modifier = Modifier.focusTone(tone).focusRequester(focusRequester)
+                ) {
+                    TvIcon(Icons.Filled.PlayArrow, null)
+                    Spacer(Modifier.width(6.dp))
+                    TvText("再来一轮")
+                }
+                Button(
+                    onClick = onHome,
+                    colors = normalPillColors(),
+                    border = normalPillBorder(),
+                    modifier = Modifier.focusTone(tone)
+                ) {
+                    TvIcon(Icons.Filled.Home, null)
+                    Spacer(Modifier.width(6.dp))
+                    TvText("返回首页")
+                }
             }
 
             KeyHintBar("← → 选择　OK 确认")
@@ -122,7 +141,7 @@ fun GameResultScreen(correct: Int, streak: Int, onAgain: () -> Unit, onHome: () 
 private fun ResultStar(reached: Boolean, size: Int) {
     Box(
         Modifier.then(
-            if (reached) Modifier.shadow(10.dp, CircleShape, ambientColor = CardShadow, spotColor = CardShadow)
+            if (reached) Modifier.shadow(10.dp, CircleShape)
             else Modifier
         )
     ) {
