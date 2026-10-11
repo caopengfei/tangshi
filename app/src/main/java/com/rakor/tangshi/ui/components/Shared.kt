@@ -253,15 +253,18 @@ fun CreamBackground(content: @Composable BoxScope.() -> Unit) {
 
 // ===== 官方组件样式助手（tv-material + T 调色板；规格 2026-10-11 §组件映射）=====
 
-/** 焦点音效挂载点：官方组件没有 onFocusChange 参数，统一挂 modifier 链首转发（全 app 28 处钩子的归宿） */
+/** 焦点音效挂载点：官方组件没有 onFocusChange 参数，统一挂 modifier 链首转发（各屏 tone lambda 的归宿） */
 fun Modifier.focusTone(tone: (Boolean) -> Unit): Modifier =
     onFocusChanged { tone(it.isFocused) }
 
-/** 白卡静态悬浮影（6dp，非焦点视觉；焦点视觉全走官方 border/scale） */
+/** 白卡静态悬浮影（6dp，非焦点视觉；焦点视觉全走官方 border/scale）。
+ *  clip 必须为 false：shadow 默认 clip=true 会在本 modifier 处裁剪链内内容，
+ *  把官方组件的焦点 scale（graphicsLayer 缩放）与 3dp focusedBorder 裁在 rest 轮廓外，焦点描边整圈不可见。 */
 fun Modifier.cardRestingShadow(corner: Int): Modifier =
-    shadow(6.dp, RoundedCornerShape(corner.dp))
+    shadow(6.dp, RoundedCornerShape(corner.dp), clip = false)
 
-/** 普通药丸：rest 白底 2dp 浅橙描边棕字；focused 官方反色语义 → 主橙底白字 */
+/** 普通药丸：rest 白底 2dp 浅橙描边棕字；focused 官方反色语义 → 主橙底白字、无描边
+ *  （focusedBorder 显式 None：官方默认 focusedBorder=border 会在橙底上叠一圈 2dp 浅橙，旧观感焦点无描边） */
 @Composable
 fun normalPillColors() = ButtonDefaults.colors(
     containerColor = T.Card,
@@ -274,10 +277,11 @@ fun normalPillColors() = ButtonDefaults.colors(
 
 @Composable
 fun normalPillBorder() = ButtonDefaults.border(
-    border = Border(BorderStroke(2.dp, T.OrangeSoft), shape = CircleShape)
+    border = Border(BorderStroke(2.dp, T.OrangeSoft), shape = CircleShape),
+    focusedBorder = Border.None
 )
 
-/** 强调药丸（主行动按钮 / 选中常驻强调）：rest ChipBg 底 3dp 橙描边橙字；focused 同普通档反色 */
+/** 强调药丸（主行动按钮 / 选中常驻强调）：rest ChipBg 底 3dp 橙描边橙字；focused 同普通档反色、无描边 */
 @Composable
 fun highlightPillColors() = ButtonDefaults.colors(
     containerColor = T.ChipBg,
@@ -288,7 +292,8 @@ fun highlightPillColors() = ButtonDefaults.colors(
 
 @Composable
 fun highlightPillBorder() = ButtonDefaults.border(
-    border = Border(BorderStroke(3.dp, T.Orange), shape = CircleShape)
+    border = Border(BorderStroke(3.dp, T.Orange), shape = CircleShape),
+    focusedBorder = Border.None
 )
 
 /** 分段组药丸：焦点不反色（规格 §1 分段例外），focused 升 4dp 主橙描边；rest 选中=强调档本体 */
@@ -309,7 +314,9 @@ fun segmentPillBorder(selected: Boolean) = ButtonDefaults.border(
     focusedBorder = Border(BorderStroke(4.dp, T.Orange), shape = CircleShape)
 )
 
-/** 官方卡片形状 / 配色 / 焦点描边（3dp colorScheme.border=主橙，官方默认），圆角跟随卡片 */
+/** 官方卡片形状 / 配色 / 焦点描边（3dp colorScheme.border=主橙，官方默认），圆角跟随卡片。
+ *  cardBorder 取色走 TangshiTheme 的 tv colorScheme.border 槽（TvColorSchemeTest 守护）——
+ *  其余助手直读 T；在 TangshiTheme 之外使用 cardBorder 会落到 tv 默认色。 */
 @Composable
 fun cardShape(corner: Int) = CardDefaults.shape(shape = RoundedCornerShape(corner.dp))
 
