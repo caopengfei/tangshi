@@ -8,6 +8,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.tv.material3.MaterialTheme as TvMaterialTheme
+import androidx.tv.material3.Typography as TvTypography
+import androidx.tv.material3.darkColorScheme as tvDarkColorScheme
 
 // 风格D 童趣暖阳 —— 色板唯一来源，全部界面从这里取色
 object T {
@@ -85,8 +88,70 @@ internal val TangshiColorScheme = darkColorScheme(
     surfaceContainerLowest = T.Card,
 )
 
+/**
+ * tv-material 配色：T 调色板 → tv ColorScheme 全槽位映射（规格 2026-10-11 §阶段1）。
+ *
+ * 两条关键映射：
+ *  1. border = T.Orange —— 官方 Card/Button 的 focusedBorder 默认从 colorScheme.border 取色，
+ *     这是"官方默认焦点描边"在本应用呈现主橙的落点（TvColorSchemeTest 守护）。
+ *  2. surface = BgMid（米色）而非 Card —— 与 m3 方案同约束，避免 tonalElevation 掺色。
+ *
+ * tv ColorScheme 没有 surfaceContainer* 层级（对话框不走它），
+ * m3 的 [TangshiColorScheme] 继续保留，仅供 AlertDialog/TextButton 使用。
+ */
+internal val TangshiTvColorScheme = tvDarkColorScheme(
+    primary = T.Orange,
+    onPrimary = Color.White,
+    primaryContainer = T.BadgeBg,
+    onPrimaryContainer = T.TextTitle,
+    inversePrimary = T.OrangeLight,
+    secondary = T.OrangeSoft,
+    onSecondary = Color.White,
+    secondaryContainer = T.ChipBg,
+    onSecondaryContainer = T.TextBody,
+    tertiary = T.Amber,
+    onTertiary = Color.White,
+    tertiaryContainer = T.BadgeBg,
+    onTertiaryContainer = T.TextTitle,
+    background = T.BgMid,
+    onBackground = T.TextBody,
+    surface = T.BgMid,
+    onSurface = T.TextTitle,
+    surfaceVariant = T.Idle,
+    onSurfaceVariant = T.TextBody,
+    surfaceTint = T.Orange,
+    inverseSurface = T.TextTitle,
+    inverseOnSurface = T.Card,
+    error = T.Wrong,
+    onError = Color.White,
+    errorContainer = T.BadgeBg,
+    onErrorContainer = T.TextTitle,
+    border = T.Orange,
+    borderVariant = T.TextSubtle,
+    scrim = T.Scrim,
+)
+
 @Composable
 fun TangshiTheme(content: @Composable () -> Unit) =
-    MaterialTheme(colorScheme = TangshiColorScheme, typography = Typography(
-        titleLarge = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 22.sp, letterSpacing = 4.sp, color = T.TextTitle)
-    ), content = content)
+    TvMaterialTheme(
+        colorScheme = TangshiTvColorScheme,
+        typography = TvTypography(
+            titleLarge = TextStyle(
+                fontWeight = FontWeight.SemiBold, fontSize = 22.sp,
+                letterSpacing = 4.sp, color = T.TextTitle
+            )
+        )
+    ) {
+        // 对话框仍走 material3（tv-material 无 Dialog 组件）；同一 T 色板全槽位映射，
+        // 约束见上方 TangshiColorScheme 注释与 ThemeColorSchemeTest
+        MaterialTheme(
+            colorScheme = TangshiColorScheme,
+            typography = Typography(
+                titleLarge = TextStyle(
+                    fontWeight = FontWeight.SemiBold, fontSize = 22.sp,
+                    letterSpacing = 4.sp, color = T.TextTitle
+                )
+            ),
+            content = content
+        )
+    }
