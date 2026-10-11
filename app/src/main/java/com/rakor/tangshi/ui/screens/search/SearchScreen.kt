@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -58,17 +60,27 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.tv.material3.Border
+import androidx.tv.material3.Button
+import androidx.tv.material3.Card
+import androidx.tv.material3.ClickableSurfaceDefaults
+import androidx.tv.material3.Icon as TvIcon
+import androidx.tv.material3.Surface
+import androidx.tv.material3.SurfaceDefaults
+import androidx.tv.material3.Text as TvText
 import com.rakor.tangshi.data.model.Poem
 import com.rakor.tangshi.data.repo.PoemRepository
 import com.rakor.tangshi.data.search.SearchMatcher
 import com.rakor.tangshi.di.AppGraph
 import com.rakor.tangshi.ui.components.CreamBackground
-import com.rakor.tangshi.ui.components.FocusCard
-import com.rakor.tangshi.ui.components.FocusScale
-import com.rakor.tangshi.ui.components.FocusableCard
-import com.rakor.tangshi.ui.components.FocusablePillButton
 import com.rakor.tangshi.ui.components.KeyHintBar
-import com.rakor.tangshi.ui.components.tvFocusable
+import com.rakor.tangshi.ui.components.cardBorder
+import com.rakor.tangshi.ui.components.cardColors
+import com.rakor.tangshi.ui.components.cardRestingShadow
+import com.rakor.tangshi.ui.components.cardShape
+import com.rakor.tangshi.ui.components.focusTone
+import com.rakor.tangshi.ui.components.normalPillBorder
+import com.rakor.tangshi.ui.components.normalPillColors
 import com.rakor.tangshi.ui.theme.KaiTi
 import com.rakor.tangshi.ui.theme.T
 import java.text.Collator
@@ -213,20 +225,24 @@ fun SearchScreen(onPoem: (String) -> Unit) {
 
             // 筛选行：诗人筛选（弹浮层）+ 关键字显示框（进键盘激活态）
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FocusablePillButton(
-                    text = "诗人：${poetFilter ?: "全部"} ▾",
+                Button(
                     onClick = { poetPickerOpen = true },
-                    onFocusChange = tone,
-                    modifier = Modifier.focusRequester(poetBtnFocus)
-                )
-                FocusablePillButton(
-                    text = "诗名/诗句关键字：" + keyword.ifEmpty { "点按输入" } + "▏",
-                    icon = Icons.Filled.Edit,
+                    colors = normalPillColors(),
+                    border = normalPillBorder(),
+                    modifier = Modifier.focusTone(tone).focusRequester(poetBtnFocus)
+                ) { TvText("诗人：${poetFilter ?: "全部"} ▾") }
+                Button(
                     // 键盘键常驻组合（requester 恒已挂载），直接移焦点即可；激活边框由
                     // 键盘卡 hasFocus 双向驱动（见下方 onFocusChanged），此处无需置位
                     onClick = { runCatching { firstKeyFocus.requestFocus() } },
-                    onFocusChange = tone
-                )
+                    colors = normalPillColors(),
+                    border = normalPillBorder(),
+                    modifier = Modifier.focusTone(tone)
+                ) {
+                    TvIcon(Icons.Filled.Edit, null)
+                    Spacer(Modifier.width(6.dp))
+                    TvText("诗名/诗句关键字：" + keyword.ifEmpty { "点按输入" } + "▏")
+                }
             }
 
             Spacer(Modifier.height(10.dp))
@@ -246,7 +262,9 @@ fun SearchScreen(onPoem: (String) -> Unit) {
                         } else {
                             LazyColumn(
                                 Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                                verticalArrangement = Arrangement.spacedBy(10.dp),
+                                // 预批修复（Step 9.5）：官方焦点描边外绘，首行顶环需滚动轴顶部留出 10dp 容纳
+                                contentPadding = PaddingValues(vertical = 10.dp)
                             ) {
                                 itemsIndexed(results, key = { _, p -> p.id }) { index, poem ->
                                     ResultRow(
@@ -267,13 +285,20 @@ fun SearchScreen(onPoem: (String) -> Unit) {
 
                 // 右：屏幕键盘白卡；hasFocus 双向驱动激活态（描边高亮）——D-pad 直接进键盘
                 // 同样亮边框，移出键盘区自动退激活
-                FocusCard(
-                    Modifier
+                // 激活描边 = 容器活动指示（子键聚焦态驱动），非焦点视觉，故用条件 border；
+                // 静态 Surface 无焦点态，官方组件不适用此处
+                Surface(
+                    modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
+                        .cardRestingShadow(18)
+                        .then(
+                            if (keyboardActive) Modifier.border(4.dp, T.Orange, RoundedCornerShape(18.dp))
+                            else Modifier
+                        )
                         .onFocusChanged { keyboardActive = it.hasFocus },
-                    focused = keyboardActive,
-                    corner = 18
+                    shape = RoundedCornerShape(18.dp),
+                    colors = SurfaceDefaults.colors(containerColor = T.Card)
                 ) {
                     Column(
                         Modifier.fillMaxSize().padding(14.dp),
@@ -327,13 +352,14 @@ fun SearchScreen(onPoem: (String) -> Unit) {
                 Modifier.fillMaxSize().background(T.Scrim),
                 contentAlignment = Alignment.Center
             ) {
-                FocusCard(
-                    Modifier
+                Surface(
+                    modifier = Modifier
                         .width(600.dp)
                         .heightIn(max = 420.dp)
+                        .cardRestingShadow(20)
                         .focusProperties { exit = { pickerFirstFocus } },
-                    focused = false,
-                    corner = 20
+                    shape = RoundedCornerShape(20.dp),
+                    colors = SurfaceDefaults.colors(containerColor = T.Card)
                 ) {
                     Column(
                         Modifier.padding(24.dp),
@@ -384,7 +410,16 @@ private fun ResultRow(
     onClick: () -> Unit,
     onFocusChange: (Boolean) -> Unit
 ) {
-    FocusableCard(modifier.fillMaxWidth(), corner = 14, onFocusChange = onFocusChange, onClick = onClick) {
+    Card(
+        onClick = onClick,
+        modifier = modifier
+            .fillMaxWidth()
+            .cardRestingShadow(14)
+            .focusTone(onFocusChange),
+        shape = cardShape(14),
+        colors = cardColors(),
+        border = cardBorder(14),
+    ) {
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -422,7 +457,7 @@ private fun highlightedPreview(text: String, keyword: String): AnnotatedString =
     }
 }
 
-/** 键盘单键：ChipBg 小方块，聚焦橙描边+放大；OK 触发 onClick */
+/** 键盘单键：ChipBg 小方块，官方焦点描边+缩放；OK 触发 onClick */
 @Composable
 private fun KeyBox(
     width: Dp,
@@ -431,26 +466,29 @@ private fun KeyBox(
     onFocusChange: (Boolean) -> Unit = {},
     content: @Composable BoxScope.() -> Unit
 ) {
-    var focused by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (focused) FocusScale else 1f, label = "keyScale")
-    Box(
-        modifier
+    Surface(
+        onClick = onClick,
+        modifier = modifier
             .width(width)
             .height(KeySize)
-            .onFocusChanged {
-                focused = it.isFocused
-                onFocusChange(it.isFocused)
-            }
-            .scale(scale)
-            .background(T.ChipBg, RoundedCornerShape(KeyCorner))
-            .border(if (focused) 3.dp else 0.dp, T.Orange, RoundedCornerShape(KeyCorner))
-            .tvFocusable(onClick),
-        contentAlignment = Alignment.Center,
-        content = content
-    )
+            .focusTone(onFocusChange),
+        // 交互式 Surface 的 shape 需 ClickableSurfaceShape（focused/pressed 默认沿用 shape）
+        shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(KeyCorner)),
+        colors = ClickableSurfaceDefaults.colors(
+            containerColor = T.ChipBg,
+            contentColor = T.TextBody,
+            focusedContainerColor = T.ChipBg,   // 键位焦点不反色（保留描边+放大语义）
+            focusedContentColor = T.TextBody,
+        ),
+        border = ClickableSurfaceDefaults.border(
+            focusedBorder = Border(border = BorderStroke(3.dp, T.Orange), shape = RoundedCornerShape(KeyCorner))
+        ),
+    ) {
+        Box(contentAlignment = Alignment.Center, content = content)
+    }
 }
 
-/** 浮层诗人项："姓名 诗数"小卡，聚焦橙描边+放大 */
+/** 浮层诗人项："姓名 诗数"小卡，官方焦点描边+缩放 */
 @Composable
 private fun PickerItem(
     text: String,
@@ -458,20 +496,24 @@ private fun PickerItem(
     onClick: () -> Unit,
     onFocusChange: (Boolean) -> Unit
 ) {
-    var focused by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (focused) FocusScale else 1f, label = "pickerScale")
-    Box(
-        modifier
-            .onFocusChanged {
-                focused = it.isFocused
-                onFocusChange(it.isFocused)
-            }
-            .scale(scale)
-            .background(T.ChipBg, RoundedCornerShape(12.dp))
-            .border(if (focused) 3.dp else 0.dp, T.Orange, RoundedCornerShape(12.dp))
-            .tvFocusable(onClick)
-            .padding(horizontal = 14.dp, vertical = 9.dp)
+    Surface(
+        onClick = onClick,
+        modifier = modifier.focusTone(onFocusChange),
+        shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(12.dp)),
+        colors = ClickableSurfaceDefaults.colors(
+            containerColor = T.ChipBg,
+            contentColor = T.TextBody,
+            focusedContainerColor = T.ChipBg,
+            focusedContentColor = T.TextBody,
+        ),
+        border = ClickableSurfaceDefaults.border(
+            focusedBorder = Border(border = BorderStroke(3.dp, T.Orange), shape = RoundedCornerShape(12.dp))
+        ),
     ) {
-        Text(text, fontSize = 14.sp, color = T.TextBody)
+        Text(
+            text,
+            Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
+            fontSize = 14.sp, color = T.TextBody
+        )
     }
 }
