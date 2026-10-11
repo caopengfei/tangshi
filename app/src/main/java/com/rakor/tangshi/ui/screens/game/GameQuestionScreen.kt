@@ -2,6 +2,7 @@ package com.rakor.tangshi.ui.screens.game
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -47,19 +48,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.tv.material3.Border
+import androidx.tv.material3.Button
+import androidx.tv.material3.ClickableSurfaceDefaults
+import androidx.tv.material3.Surface
+import androidx.tv.material3.Text as TvText
 import com.rakor.tangshi.audio.PoemPlayer
 import com.rakor.tangshi.data.model.Line
 import com.rakor.tangshi.di.AppGraph
 import com.rakor.tangshi.game.QuizGenerator
-import com.rakor.tangshi.ui.components.CardShadow
 import com.rakor.tangshi.ui.components.CreamBackground
-import com.rakor.tangshi.ui.components.FocusScale
-import com.rakor.tangshi.ui.components.FocusablePillButton
 import com.rakor.tangshi.ui.components.KeyHintBar
 import com.rakor.tangshi.ui.components.PoemCharCell
 import com.rakor.tangshi.ui.components.PoemLine
 import com.rakor.tangshi.ui.components.POEM_CHAR_CELL
-import com.rakor.tangshi.ui.components.tvFocusable
+import com.rakor.tangshi.ui.components.focusTone
+import com.rakor.tangshi.ui.components.normalPillBorder
+import com.rakor.tangshi.ui.components.normalPillColors
 import com.rakor.tangshi.ui.theme.KaiTi
 import com.rakor.tangshi.ui.theme.T
 
@@ -148,11 +153,12 @@ fun GameQuestionScreen(
                                 color = T.TextTitle, fontSize = 20.sp,
                                 letterSpacing = 2.sp, fontWeight = FontWeight.SemiBold
                             )
-                            FocusablePillButton(
-                                "返回",
-                                onClick = onBack, onFocusChange = tone,
-                                modifier = Modifier.focusRequester(backFocus)
-                            )
+                            Button(
+                                onClick = onBack,
+                                colors = normalPillColors(),
+                                border = normalPillBorder(),
+                                modifier = Modifier.focusTone(tone).focusRequester(backFocus)
+                            ) { TvText("返回") }
                         }
                     }
                 }
@@ -426,7 +432,7 @@ private fun ListenBody(
     }
 }
 
-/** 56dp 渐变橙播放圆钮；重听次数用尽/已作答置灰（仍可聚焦但 OK 无效——焦点停留在钮上不跳跃） */
+/** 56dp 官方橙色播放圆钮；重听次数用尽/已作答置灰（仍可聚焦但 OK 无效——焦点停留在钮上不跳跃，官方 disabled 语义一致） */
 @Composable
 private fun RoundPlayButton(
     enabled: Boolean,
@@ -434,24 +440,26 @@ private fun RoundPlayButton(
     onClick: () -> Unit,
     onFocusChange: (Boolean) -> Unit = {}
 ) {
-    var focused by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (focused) FocusScale else 1f, label = "playBtnScale")
-    Box(
-        modifier
-            .onFocusChanged {
-                focused = it.isFocused
-                onFocusChange(it.isFocused)
-            }
-            .scale(scale)
-            .shadow(if (focused) 14.dp else 6.dp, CircleShape, ambientColor = CardShadow, spotColor = CardShadow)
-            .background(
-                if (enabled) Brush.linearGradient(listOf(T.OrangeLight, T.Orange)) else SolidColor(T.Idle),
-                CircleShape
-            )
-            .border(if (focused) 3.dp else 0.dp, if (enabled) Color.White else T.Orange, CircleShape)
-            .tvFocusable(if (enabled) onClick else null)
+    Surface(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier
+            .shadow(6.dp, CircleShape, clip = false)   // clip=false：不裁官方焦点 scale/描边（同 cardRestingShadow）
+            .focusTone(onFocusChange)
             .size(56.dp),
-        contentAlignment = Alignment.Center
+        shape = ClickableSurfaceDefaults.shape(shape = CircleShape),   // 交互式 Surface 的 shape 是 ClickableSurfaceShape
+        colors = ClickableSurfaceDefaults.colors(
+            containerColor = T.Orange,
+            contentColor = Color.White,
+            focusedContainerColor = T.Orange,   // 橙底不反色（官方默认反到深色会破坏品牌底）
+            focusedContentColor = Color.White,
+            disabledContainerColor = T.Idle,
+            disabledContentColor = T.TextMuted,
+        ),
+        border = ClickableSurfaceDefaults.border(
+            // 橙底上橙描边不可辨，焦点用白色描边（沿用原"焦点白边"语言）
+            focusedBorder = Border(border = BorderStroke(3.dp, Color.White), shape = CircleShape)
+        ),
     ) {
         Icon(
             Icons.Filled.VolumeUp, null,
@@ -462,7 +470,7 @@ private fun RoundPlayButton(
 }
 
 /**
- * 选项块（候选字/诗名卡共用）：corner 12 自管焦点视觉（聚焦描边+放大，暖影同 Shared），
+ * 选项块（候选字/诗名卡共用）：官方 Surface 承接焦点描边+缩放，
  * 作答反馈：CORRECT=绿底白字、WRONG=红描边。content 为 RowScope（块内横向排布）。
  */
 @Composable
@@ -473,25 +481,26 @@ private fun OptionBlock(
     onFocusChange: (Boolean) -> Unit = {},
     content: @Composable RowScope.() -> Unit
 ) {
-    var focused by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (focused) FocusScale else 1f, label = "optionBlockScale")
     val shape = RoundedCornerShape(12.dp)
-    Row(
-        modifier
-            .onFocusChanged {
-                focused = it.isFocused
-                onFocusChange(it.isFocused)
-            }
-            .scale(scale)
-            .shadow(if (focused) 14.dp else 6.dp, shape, ambientColor = CardShadow, spotColor = CardShadow)
-            .background(if (feedback == Feedback.CORRECT) T.Correct else T.Card, shape)
-            .border(
-                if (feedback == Feedback.WRONG || focused) 3.dp else 0.dp,
-                if (feedback == Feedback.WRONG) T.Wrong else T.Orange,
-                shape
+    Surface(
+        onClick = onClick,
+        modifier = modifier.shadow(6.dp, shape, clip = false).focusTone(onFocusChange),   // clip=false：不裁官方焦点 scale/描边
+        shape = ClickableSurfaceDefaults.shape(shape = shape),   // 交互式 Surface 的 shape 是 ClickableSurfaceShape
+        colors = ClickableSurfaceDefaults.colors(
+            containerColor = if (feedback == Feedback.CORRECT) T.Correct else T.Card,
+            contentColor = T.TextTitle,
+            // 已作答反馈底色在各状态恒定，焦点不反色（反馈色优先）
+            focusedContainerColor = if (feedback == Feedback.CORRECT) T.Correct else T.Card,
+            focusedContentColor = T.TextTitle,
+        ),
+        border = ClickableSurfaceDefaults.border(
+            border = if (feedback == Feedback.WRONG) Border(border = BorderStroke(3.dp, T.Wrong), shape = shape) else Border.None,
+            focusedBorder = Border(
+                border = BorderStroke(3.dp, if (feedback == Feedback.WRONG) T.Wrong else T.Orange),
+                shape = shape
             )
-            .tvFocusable(onClick),
-        verticalAlignment = Alignment.CenterVertically,
-        content = content
-    )
+        ),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, content = content)
+    }
 }
