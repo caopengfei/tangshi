@@ -63,6 +63,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.tv.material3.Border
 import androidx.tv.material3.Button
 import androidx.tv.material3.Card
+import androidx.tv.material3.CardDefaults
 import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.Icon as TvIcon
 import androidx.tv.material3.Surface
@@ -419,6 +420,9 @@ private fun ResultRow(
         shape = cardShape(14),
         colors = cardColors(),
         border = cardBorder(14),
+        // 宽行卡不缩放（Task 8 实机发现）：官方 1.1 外扩把右环推到键盘卡底下被遮挡，
+        // 与详情页大卡同款处理——border-only 焦点，右环落回 14dp 缝隙内完整可见
+        scale = CardDefaults.scale(focusedScale = 1f),
     ) {
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
