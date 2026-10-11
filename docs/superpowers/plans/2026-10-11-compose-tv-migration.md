@@ -122,7 +122,7 @@ class TvColorSchemeTest {
 
     @Test
     fun `官方焦点描边取 border 槽位 映射为主橙`() {
-        // tv Card/Button 的 focusedBorder 默认读 colorScheme.border（3dp），
+        // tv Card 的 focusedBorder 默认读 colorScheme.border（3dp；Button 默认无描边，焦点走反色），
         // 这是"官方默认焦点描边"在本应用呈现主橙的唯一落点
         assertEquals(T.Orange, TangshiTvColorScheme.border)
     }
@@ -174,9 +174,9 @@ import androidx.tv.material3.darkColorScheme as tvDarkColorScheme
  * tv-material 配色：T 调色板 → tv ColorScheme 全槽位映射（规格 2026-10-11 §阶段1）。
  *
  * 两条关键映射：
- *  1. border = T.Orange —— 官方 Card/Button 的 focusedBorder 默认从 colorScheme.border 取色，
- *     这是"官方默认焦点描边"在本应用呈现主橙的落点（TvColorSchemeTest 守护）。
- *  2. surface = BgMid（米色）而非 Card —— 与 m3 方案同约束，避免 tonalElevation 掺色。
+ *  1. border = T.Orange —— 官方 Card 的 focusedBorder 默认从 colorScheme.border 取色（Button 默认无描边，
+ *     其焦点反色走 focusedContainerColor=onSurface），这是"官方默认焦点描边"在本应用呈现主橙的落点（TvColorSchemeTest 守护）。
+ *  2. surface = BgMid（米色）而非 Card —— 与内层 m3 方案同值，保证页面底与对话框底跨层一致。
  *
  * tv ColorScheme 没有 surfaceContainer* 层级（对话框不走它），
  * m3 的 [TangshiColorScheme] 继续保留，仅供 AlertDialog/TextButton 使用。
