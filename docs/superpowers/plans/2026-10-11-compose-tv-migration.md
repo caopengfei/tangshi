@@ -1092,6 +1092,9 @@ import com.rakor.tangshi.ui.components.normalPillColors
         shape = cardShape(14),
         colors = cardColors(),
         border = cardBorder(14),
+        // 宽行卡不缩放（Task 8 实机发现）：官方 1.1 外扩把右环推到键盘卡底下被遮挡，
+        // 与详情页大卡同款处理——border-only 焦点，右环落回 14dp 缝隙内完整可见
+        scale = CardDefaults.scale(focusedScale = 1f),
     ) {
 ```
 结果行内容体（原 388-410 行）原样不动。
@@ -1116,7 +1119,7 @@ private fun KeyBox(
             .width(width)
             .height(KeySize)
             .focusTone(onFocusChange),
-        shape = RoundedCornerShape(KeyCorner),
+        shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(KeyCorner)),   // 交互式 Surface 的 shape 是 ClickableSurfaceShape，不能直传 Shape
         colors = ClickableSurfaceDefaults.colors(
             containerColor = T.ChipBg,
             contentColor = T.TextBody,
@@ -1148,7 +1151,7 @@ private fun PickerItem(
     Surface(
         onClick = onClick,
         modifier = modifier.focusTone(onFocusChange),
-        shape = RoundedCornerShape(12.dp),
+        shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(12.dp)),   // 交互式 Surface 的 shape 是 ClickableSurfaceShape
         colors = ClickableSurfaceDefaults.colors(
             containerColor = T.ChipBg,
             contentColor = T.TextBody,
@@ -1384,7 +1387,7 @@ private fun RoundPlayButton(
             .shadow(6.dp, CircleShape, clip = false)   // clip=false：不裁官方焦点 scale/描边（同 cardRestingShadow）
             .focusTone(onFocusChange)
             .size(56.dp),
-        shape = CircleShape,
+        shape = ClickableSurfaceDefaults.shape(shape = CircleShape),   // 交互式 Surface 的 shape 是 ClickableSurfaceShape
         colors = ClickableSurfaceDefaults.colors(
             containerColor = T.Orange,
             contentColor = Color.White,
@@ -1429,7 +1432,7 @@ private fun OptionBlock(
     Surface(
         onClick = onClick,
         modifier = modifier.shadow(6.dp, shape, clip = false).focusTone(onFocusChange),   // clip=false：不裁官方焦点 scale/描边
-        shape = shape,
+        shape = ClickableSurfaceDefaults.shape(shape = shape),   // 交互式 Surface 的 shape 是 ClickableSurfaceShape
         colors = ClickableSurfaceDefaults.colors(
             containerColor = if (feedback == Feedback.CORRECT) T.Correct else T.Card,
             contentColor = T.TextTitle,
@@ -1679,7 +1682,7 @@ private fun WipeButton(onFocusChange: (Boolean) -> Unit, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         modifier = Modifier.focusTone(onFocusChange),
-        shape = shape,
+        shape = ClickableSurfaceDefaults.shape(shape = shape),   // 交互式 Surface 的 shape 是 ClickableSurfaceShape
         colors = ClickableSurfaceDefaults.colors(
             containerColor = T.Idle,
             contentColor = T.Orange,
