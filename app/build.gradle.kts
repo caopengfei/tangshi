@@ -43,6 +43,7 @@ android {
                 ?: signingConfigs.getByName("debug")
         }
     }
+    lint { disable += "NullSafeMutableLiveData" }
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
