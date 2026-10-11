@@ -957,6 +957,7 @@ import com.rakor.tangshi.ui.components.tvFocusable
 ```kotlin
 import androidx.tv.material3.Button
 import androidx.tv.material3.Card
+import androidx.tv.material3.CardDefaults
 import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.Surface
 import androidx.tv.material3.SurfaceDefaults
@@ -964,6 +965,7 @@ import androidx.tv.material3.Border
 import androidx.tv.material3.Icon as TvIcon
 import androidx.tv.material3.Text as TvText
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.PaddingValues
 import com.rakor.tangshi.ui.components.cardBorder
 import com.rakor.tangshi.ui.components.cardColors
 import com.rakor.tangshi.ui.components.cardRestingShadow
@@ -972,7 +974,7 @@ import com.rakor.tangshi.ui.components.focusTone
 import com.rakor.tangshi.ui.components.normalPillBorder
 import com.rakor.tangshi.ui.components.normalPillColors
 ```
-（`border`、`RoundedCornerShape`、`focusProperties` 本文件已有，勿重复添加。）
+（`border`、`RoundedCornerShape`、`focusProperties` 本文件已有，勿重复添加。`CardDefaults` 服务 Step 9.5 裁定的 ResultRow border-only；`PaddingValues` 服务结果列表 contentPadding——两者均为 Step 9 实机发现追加。）
 
 - [ ] **Step 2: 筛选行两枚药丸（SearchScreen.kt:216-229）**
 
@@ -1178,7 +1180,10 @@ Expected: `BUILD SUCCESSFUL`
 
 - [ ] **Step 9: 本屏实机冒烟**
 
-筛选药丸、结果行焦点、键盘进退（焦点激活边框双向驱动）、键位焦点描边、浮层焦点陷阱与首项落焦、`KeyBox` 禁用无（无禁用场景）、焦点音效。
+筛选药丸、结果行焦点、键盘进退（焦点激活边框双向驱动）、键位焦点描边、浮层焦点陷阱与首项落焦、焦点音效；**两项实机发现的追加检查与修复（2026-10-11 已裁定并执行）**：
+1. **首/末结果行外绘环被 LazyColumn 滚动轴裁剪**（与 Task 6 同源）→ 结果 LazyColumn 加 `contentPadding = PaddingValues(vertical = 10.dp)`（预批修复）。
+2. **结果行右环被键盘卡遮挡**（官方 1.1 外扩伸入 x≥1090 键盘区）→ ResultRow 的 Card 加 `scale = CardDefaults.scale(focusedScale = 1f)`（border-only 焦点，与详情页大卡同款先例），右环落回 14dp 缝隙内。
+3. 已知既有行为（非回归项，记录即可）：浮层 UP 键焦点微漏到底层但浮层不关（Task 3 观察 C2，迁移前基线一致）；结果列表 D-pad 第 3 行后卡焦（迁移前既有，stash 基线对照确认）——两项归 Task 13 顺路清理。
 
 - [ ] **Step 10: 提交**
 
