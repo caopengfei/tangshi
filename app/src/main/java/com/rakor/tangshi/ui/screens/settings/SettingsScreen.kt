@@ -1,5 +1,6 @@
 package com.rakor.tangshi.ui.screens.settings
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -38,15 +40,22 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.tv.material3.Border
+import androidx.tv.material3.Button
+import androidx.tv.material3.ClickableSurfaceDefaults
+import androidx.tv.material3.Surface
+import androidx.tv.material3.SurfaceDefaults
+import androidx.tv.material3.Icon as TvIcon
+import androidx.tv.material3.Text as TvText
 import com.rakor.tangshi.data.repo.ProgressRepository
 import com.rakor.tangshi.data.repo.SettingsRepository
 import com.rakor.tangshi.di.AppGraph
 import com.rakor.tangshi.ui.components.CreamBackground
-import com.rakor.tangshi.ui.components.FocusCard
-import com.rakor.tangshi.ui.components.FocusScale
-import com.rakor.tangshi.ui.components.FocusablePillButton
 import com.rakor.tangshi.ui.components.KeyHintBar
-import com.rakor.tangshi.ui.components.tvFocusable
+import com.rakor.tangshi.ui.components.cardRestingShadow
+import com.rakor.tangshi.ui.components.focusTone
+import com.rakor.tangshi.ui.components.segmentPillBorder
+import com.rakor.tangshi.ui.components.segmentPillColors
 import com.rakor.tangshi.ui.theme.T
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
@@ -119,23 +128,30 @@ fun SettingsScreen() {
             Column(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 SettingCard(Modifier.weight(1f).fillMaxWidth(), "按键提示音") {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FocusablePillButton(
-                            "开",
-                            icon = if (s.keyTone) Icons.Filled.Check else null,
-                            highlight = s.keyTone,
-                            segment = true,
+                        Button(
                             onClick = { vm.setKeyTone(true) },
-                            onFocusChange = tone,
-                            modifier = Modifier.focusRequester(focusRequester)
-                        )
-                        FocusablePillButton(
-                            "关",
-                            icon = if (!s.keyTone) Icons.Filled.Check else null,
-                            highlight = !s.keyTone,
-                            segment = true,
+                            colors = segmentPillColors(s.keyTone),
+                            border = segmentPillBorder(s.keyTone),
+                            modifier = Modifier.focusTone(tone).focusRequester(focusRequester)
+                        ) {
+                            if (s.keyTone) {
+                                TvIcon(Icons.Filled.Check, null)
+                                Spacer(Modifier.width(6.dp))
+                            }
+                            TvText("开")
+                        }
+                        Button(
                             onClick = { vm.setKeyTone(false) },
-                            onFocusChange = tone
-                        )
+                            colors = segmentPillColors(!s.keyTone),
+                            border = segmentPillBorder(!s.keyTone),
+                            modifier = Modifier.focusTone(tone)
+                        ) {
+                            if (!s.keyTone) {
+                                TvIcon(Icons.Filled.Check, null)
+                                Spacer(Modifier.width(6.dp))
+                            }
+                            TvText("关")
+                        }
                     }
                 }
                 SettingCard(Modifier.weight(1.4f).fillMaxWidth(), "清除学习进度") {
@@ -202,14 +218,18 @@ fun SettingsScreen() {
     }
 }
 
-/** 设置卡容器：corner=18 白底卡（FocusCard 常显无焦点视觉，焦点落在内部设置项上） */
+/** 设置卡容器：corner=18 白底静态 Surface + 静息影（常显无焦点视觉，焦点落在内部设置项上） */
 @Composable
 private fun SettingCard(
     modifier: Modifier = Modifier,
     title: String,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    FocusCard(modifier, focused = false, corner = 18) {
+    Surface(
+        modifier = modifier.cardRestingShadow(18),
+        shape = RoundedCornerShape(18.dp),
+        colors = SurfaceDefaults.colors(containerColor = T.Card)
+    ) {
         Column(
             Modifier.fillMaxSize().padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -220,25 +240,30 @@ private fun SettingCard(
     }
 }
 
-/** "清除 →" 入口：橙色小字按钮（独立焦点目标，聚焦橙描边+放大，TV 焦点可见性硬要求） */
+/** "清除 →" 入口：官方 Surface 焦点描边+缩放，TV 焦点可见性硬要求 */
 @Composable
 private fun WipeButton(onFocusChange: (Boolean) -> Unit, onClick: () -> Unit) {
-    var focused by remember { mutableStateOf(false) }
     val shape = RoundedCornerShape(10.dp)
-    Text(
-        "清除 →",
-        Modifier
-            .onFocusChanged {
-                focused = it.isFocused
-                onFocusChange(it.isFocused)
-            }
-            .scale(if (focused) FocusScale else 1f)
-            .background(if (focused) T.ChipBg else T.Idle, shape)
-            .border(if (focused) 3.dp else 0.dp, T.Orange, shape)
-            .tvFocusable(onClick)
-            .padding(horizontal = 14.dp, vertical = 6.dp),
-        color = T.Orange, fontSize = 12.sp, fontWeight = FontWeight.SemiBold
-    )
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.focusTone(onFocusChange),
+        shape = ClickableSurfaceDefaults.shape(shape = shape),   // 交互式 Surface 的 shape 是 ClickableSurfaceShape
+        colors = ClickableSurfaceDefaults.colors(
+            containerColor = T.Idle,
+            contentColor = T.Orange,
+            focusedContainerColor = T.ChipBg,   // 聚焦升浅橙底（原语义），不反深色
+            focusedContentColor = T.Orange,
+        ),
+        border = ClickableSurfaceDefaults.border(
+            focusedBorder = Border(border = BorderStroke(3.dp, T.Orange), shape = shape)
+        ),
+    ) {
+        Text(
+            "清除 →",
+            Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+            color = T.Orange, fontSize = 12.sp, fontWeight = FontWeight.SemiBold
+        )
+    }
 }
 
 /** 设置流 + 写侧直通 + 清除进度（suspend 落 repo，viewModelScope 驱动） */
