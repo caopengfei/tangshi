@@ -1,0 +1,108 @@
+{
+ "lines": [
+  {
+   "file": "line1.opus",
+   "durationMs": 2886
+  },
+  {
+   "file": "line2.opus",
+   "durationMs": 2814
+  },
+  {
+   "file": "line3.opus",
+   "durationMs": 2958
+  },
+  {
+   "file": "line4.opus",
+   "durationMs": 2790
+  },
+  {
+   "file": "line5.opus",
+   "durationMs": 2790
+  },
+  {
+   "file": "line6.opus",
+   "durationMs": 2982
+  },
+  {
+   "file": "line7.opus",
+   "durationMs": 2814
+  },
+  {
+   "file": "line8.opus",
+   "durationMs": 2814
+  },
+  {
+   "file": "line9.opus",
+   "durationMs": 3030
+  },
+  {
+   "file": "line10.opus",
+   "durationMs": 2670
+  },
+  {
+   "file": "line11.opus",
+   "durationMs": 2694
+  },
+  {
+   "file": "line12.opus",
+   "durationMs": 2934
+  },
+  {
+   "file": "line13.opus",
+   "durationMs": 2598
+  },
+  {
+   "file": "line14.opus",
+   "durationMs": 2814
+  },
+  {
+   "file": "line15.opus",
+   "durationMs": 2910
+  },
+  {
+   "file": "line16.opus",
+   "durationMs": 2838
+  },
+  {
+   "file": "line17.opus",
+   "durationMs": 2766
+  },
+  {
+   "file": "line18.opus",
+   "durationMs": 2982
+  },
+  {
+   "file": "line19.opus",
+   "durationMs": 2718
+  },
+  {
+   "file": "line20.opus",
+   "durationMs": 2694
+  },
+  {
+   "file": "line21.opus",
+   "durationMs": 2862
+  },
+  {
+   "file": "line22.opus",
+   "durationMs": 2910
+  },
+  {
+   "file": "line23.opus",
+   "durationMs": 2718
+  },
+  {
+   "file": "line24.opus",
+   "durationMs": 2886
+  },
+  {
+   "file": "line25.opus",
+   "durationMs": 2910
+  },
+  {
+   "file": "line26.opus",
+   "durationMs": 3126
+  }
+ ]
+}

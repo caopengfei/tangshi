@@ -1,0 +1,20 @@
+{
+ "lines": [
+  {
+   "file": "line1.opus",
+   "durationMs": 2262
+  },
+  {
+   "file": "line2.opus",
+   "durationMs": 2358
+  },
+  {
+   "file": "line3.opus",
+   "durationMs": 2334
+  },
+  {
+   "file": "line4.opus",
+   "durationMs": 2262
+  }
+ ]
+}

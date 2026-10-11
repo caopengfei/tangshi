@@ -1,0 +1,44 @@
+{
+ "lines": [
+  {
+   "file": "line1.opus",
+   "durationMs": 2790
+  },
+  {
+   "file": "line2.opus",
+   "durationMs": 2886
+  },
+  {
+   "file": "line3.opus",
+   "durationMs": 2790
+  },
+  {
+   "file": "line4.opus",
+   "durationMs": 2982
+  },
+  {
+   "file": "line5.opus",
+   "durationMs": 2910
+  },
+  {
+   "file": "line6.opus",
+   "durationMs": 2958
+  },
+  {
+   "file": "line7.opus",
+   "durationMs": 2670
+  },
+  {
+   "file": "line8.opus",
+   "durationMs": 2910
+  },
+  {
+   "file": "line9.opus",
+   "durationMs": 2766
+  },
+  {
+   "file": "line10.opus",
+   "durationMs": 2958
+  }
+ ]
+}

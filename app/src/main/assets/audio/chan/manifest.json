@@ -1,0 +1,36 @@
+{
+ "lines": [
+  {
+   "file": "line1.opus",
+   "durationMs": 2142
+  },
+  {
+   "file": "line2.opus",
+   "durationMs": 2430
+  },
+  {
+   "file": "line3.opus",
+   "durationMs": 2238
+  },
+  {
+   "file": "line4.opus",
+   "durationMs": 2454
+  },
+  {
+   "file": "line5.opus",
+   "durationMs": 2214
+  },
+  {
+   "file": "line6.opus",
+   "durationMs": 2238
+  },
+  {
+   "file": "line7.opus",
+   "durationMs": 2406
+  },
+  {
+   "file": "line8.opus",
+   "durationMs": 2118
+  }
+ ]
+}
