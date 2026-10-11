@@ -48,6 +48,7 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.Key
@@ -62,13 +63,25 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.tv.material3.Button
+import androidx.tv.material3.Card
+import androidx.tv.material3.CardDefaults
+import androidx.tv.material3.Icon as TvIcon
+import androidx.tv.material3.Text as TvText
 import com.rakor.tangshi.audio.PoemPlayer
 import com.rakor.tangshi.di.AppGraph
 import com.rakor.tangshi.ui.components.CreamBackground
-import com.rakor.tangshi.ui.components.FocusCard
-import com.rakor.tangshi.ui.components.FocusablePillButton
 import com.rakor.tangshi.ui.components.KeyHintBar
 import com.rakor.tangshi.ui.components.PoemLine
+import com.rakor.tangshi.ui.components.cardBorder
+import com.rakor.tangshi.ui.components.cardColors
+import com.rakor.tangshi.ui.components.cardRestingShadow
+import com.rakor.tangshi.ui.components.cardShape
+import com.rakor.tangshi.ui.components.focusTone
+import com.rakor.tangshi.ui.components.highlightPillBorder
+import com.rakor.tangshi.ui.components.highlightPillColors
+import com.rakor.tangshi.ui.components.normalPillBorder
+import com.rakor.tangshi.ui.components.normalPillColors
 import com.rakor.tangshi.ui.theme.KaiTi
 import com.rakor.tangshi.ui.theme.T
 import kotlinx.coroutines.launch
@@ -143,7 +156,6 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
     var loopEnabled by remember { mutableStateOf(false) }
     var showMasteredDialog by remember { mutableStateOf(false) }
     var showAudioError by remember { mutableStateOf(false) }
-    var poemAreaFocused by remember { mutableStateOf(false) }   // 诗行卡聚焦视觉（橙描边）
 
     // 本诗进度（底部提示条）
     val progressState by remember(currentPoemId) { g.progress.observeProgress(currentPoemId) }.collectAsState(initial = null)
@@ -255,24 +267,29 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                 ) {
                     // 切诗芯片：到首/末尾时对应侧禁用；频道键 CH-/CH+ 为等价捷径
                     // 图标而非 ◀▶ 文字——老盒子（小米盒子4/Android 6）系统字体缺几何符号字形
-                    FocusablePillButton(
-                        "",
-                        icon = Icons.Filled.ChevronLeft,
-                        enabled = prevPoem != null,
+                    // 官方 disabled Surface 仍可聚焦（官方设计），必须显式 canFocus=false 保持"跳过禁用项"
+                    Button(
                         onClick = { prevPoem?.let { currentPoemId = it.id } },
-                        onFocusChange = tone
-                    )
+                        enabled = prevPoem != null,
+                        colors = normalPillColors(),
+                        border = normalPillBorder(),
+                        modifier = Modifier
+                            .focusTone(tone)
+                            .focusProperties { canFocus = prevPoem != null }
+                    ) { TvIcon(Icons.Filled.ChevronLeft, null) }
                     Text(
                         "第 ${poem.order} / ${poems.size} 首",
                         color = T.TextSubtle, fontSize = 11.sp, maxLines = 1
                     )
-                    FocusablePillButton(
-                        "",
-                        icon = Icons.Filled.ChevronRight,
-                        enabled = nextPoem != null,
+                    Button(
                         onClick = { nextPoem?.let { currentPoemId = it.id } },
-                        onFocusChange = tone
-                    )
+                        enabled = nextPoem != null,
+                        colors = normalPillColors(),
+                        border = normalPillBorder(),
+                        modifier = Modifier
+                            .focusTone(tone)
+                            .focusProperties { canFocus = nextPoem != null }
+                    ) { TvIcon(Icons.Filled.ChevronRight, null) }
                 }
             }
 
@@ -283,15 +300,16 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
             ) {
                 Column(Modifier.weight(1.4f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     // 诗行卡 = 一个焦点目标（初始焦点落这里，聚焦橙描边），◀▶/OK 在其聚焦时生效
-                    FocusCard(
-                        Modifier
+                    Card(
+                        // OK 由下方 onPreviewKeyEvent 消费（Enter/NumPadEnter 一并覆盖）；
+                        // onClick 兜底同语义，双保险不重复触发（preview 消费后 clickable 收不到）
+                        onClick = { okOnPoemArea() },
+                        modifier = Modifier
+                            .cardRestingShadow(20)
                             .weight(1f)
                             .fillMaxWidth()
                             .focusRequester(focusRequester)
-                            .onFocusChanged {
-                                poemAreaFocused = it.isFocused
-                                tone(it.isFocused)
-                            }
+                            .focusTone(tone)
                             .onPreviewKeyEvent { e ->
                                 if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
                                 when (e.key) {
@@ -313,9 +331,12 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                                     Key.ChannelDown -> { prevPoem?.let { currentPoemId = it.id }; true }  // CH- 上一首
                                     else -> false   // 其余按键（含 B/返回）交还系统
                                 }
-                            }
-                            .focusable(),
-                        focused = poemAreaFocused
+                            },
+                        shape = cardShape(20),
+                        colors = cardColors(),
+                        border = cardBorder(20),
+                        // 满屏大卡不缩放（官方默认 1.1 会溢出列布局）；焦点提示靠官方 3dp 描边
+                        scale = CardDefaults.scale(focusedScale = 1f),
                     ) {
                         // 诗块整体在卡内居中；行间仍保持同一起点（不逐行居中），字格纵向对齐。
                         // 块宽含左侧 60dp 指示槽，居中会让文字右偏半槽，offset 抵消
@@ -377,18 +398,29 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             // 连读：循环模式开关（切换按钮）——选中时 OK 播放整首循环（末句回卷往复，
                             // 再按 OK 停止）；未选中时 OK 朗读箭头单句。只切模式，不立即播放/停止
-                            FocusablePillButton(
-                                "连读",
-                                icon = if (loopEnabled) Icons.Filled.Check else Icons.Filled.Replay,
-                                highlight = loopEnabled,
+                            Button(
                                 onClick = { loopEnabled = !loopEnabled },
-                                onFocusChange = tone
-                            )
-                            FocusablePillButton(
-                                "我会背了", Icons.Filled.ThumbUp,
+                                colors = if (loopEnabled) highlightPillColors() else normalPillColors(),
+                                border = if (loopEnabled) highlightPillBorder() else normalPillBorder(),
+                                modifier = Modifier.focusTone(tone)
+                            ) {
+                                TvIcon(
+                                    if (loopEnabled) Icons.Filled.Check else Icons.Filled.Replay,
+                                    null
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                TvText("连读")
+                            }
+                            Button(
                                 onClick = { showMasteredDialog = true },
-                                onFocusChange = tone
-                            )
+                                colors = normalPillColors(),
+                                border = normalPillBorder(),
+                                modifier = Modifier.focusTone(tone)
+                            ) {
+                                TvIcon(Icons.Filled.ThumbUp, null)
+                                Spacer(Modifier.width(6.dp))
+                                TvText("我会背了")
+                            }
                         }
                         if (playStatus.isNotEmpty()) {
                             Spacer(Modifier.weight(1f))
@@ -401,15 +433,13 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                 // 内容未溢出时 ▲▼ 不消费，交还焦点系统自然移出）
                 val bgScroll = remember(currentPoemId) { ScrollState(0) }
                 val bgScrollStep = with(LocalDensity.current) { 60.dp.toPx() }
-                var bgFocused by remember { mutableStateOf(false) }
-                FocusCard(
-                    Modifier
+                Card(
+                    onClick = {},   // OK 无动作（现状即如此）；官方 Card 需要 onClick 才有焦点态
+                    modifier = Modifier
+                        .cardRestingShadow(20)
                         .weight(1f)
                         .fillMaxHeight()
-                        .onFocusChanged {
-                            bgFocused = it.isFocused
-                            tone(it.isFocused)
-                        }
+                        .focusTone(tone)
                         .onPreviewKeyEvent { e ->
                             if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
                             when (e.key) {
@@ -427,9 +457,11 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                                 Key.ChannelDown -> { prevPoem?.let { currentPoemId = it.id }; true }  // CH- 上一首
                                 else -> false
                             }
-                        }
-                        .focusable(),
-                    focused = bgFocused
+                        },
+                    shape = cardShape(20),
+                    colors = cardColors(),
+                    border = cardBorder(20),
+                    scale = CardDefaults.scale(focusedScale = 1f),
                 ) {
                     Column(
                         Modifier
