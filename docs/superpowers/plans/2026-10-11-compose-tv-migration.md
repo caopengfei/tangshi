@@ -679,6 +679,14 @@ import com.rakor.tangshi.ui.components.segmentPillColors
 ```
 卡片内容体（原 233-254 行）**原样不动**（顶层 `Box(Modifier.weight(1f)...)` 依赖 `ColumnScope`，`Card` 内容正是 `ColumnScope`，直接可编译）。
 
+- [ ] **Step 3b: GridEdgePad 8dp → 16dp（Task 6 实机发现，2026-10-11 追加）**
+
+改 `LibraryScreen.kt` 的 `private val GridEdgePad = 8.dp` → `16.dp`，并加注释：官方 Card 焦点描边外绘 + scale 1.1 外扩，8dp 时首/末列外侧描边被 LazyGrid 滚动轴裁剪。
+
+原因：官方 Card 的焦点描边画在放大轮廓之外（实测外绘 ~6px），叠加 scale 1.1 每侧外扩（≈0.05×卡宽），首列卡左环（及末列卡右环）落在 `LazyHorizontalGrid` 滚动轴裁剪窗外——实机实测首列左描边 0 像素、中间列完整。`GridEdgePad` 同时用于 `cardWidth` 公式与 `contentPadding`（两处引用同一常量），改一处两边同步：卡宽 422→414px（约小 2%），首列左侧余量 16→32px，扣外扩与描边后余 ~5px。**不要**只调 contentPadding 或取消卡片缩放——前者卡片错位、后者丢官方焦点语义。
+
+冒烟相应加验：首列与末列卡聚焦时外侧描边完整可见。
+
 - [ ] **Step 4: 编译 + 单测**
 
 Run: `./gradlew :app:testDebugUnitTest` && `./gradlew :app:assembleDebug`
