@@ -92,9 +92,11 @@ internal val TangshiColorScheme = darkColorScheme(
  * tv-material 配色：T 调色板 → tv ColorScheme 全槽位映射（规格 2026-10-11 §阶段1）。
  *
  * 两条关键映射：
- *  1. border = T.Orange —— 官方 Card/Button 的 focusedBorder 默认从 colorScheme.border 取色，
+ *  1. border = T.Orange —— 官方 Card 的 focusedBorder 默认从 colorScheme.border 取色（Button 默认无描边，其焦点反色走 focusedContainerColor=onSurface，见下），
  *     这是"官方默认焦点描边"在本应用呈现主橙的落点（TvColorSchemeTest 守护）。
- *  2. surface = BgMid（米色）而非 Card —— 与 m3 方案同约束，避免 tonalElevation 掺色。
+ *  2. surface = BgMid（米色）而非 Card —— 与内层 m3 方案同值，保证页面底与对话框底跨层一致。
+ *
+ * 注意：colorScheme.border 在 tv 1.1.0 并非焦点专用——AssistChipDefaults 用它画静态描边；本设计不引入 Chip，若日后引入需注意静态橙边。
  *
  * tv ColorScheme 没有 surfaceContainer* 层级（对话框不走它），
  * m3 的 [TangshiColorScheme] 继续保留，仅供 AlertDialog/TextButton 使用。
@@ -131,27 +133,20 @@ internal val TangshiTvColorScheme = tvDarkColorScheme(
     scrim = T.Scrim,
 )
 
+// 两层主题（外层 tv、内层 m3 对话框）共用的 titleLarge——单一来源，避免两处构造漂移
+private val TangshiTitleLarge = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 22.sp, letterSpacing = 4.sp, color = T.TextTitle)
+
 @Composable
 fun TangshiTheme(content: @Composable () -> Unit) =
     TvMaterialTheme(
         colorScheme = TangshiTvColorScheme,
-        typography = TvTypography(
-            titleLarge = TextStyle(
-                fontWeight = FontWeight.SemiBold, fontSize = 22.sp,
-                letterSpacing = 4.sp, color = T.TextTitle
-            )
-        )
+        typography = TvTypography(titleLarge = TangshiTitleLarge)
     ) {
         // 对话框仍走 material3（tv-material 无 Dialog 组件）；同一 T 色板全槽位映射，
         // 约束见上方 TangshiColorScheme 注释与 ThemeColorSchemeTest
         MaterialTheme(
             colorScheme = TangshiColorScheme,
-            typography = Typography(
-                titleLarge = TextStyle(
-                    fontWeight = FontWeight.SemiBold, fontSize = 22.sp,
-                    letterSpacing = 4.sp, color = T.TextTitle
-                )
-            ),
+            typography = Typography(titleLarge = TangshiTitleLarge),
             content = content
         )
     }

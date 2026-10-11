@@ -12,8 +12,9 @@ class TvColorSchemeTest {
 
     @Test
     fun `官方焦点描边取 border 槽位 映射为主橙`() {
-        // tv Card/Button 的 focusedBorder 默认读 colorScheme.border（3dp），
+        // tv Card 的 focusedBorder 默认读 colorScheme.border（3dp），
         // 这是"官方默认焦点描边"在本应用呈现主橙的唯一落点
+        // （Button 默认无描边，其焦点反色走 focusedContainerColor=onSurface，见「反色语义槽位映射暖色」）
         assertEquals(T.Orange, TangshiTvColorScheme.border)
     }
 
@@ -33,7 +34,8 @@ class TvColorSchemeTest {
     }
 
     @Test
-    fun `遮罩与错误色与 m3 方案一致`() {
+    fun `遮罩与错误色映射固定`() {
+        // 遮罩与错误色映射固定（m3 方案对同槽位另有 ThemeColorSchemeTest 独立断言，两者各自钉死 T 值）
         assertEquals(T.Scrim, TangshiTvColorScheme.scrim)
         assertEquals(T.Wrong, TangshiTvColorScheme.error)
     }
