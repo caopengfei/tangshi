@@ -382,8 +382,8 @@ fun cardColors() = CardDefaults.colors(containerColor = T.Card, contentColor = T
 @Composable
 fun cardBorder(corner: Int) = CardDefaults.border(
     focusedBorder = Border(
-        BorderStroke(3.dp, MaterialTheme.colorScheme.border),
-        RoundedCornerShape(corner.dp)
+        border = BorderStroke(3.dp, MaterialTheme.colorScheme.border),
+        shape = RoundedCornerShape(corner.dp)
     )
 )
 ```
@@ -1109,7 +1109,7 @@ private fun KeyBox(
             focusedContentColor = T.TextBody,
         ),
         border = ClickableSurfaceDefaults.border(
-            focusedBorder = Border(BorderStroke(3.dp, T.Orange), RoundedCornerShape(KeyCorner))
+            focusedBorder = Border(border = BorderStroke(3.dp, T.Orange), shape = RoundedCornerShape(KeyCorner))
         ),
     ) {
         Box(contentAlignment = Alignment.Center, content = content)
@@ -1141,7 +1141,7 @@ private fun PickerItem(
             focusedContentColor = T.TextBody,
         ),
         border = ClickableSurfaceDefaults.border(
-            focusedBorder = Border(BorderStroke(3.dp, T.Orange), RoundedCornerShape(12.dp))
+            focusedBorder = Border(border = BorderStroke(3.dp, T.Orange), shape = RoundedCornerShape(12.dp))
         ),
     ) {
         Text(
@@ -1222,7 +1222,7 @@ private fun GameModeCard(
     onFocusChange: (Boolean) -> Unit = {},
     onClick: () -> Unit
 ) {
-    val selectedBorder = Border(BorderStroke(4.dp, T.Orange), RoundedCornerShape(20.dp))
+    val selectedBorder = Border(border = BorderStroke(4.dp, T.Orange), shape = RoundedCornerShape(20.dp))
     Card(
         onClick = onClick,
         modifier = modifier
@@ -1380,7 +1380,7 @@ private fun RoundPlayButton(
         ),
         border = ClickableSurfaceDefaults.border(
             // 橙底上橙描边不可辨，焦点用白色描边（沿用原"焦点白边"语言）
-            focusedBorder = Border(BorderStroke(3.dp, Color.White), CircleShape)
+            focusedBorder = Border(border = BorderStroke(3.dp, Color.White), shape = CircleShape)
         ),
     ) {
         Icon(
@@ -1423,10 +1423,10 @@ private fun OptionBlock(
             focusedContentColor = T.TextTitle,
         ),
         border = ClickableSurfaceDefaults.border(
-            border = if (feedback == Feedback.WRONG) Border(BorderStroke(3.dp, T.Wrong), shape) else Border.None,
+            border = if (feedback == Feedback.WRONG) Border(border = BorderStroke(3.dp, T.Wrong), shape = shape) else Border.None,
             focusedBorder = Border(
-                BorderStroke(3.dp, if (feedback == Feedback.WRONG) T.Wrong else T.Orange),
-                shape
+                border = BorderStroke(3.dp, if (feedback == Feedback.WRONG) T.Wrong else T.Orange),
+                shape = shape
             )
         ),
     ) {
@@ -1672,7 +1672,7 @@ private fun WipeButton(onFocusChange: (Boolean) -> Unit, onClick: () -> Unit) {
             focusedContentColor = T.Orange,
         ),
         border = ClickableSurfaceDefaults.border(
-            focusedBorder = Border(BorderStroke(3.dp, T.Orange), shape)
+            focusedBorder = Border(border = BorderStroke(3.dp, T.Orange), shape = shape)
         ),
     ) {
         Text(
