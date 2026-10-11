@@ -69,12 +69,22 @@ ksp = { id = "com.google.devtools.ksp", version = "2.1.20-1.0.31" }
 - [ ] **Step 3: 编译 + 全量单测**
 
 Run: `./gradlew :app:testDebugUnitTest`
-Expected: `BUILD SUCCESSFUL`（现有 11 个测试类全绿；若 Material3 1.4.0 或 Compose 1.10.3 引入回归，此处是第一个拦截点）
+Expected: `BUILD SUCCESSFUL`（现有 10 个测试类全绿；若 Material3 1.4.0 或 Compose 1.10.3 引入回归，此处是第一个拦截点）
 
-- [ ] **Step 4: 打 debug 包**
+- [ ] **Step 3b: 规避 BOM 连带的 lint 崩溃（审查发现，2026-10-11 追加）**
 
-Run: `./gradlew :app:assembleDebug`
-Expected: `BUILD SUCCESSFUL`
+在 `app/build.gradle.kts` 的 `android { ... }` 块内（`buildTypes` 之后、`compileOptions` 之前）加：
+
+```kotlin
+    lint { disable += "NullSafeMutableLiveData" }
+```
+
+原因：BOM 2026.02.00 → compose 1.10.3 → 依赖链把 `androidx.lifecycle` 解析到 2.9.4，其 `lifecycle-livedata-core-2.9.4.aar` 内嵌 lint.jar 的 `NonNullableMutableLiveDataDetector` 与 AGP 8.7.3 自带 lint 运行时 UAST API 不兼容，`lintVitalAnalyzeRelease` 抛 `IncompatibleClassChangeError`，`assembleRelease` 必挂（已在干净 worktree 双向二分实证：仅 BOM 升级触发）。此行是不违反"AGP 不动"约束下的最小修复（另一条路是升 AGP 8.9.1，属计划约束外）。
+
+- [ ] **Step 4: 打 debug 包 + release 包（双门禁）**
+
+Run: `./gradlew :app:assembleDebug` 然后 `./gradlew :app:assembleRelease`
+Expected: 均 `BUILD SUCCESSFUL`（release 门禁是本仓库真实发布路径——lintVital 必过；Task 15 验收同样复查此门禁）
 
 - [ ] **Step 5: 提交**
 
@@ -1816,10 +1826,10 @@ git commit -m "docs: 焦点规格标记废止+风格D附注迁移说明——随
 
 **Files:** 无代码改动（发现问题回对应任务修复）
 
-- [ ] **Step 1: 全量单测 + 出包**
+- [ ] **Step 1: 全量单测 + 出包（debug + release 双门禁）**
 
-Run: `./gradlew :app:testDebugUnitTest` && `./gradlew :app:assembleDebug`
-Expected: `BUILD SUCCESSFUL`
+Run: `./gradlew :app:testDebugUnitTest` && `./gradlew :app:assembleDebug` && `./gradlew :app:assembleRelease`
+Expected: 均 `BUILD SUCCESSFUL`（release 是真实发布路径，lintVital 必过——Task 1 追加的 lint disable 是其前提）
 
 - [ ] **Step 2: 实机行为全量走查（szj_tv 模拟器）**
 
