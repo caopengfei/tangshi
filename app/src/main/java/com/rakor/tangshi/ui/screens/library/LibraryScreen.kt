@@ -42,6 +42,10 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.tv.material3.Button
+import androidx.tv.material3.Card
+import androidx.tv.material3.Icon as TvIcon
+import androidx.tv.material3.Text as TvText
 import com.rakor.tangshi.data.model.Poem
 import com.rakor.tangshi.data.repo.PoemRepository
 import com.rakor.tangshi.data.repo.ProgressRepository
@@ -49,10 +53,15 @@ import com.rakor.tangshi.data.repo.ProgressStatus
 import com.rakor.tangshi.data.repo.ProgressSummary
 import com.rakor.tangshi.di.AppGraph
 import com.rakor.tangshi.ui.components.CreamBackground
-import com.rakor.tangshi.ui.components.FocusableCard
-import com.rakor.tangshi.ui.components.FocusablePillButton
 import com.rakor.tangshi.ui.components.KeyHintBar
 import com.rakor.tangshi.ui.components.StatusBadge
+import com.rakor.tangshi.ui.components.cardBorder
+import com.rakor.tangshi.ui.components.cardColors
+import com.rakor.tangshi.ui.components.cardRestingShadow
+import com.rakor.tangshi.ui.components.cardShape
+import com.rakor.tangshi.ui.components.focusTone
+import com.rakor.tangshi.ui.components.segmentPillBorder
+import com.rakor.tangshi.ui.components.segmentPillColors
 import com.rakor.tangshi.ui.theme.KaiTi
 import com.rakor.tangshi.ui.theme.T
 import kotlinx.coroutines.flow.SharingStarted
@@ -64,7 +73,8 @@ private const val GRID_COLS = 4
 private const val GRID_ROWS = 2
 private const val PAGE_SIZE = GRID_COLS * GRID_ROWS
 private val GridGap = 12.dp
-private val GridEdgePad = 8.dp
+// 16dp：容纳官方 Card 焦点描边外绘 + scale 1.1 外扩（8dp 时首/末列外侧描边被 LazyGrid 滚动轴裁剪，见 Task 6 实机发现）
+private val GridEdgePad = 16.dp
 
 /** 筛选维（规格 5.4）：全部 / 未学习 / 学习中 / 已会背 */
 internal enum class LibraryFilter(val label: String) {
@@ -110,9 +120,8 @@ private fun libraryViewModel(): LibraryViewModel = viewModel(factory = libraryVi
  * "每页 8 张"的视觉约定由卡宽 =（可视宽 − 边缘留白×2 − 列间距×3）/ 4 保证；
  * 页码由焦点所在卡的索引推算（focusIndex / 8 + 1），显示在按键提示条右侧。
  *
- * 筛选胶囊直接复用 [FocusablePillButton]：highlight = 选中态（ChipBg 底 3dp 橙描边橙字），
- * segment = 分段组成员——聚焦时 4dp 主橙描边 + 放大、不反色填充（规格 §1 分段组例外），
- * 无需额外包装。
+ * 筛选胶囊用官方 [Button] + segmentPill 样式助手：选中=强调档本体（ChipBg 底 3dp 橙描边橙字），
+ * 聚焦不反色升 4dp 主橙描边（规格 §1 分段组例外），焦点转发由 focusTone 自管。
  */
 @Composable
 fun LibraryScreen(onPoem: (String) -> Unit) {
@@ -183,17 +192,21 @@ fun LibraryScreen(onPoem: (String) -> Unit) {
 
             Spacer(Modifier.height(8.dp))
 
-            // 筛选行：选中=浅橙底橙描边橙字（highlight），聚焦=4dp 主橙描边不反色（segment）；动效由 FocusablePillButton 自管
+            // 筛选行：选中=强调档本体（浅橙底橙描边），焦点不反色升 4dp 主橙描边（segment 官方样式参数）
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 LibraryFilter.entries.forEach { f ->
-                    FocusablePillButton(
-                        f.label,
-                        if (f == LibraryFilter.MASTERED) Icons.Filled.ThumbUp else null,
-                        highlight = filter == f,
-                        segment = true,
+                    Button(
                         onClick = { filter = f },
-                        onFocusChange = tone
-                    )
+                        colors = segmentPillColors(filter == f),
+                        border = segmentPillBorder(filter == f),
+                        modifier = Modifier.focusTone(tone)
+                    ) {
+                        if (f == LibraryFilter.MASTERED) {
+                            TvIcon(Icons.Filled.ThumbUp, null)
+                            Spacer(Modifier.width(6.dp))
+                        }
+                        TvText(f.label)
+                    }
                 }
             }
 
@@ -218,17 +231,20 @@ fun LibraryScreen(onPoem: (String) -> Unit) {
                         itemsIndexed(filtered, key = { _, p -> p.id }) { index, poem ->
                             val summary = summaryById[poem.id]
                             val status = summary?.status ?: ProgressStatus.NOT_STARTED
-                            FocusableCard(
-                                Modifier
+                            Card(
+                                onClick = { onPoem(poem.id) },
+                                modifier = Modifier
+                                    .cardRestingShadow(16)
                                     .width(cardWidth)
                                     .fillMaxHeight()
-                                    .then(if (index == 0) Modifier.focusRequester(firstCardFocus) else Modifier),
-                                corner = 16,
-                                onFocusChange = { f ->
-                                    if (f) focusedIndex = index
-                                    tone(f)
-                                },
-                                onClick = { onPoem(poem.id) }
+                                    .then(if (index == 0) Modifier.focusRequester(firstCardFocus) else Modifier)
+                                    .focusTone { f ->
+                                        if (f) focusedIndex = index
+                                        tone(f)
+                                    },
+                                shape = cardShape(16),
+                                colors = cardColors(),
+                                border = cardBorder(16),
                             ) {
                                 // 中部：诗名 + 诗人（整体水平垂直居中，诗人不带朝代前缀）
                                 Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
