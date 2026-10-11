@@ -82,13 +82,13 @@
 | `FocusCard`（静态白底容器） | 非交互 `Surface` | 无焦点态 |
 | `FocusablePillButton` normal 模式 | `Button` | 官方默认即胶囊 + 焦点效果 |
 | `FocusablePillButton` highlight 模式（静置选中态） | `Button` + 自定义样式参数（`ButtonDefaults.colors/border`，rest 态即强调档） | 保持"未聚焦也高亮"的语义；不引入 `Chip` |
-| `FocusablePillButton` segment 模式（焦点不反色） | `Button` + 自定义样式参数（focusedBorder=4dp、scale=1.0） | 分段观感靠样式参数收敛，不靠手写 |
+| `FocusablePillButton` segment 模式（焦点不反色） | `Button` + 自定义样式参数（focusedBorder=4dp，scale 用官方默认） | 分段观感靠样式参数收敛，不靠手写 |
 | 焦点可点容器（键盘格、诗词行等） | 交互式 `Surface(onClick=…)` | 替代 `tvFocusable` |
 | 确认对话框 | **保留 material3 `AlertDialog`** | tv-material 无对话框组件 |
 
 ### 行为接线（功能全部保持，只换挂载点）
 
-- **焦点/按键音效**（现 31 处 `onFocusChange` 钩子）：收敛为共享扩展 `Modifier.focusTone()`，挂在官方组件的 `modifier` 参数上；`clickTone` 同理由 `onClick` 侧统一。实现时优先验证 tv-material `interactionSource` 是否发 `FocusInteraction`，不行则用外部 `onFocusChanged`（两条路都在官方 API 内）。
+- **焦点/按键音效**（现 31 处 `onFocusChange` 钩子）：收敛为共享扩展 `Modifier.focusTone()`，挂在官方组件的 `modifier` 参数上。实现时优先验证 tv-material `interactionSource` 是否发 `FocusInteraction`，不行则用外部 `onFocusChanged`（两条路都在官方 API 内）。应用目前只有焦点移动音（`KeyTonePlayer.focusMove()`，`confirm()` 无调用点），不新增确认音。
 - **MENU 键回设置页**（AppNavHost 根 Box）、**ChannelUp/ChannelDown 翻页**（DetailScreen 容器级 `onPreviewKeyEvent`）、**Search 焦点陷阱**（`focusProperties.exit`）、**初始焦点**（`withFrameNanos` + `FocusRequester`）：与官方组件无耦合，原样保留。
 - **禁用态陷阱**：tv-material 明确 disabled Surface **仍可聚焦**（官方设计），而现规格要求禁用药丸不可聚焦——禁用处继续包 `focusProperties { canFocus = false }`，列为逐屏检查项。
 - **焦点驱动分页**（LibraryScreen）、**长文滚动**（DetailScreen）：挂官方组件的 `modifier`，逻辑不动。
@@ -109,7 +109,8 @@
 | 测试 | 处置 |
 |---|---|
 | `CardShadowTest` | **删除**——`CardShadow` 常量随旧组件废止，官方 glow 由官方测试守护 |
-| `ThemeColorSchemeTest` | **重写**——守护对象改为"T 调色板 → tv `ColorScheme` 映射"，守护价值保留 |
+| `ThemeColorSchemeTest` | **保留**——对话框仍走 m3 主题（`TangshiColorScheme` 继续在用），原断言继续有效 |
+| 新增 `TvColorSchemeTest` | 守护"T 调色板 → tv `ColorScheme` 映射"，尤其 `border` 槽位（官方焦点描边取色处） |
 | `LibraryFilterTest`、`HomeViewModelTest`、`PoemRepositoryTest`、`SettingsRepositoryTest`、`AudioAssetsTest` | 保留；仅当编译引用被删组件时做机械适配 |
 | 新增 | 每屏迁移不新增单测（组件替换无逻辑变化）；阶段收尾补一条 tv `ColorScheme` 关键色槽位断言 |
 
