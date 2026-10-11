@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -41,6 +42,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.BorderStroke
+import androidx.tv.material3.Border
+import androidx.tv.material3.ButtonDefaults
+import androidx.tv.material3.CardDefaults
+import androidx.tv.material3.MaterialTheme
 import com.rakor.tangshi.ui.theme.T
 
 /** 暖棕投影色（焦点规范 rgba(210,140,90)，仅用于 shadow 的 ambient/spot 着色，非界面用色）；
@@ -244,3 +250,76 @@ fun CreamBackground(content: @Composable BoxScope.() -> Unit) {
         content = content
     )
 }
+
+// ===== 官方组件样式助手（tv-material + T 调色板；规格 2026-10-11 §组件映射）=====
+
+/** 焦点音效挂载点：官方组件没有 onFocusChange 参数，统一挂 modifier 链首转发（全 app 28 处钩子的归宿） */
+fun Modifier.focusTone(tone: (Boolean) -> Unit): Modifier =
+    onFocusChanged { tone(it.isFocused) }
+
+/** 白卡静态悬浮影（6dp，非焦点视觉；焦点视觉全走官方 border/scale） */
+fun Modifier.cardRestingShadow(corner: Int): Modifier =
+    shadow(6.dp, RoundedCornerShape(corner.dp))
+
+/** 普通药丸：rest 白底 2dp 浅橙描边棕字；focused 官方反色语义 → 主橙底白字 */
+@Composable
+fun normalPillColors() = ButtonDefaults.colors(
+    containerColor = T.Card,
+    contentColor = T.TextBody,
+    focusedContainerColor = T.Orange,
+    focusedContentColor = Color.White,
+    disabledContainerColor = T.Card.copy(alpha = 0.45f),
+    disabledContentColor = T.TextBody.copy(alpha = 0.45f),
+)
+
+@Composable
+fun normalPillBorder() = ButtonDefaults.border(
+    border = Border(BorderStroke(2.dp, T.OrangeSoft), shape = CircleShape)
+)
+
+/** 强调药丸（主行动按钮 / 选中常驻强调）：rest ChipBg 底 3dp 橙描边橙字；focused 同普通档反色 */
+@Composable
+fun highlightPillColors() = ButtonDefaults.colors(
+    containerColor = T.ChipBg,
+    contentColor = T.Orange,
+    focusedContainerColor = T.Orange,
+    focusedContentColor = Color.White,
+)
+
+@Composable
+fun highlightPillBorder() = ButtonDefaults.border(
+    border = Border(BorderStroke(3.dp, T.Orange), shape = CircleShape)
+)
+
+/** 分段组药丸：焦点不反色（规格 §1 分段例外），focused 升 4dp 主橙描边；rest 选中=强调档本体 */
+@Composable
+fun segmentPillColors(selected: Boolean) = ButtonDefaults.colors(
+    containerColor = if (selected) T.ChipBg else T.Card,
+    contentColor = if (selected) T.Orange else T.TextBody,
+    focusedContainerColor = if (selected) T.ChipBg else T.Card,
+    focusedContentColor = if (selected) T.Orange else T.TextBody,
+)
+
+@Composable
+fun segmentPillBorder(selected: Boolean) = ButtonDefaults.border(
+    border = Border(
+        BorderStroke(if (selected) 3.dp else 2.dp, if (selected) T.Orange else T.OrangeSoft),
+        shape = CircleShape
+    ),
+    focusedBorder = Border(BorderStroke(4.dp, T.Orange), shape = CircleShape)
+)
+
+/** 官方卡片形状 / 配色 / 焦点描边（3dp colorScheme.border=主橙，官方默认），圆角跟随卡片 */
+@Composable
+fun cardShape(corner: Int) = CardDefaults.shape(shape = RoundedCornerShape(corner.dp))
+
+@Composable
+fun cardColors() = CardDefaults.colors(containerColor = T.Card, contentColor = T.TextTitle)
+
+@Composable
+fun cardBorder(corner: Int) = CardDefaults.border(
+    focusedBorder = Border(
+        border = BorderStroke(3.dp, MaterialTheme.colorScheme.border),
+        shape = RoundedCornerShape(corner.dp)
+    )
+)
