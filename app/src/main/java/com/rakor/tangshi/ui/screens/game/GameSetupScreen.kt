@@ -2,6 +2,7 @@ package com.rakor.tangshi.ui.screens.game
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,13 +37,20 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.tv.material3.Border
+import androidx.tv.material3.Button
+import androidx.tv.material3.Card
+import androidx.tv.material3.CardDefaults
+import androidx.tv.material3.Text as TvText
 import com.rakor.tangshi.di.AppGraph
 import com.rakor.tangshi.ui.components.CreamBackground
-import com.rakor.tangshi.ui.components.FocusCard
-import com.rakor.tangshi.ui.components.FocusScale
-import com.rakor.tangshi.ui.components.FocusablePillButton
 import com.rakor.tangshi.ui.components.KeyHintBar
-import com.rakor.tangshi.ui.components.tvFocusable
+import com.rakor.tangshi.ui.components.cardColors
+import com.rakor.tangshi.ui.components.cardRestingShadow
+import com.rakor.tangshi.ui.components.cardShape
+import com.rakor.tangshi.ui.components.focusTone
+import com.rakor.tangshi.ui.components.segmentPillBorder
+import com.rakor.tangshi.ui.components.segmentPillColors
 import com.rakor.tangshi.ui.theme.T
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -56,9 +64,9 @@ private const val HINT_DISMISS_MS = 2600L
  * 焦点模型：两张玩法大卡与右侧三枚范围胶囊都是独立焦点目标（◀▶/▲▼ 由焦点系统自然导航，
  * 与 LibraryScreen 筛选行一致）；OK 落在玩法卡上 = 以该玩法 + 当前选中范围开局。
  *
- * 选中态与聚焦分离（规格 5.5）：范围胶囊用 FocusablePillButton 的 highlight=选中（与 Task 8
- * 筛选三态同视觉）；玩法卡选中态用私有 [GameModeCard]——selected 且未聚焦 = 橙描边常显
- * （复用 FocusCard 的 focused 视觉），聚焦 = 描边 + 放大动画。实现取计划中的"自组私有卡"方案。
+ * 选中态与聚焦分离（规格 5.5）：范围胶囊用官方 [Button] + segmentPill 助手的 selected=选中
+ * （与 Task 8 筛选三态同视觉）；玩法卡选中态用私有 [GameModeCard]——selected 时 rest 即 4dp 橙
+ * 描边常显，聚焦 = 4dp 描边 + 官方缩放。实现取计划中的"自组私有卡"方案。
  *
  * 题池不足（今日所学/已学全部可能 <5 首）：setup 屏直接拦截（规格 9 提示文案），OK 弹顶部
  * 提示条并停留本屏，不导航；题面屏对 NEED_MORE 仍留兜底空态。
@@ -151,13 +159,12 @@ fun GameSetupScreen(onBack: () -> Unit, onStart: (mode: String, scope: String) -
                         GameViewModel.SCOPE_LEARNED to "已学全部",
                         GameViewModel.SCOPE_ALL to "全部 ${vm.all.size} 首"
                     ).forEach { (value, label) ->
-                        FocusablePillButton(
-                            label,
-                            highlight = scope == value,
-                            segment = true,
+                        Button(
                             onClick = { scope = value },
-                            onFocusChange = tone
-                        )
+                            colors = segmentPillColors(scope == value),
+                            border = segmentPillBorder(scope == value),
+                            modifier = Modifier.focusTone(tone)
+                        ) { TvText(label) }
                     }
                 }
             }
@@ -182,8 +189,8 @@ fun GameSetupScreen(onBack: () -> Unit, onStart: (mode: String, scope: String) -
 
 /**
  * 玩法大卡：图标 + 标题 + 副标题 + 小字说明。
- * 选中态实现：selected 时把 FocusCard 的 focused 视觉常显（橙描边），聚焦再叠 scale 动画——
- * 未聚焦的选中卡只有描边不放大，聚焦卡（无论选没选中）都描边 + 放大。
+ * 选中态实现：selected 时 rest 即 4dp 主橙描边常显；聚焦（无论选没选中）4dp 描边 + 官方缩放。
+ * 焦点视觉全部由官方 Card 的 border/scale 参数承接（规格 2026-10-11 §组件映射）。
  */
 @Composable
 private fun GameModeCard(
@@ -195,17 +202,18 @@ private fun GameModeCard(
     onFocusChange: (Boolean) -> Unit = {},
     onClick: () -> Unit
 ) {
-    var focused by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (focused) FocusScale else 1f, label = "modeCardScale")
-    FocusCard(
-        modifier
-            .onFocusChanged {
-                focused = it.isFocused
-                onFocusChange(it.isFocused)
-            }
-            .scale(scale)
-            .tvFocusable(onClick),
-        focused = focused || selected
+    val selectedBorder = Border(border = BorderStroke(4.dp, T.Orange), shape = RoundedCornerShape(20.dp))
+    Card(
+        onClick = onClick,
+        modifier = modifier
+            .cardRestingShadow(20)
+            .focusTone(onFocusChange),
+        shape = cardShape(20),
+        colors = cardColors(),
+        border = CardDefaults.border(
+            border = if (selected) selectedBorder else Border.None,
+            focusedBorder = selectedBorder
+        ),
     ) {
         Column(
             Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 20.dp),
