@@ -1,13 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- legacy 图标（API 23-25）：月夜山水完整图 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+
+    <!-- 夜空 -->
     <path
-        android:fillColor="#FFF6E8"
-        android:pathData="M0,0h108v108h-108z" />
+        android:fillColor="#1B2A4E"
+        android:pathData="M0,0 h108 v108 h-108 z" />
+
+    <!-- 月晕 -->
     <path
-        android:fillColor="#FF7A50"
-        android:pathData="M54,54m-24,0a24,24 0,1 1,48 0a24,24 0,1 1,-48 0" />
+        android:fillColor="#F7E9C6"
+        android:fillAlpha="0.10"
+        android:pathData="M64,34 m-17,0 a17,17 0,1 1,34 0 a17,17 0,1 1,-34 0" />
+    <!-- 明月 -->
+    <path
+        android:fillColor="#F7E9C6"
+        android:pathData="M64,34 m-11,0 a11,11 0,1 1,22 0 a11,11 0,1 1,-22 0" />
+
+    <!-- 疏星 -->
+    <path android:fillColor="#FFF6E0" android:fillAlpha="0.85"
+        android:pathData="M38,24 m-1.6,0 a1.6,1.6 0,1 1,3.2 0 a1.6,1.6 0,1 1,-3.2 0" />
+    <path android:fillColor="#FFF6E0" android:fillAlpha="0.7"
+        android:pathData="M48,16 m-1,0 a1,1 0,1 1,2 0 a1,1 0,1 1,-2 0" />
+    <path android:fillColor="#FFF6E0" android:fillAlpha="0.8"
+        android:pathData="M76,20 m-1.3,0 a1.3,1.3 0,1 1,2.6 0 a1.3,1.3 0,1 1,-2.6 0" />
+    <path android:fillColor="#FFF6E0" android:fillAlpha="0.7"
+        android:pathData="M80,34 m-1,0 a1,1 0,1 1,2 0 a1,1 0,1 1,-2 0" />
+    <path android:fillColor="#FFF6E0" android:fillAlpha="0.75"
+        android:pathData="M28,38 m-1.1,0 a1.1,1.1 0,1 1,2.2 0 a1.1,1.1 0,1 1,-2.2 0" />
+
+    <!-- 流云 -->
+    <path
+        android:fillColor="#EAF0FF"
+        android:fillAlpha="0.10"
+        android:pathData="M24,44 h30 a2.5,2.5 0,0 1,0 5 h-30 a2.5,2.5 0,0 1,0 -5 z" />
+    <path
+        android:fillColor="#EAF0FF"
+        android:fillAlpha="0.08"
+        android:pathData="M62,52 h22 a2.5,2.5 0,0 1,0 5 h-22 a2.5,2.5 0,0 1,0 -5 z" />
+
+    <!-- 远山 -->
+    <path
+        android:fillColor="#294467"
+        android:pathData="M-2,72 Q16,52 32,68 Q50,54 66,66 Q84,52 100,64 Q106,66 110,70 L110,112 L-2,112 Z" />
+    <!-- 近山 -->
+    <path
+        android:fillColor="#16233D"
+        android:pathData="M-2,84 Q20,66 38,80 Q56,68 74,80 Q92,72 110,84 L110,112 L-2,112 Z" />
+
+    <!-- 翻开的诗书 -->
+    <path
+        android:fillColor="#FAF3E3"
+        android:pathData="M54,73 C46,68 36,67 28,69 L28,83 C36,81 46,82 54,86 Z" />
+    <path
+        android:fillColor="#EFE4CE"
+        android:pathData="M54,73 C62,68 72,67 80,69 L80,83 C72,81 62,82 54,86 Z" />
+    <path
+        android:fillColor="#D9C9A8"
+        android:pathData="M53.4,73 h1.2 v13 h-1.2 z" />
+    <path android:strokeColor="#B9A98A" android:strokeWidth="1" android:strokeAlpha="0.6"
+        android:pathData="M34,74 L47,76.5 M33,78 L46,80.5" />
+    <path android:strokeColor="#B9A98A" android:strokeWidth="1" android:strokeAlpha="0.6"
+        android:pathData="M74,74 L61,76.5 M75,78 L62,80.5" />
 </vector>

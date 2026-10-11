@@ -3,5 +3,6 @@ build/
 .gradle/
 .kotlin/
 local.properties
+keystore.properties
 .idea/
 *.iml

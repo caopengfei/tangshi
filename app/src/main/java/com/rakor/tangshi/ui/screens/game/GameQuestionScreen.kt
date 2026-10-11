@@ -210,7 +210,7 @@ fun GameQuestionScreen(
             // 底部按键提示（按题型区分）
             when (state.phase) {
                 GamePhase.PLAYING, GamePhase.DONE -> KeyHintBar(
-                    if (state.mode == GameViewModel.MODE_FILL) "◀ ▶ 选择　OK 确认" else "OK 播放　◀ ▶ 选诗"
+                    if (state.mode == GameViewModel.MODE_FILL) "← → 选择　OK 确认" else "OK 播放　← → 选诗"
                 )
                 GamePhase.NEED_MORE -> KeyHintBar("OK 返回")
                 GamePhase.IDLE -> {}

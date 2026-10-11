@@ -16,14 +16,21 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -71,25 +78,28 @@ import kotlinx.coroutines.launch
  * ProgressRepository），状态全部 hoist 在组合内，不设独立 ViewModel。
  *
  * 焦点模型：诗行区是一个焦点目标（初始焦点落这里），◀▶/OK 按键仅在其聚焦时被
- * onPreviewKeyEvent 接管并消费（B/返回等其余按键交还系统）；三个操作按钮与右侧背景卡
+ * onPreviewKeyEvent 接管并消费（B/返回等其余按键交还系统）；操作按钮与右侧背景卡
  * 是独立焦点目标，聚焦时 OK 触发按钮自身 onClick，互不拦截（兄弟节点，不在同一条
- * 预览链上）；背景卡聚焦时 ▲▼ 滚动长文。
+ * 预览链上）；背景卡聚焦时 ▲▼ 滚动长文。诗行卡聚焦时 ▲▼ 同样优先滚动诗文（长诗浏览），
+ * 滚到顶/底后交还焦点系统移焦点；◀▶ 选句与连读推进时视口自动跟随到目标行。
  *
- * 播放语义（两键模型，替代原"朗读整首/逐句跟读"）：
- * - 朗读：只朗读箭头所指句，播完即停、不切下一句（播完回空闲，箭头回到目标位置）；
- *   连读生效时禁用（灰显、跳过焦点）。
- * - 连读：整首循环开关——从第 1 句顺序播到末句后回卷句首，往复直到再按一次"连读"停止；
- *   生效时按钮 highlight 常驻强调，◀▶ 为循环内跳句。
- * - OK（诗行区聚焦）：空闲 → 朗读箭头句；播放/暂停中 → 播放/暂停。
+ * 播放语义（开关 + OK 两键模型，替代原"朗读整首/逐句跟读"）：
+ * - 连读：循环模式开关（切换按钮，选中常驻 highlight）——只切模式不立即播放；
+ *   选中时按 OK 播放不停句，一句接一句自动推进，读到末句回卷句首往复循环；
+ * - OK（诗行区聚焦）：空闲 → 连读开=整首循环播放（第 1 句起），连读关=朗读箭头所指句
+ *   （播完即停）；播放中 → 停止（回空闲，清高亮）；
+ * - 原"朗读"按钮已移除，单句朗读由 OK 承担。
  * 箭头（selected）：空闲=朗读目标；连读中自动跟随播放位置；单句播放中可移开指定下一句目标。
  * 切诗：顶栏"第 N 首"两侧 ◀▶ 芯片（首/末尾对应侧禁用）或遥控频道键 CH-/CH+；切换即重建
  * 播放器与进度观察，光标/滚动复位，焦点落回诗行区。
  * 原家长设置"跟读模式（逐句暂停/连续播放）"随本模型移除。
- * 两种模式下暂停都不清除高亮。播放倍率取家长设置（默认 1.0，作用在音频 0.85 生成基准之上）。
+ * 播放倍率取家长设置（默认 1.0，作用在音频 0.85 生成基准之上）。
  */
-/** 指示槽宽度：容纳"◀ 正在读"徽章（12sp 约占 52dp），起始光标圆点同挂此槽 */
+/** 指示槽宽度：容纳"正在读"喇叭图标与起始光标箭头，两者同挂此槽、贴槽右紧邻诗句 */
 private val INDICATOR_SLOT = 60.dp
 
+// bringIntoView（选句视口跟随）在 foundation 1.7 仍标 @ExperimentalFoundationApi，行为已稳定
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DetailScreen(poemId: String, onBack: () -> Unit) {
     val g = AppGraph.instance
@@ -113,6 +123,11 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
     val lineCount = poem.lines.size
     val scope = rememberCoroutineScope()
 
+    // 诗行区滚动：切诗复位。诗行卡聚焦时 ▲▼ 滚动长诗（滚到头/顶 ▲▼ 交还焦点系统移焦点，
+    // 与右背景卡同款交互）；选句（◀▶）与连读推进时视口自动跟随到目标行
+    val poemScroll = remember(currentPoemId) { ScrollState(0) }
+    val poemScrollStep = with(LocalDensity.current) { 120.dp.toPx() }
+
     // B 键返回 = 系统返回键，显式接 onBack 保持路由契约
     BackHandler(onBack = onBack)
 
@@ -124,6 +139,8 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
     val shape by player.shape.collectAsState()
 
     var selected by remember(currentPoemId) { mutableStateOf(0) }   // 0-based 箭头句：空闲=朗读目标；连读=跟随播放位置
+    // 连读开关：屏内生命周期（切诗不复位，进屏默认关）。只切模式不触发播放，OK 播放时按它决定循环/单句
+    var loopEnabled by remember { mutableStateOf(false) }
     var showMasteredDialog by remember { mutableStateOf(false) }
     var showAudioError by remember { mutableStateOf(false) }
     var poemAreaFocused by remember { mutableStateOf(false) }   // 诗行卡聚焦视觉（橙描边）
@@ -172,7 +189,7 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
 
     // 朗读：只读箭头所指句（selected），播完即停，不切下一句
     fun readSelectedLine() {
-        player.playLineOnce(currentPoemId, selected + 1, speed = g.speedMultiplier)
+        player.playLineOnce(currentPoemId, selected + 1)
     }
 
     // ◀▶：移动箭头句（coerce 到范围）；连读中 = 循环内跳句继续，空闲/单句时仅移动朗读目标
@@ -183,26 +200,32 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
         if (shape == PoemPlayer.Shape.LOOP) player.seekToLine(selected + 1)
     }
 
-    // OK（诗行区聚焦时）：空闲 → 朗读箭头句；播放/暂停中 → 播放/暂停
+    // OK（诗行区聚焦时）：空闲 → 连读开=整首循环（第 1 句起），连读关=朗读箭头句；播放中 → 停止
     fun okOnPoemArea() {
-        if (shape == PoemPlayer.Shape.IDLE) readSelectedLine()
-        else player.togglePause()
+        if (shape != PoemPlayer.Shape.IDLE) {
+            player.stopPlayback()
+        } else if (loopEnabled) {
+            selected = 0
+            player.playContinuousLoop(currentPoemId, lineCount)
+        } else {
+            readSelectedLine()
+        }
     }
 
-    // 高亮句（0-based）：播放/暂停中显示所在句（连读随播放推进；暂停不清除），空闲清除
+    // 高亮句（0-based）：播放中显示所在句（连读随播放推进），空闲（OK 停止）清除
     val highlightIdx = if (shape != PoemPlayer.Shape.IDLE && currentLine > 0) currentLine - 1 else -1
 
     // 连读模式的开始位置光标：selected 尚未开始播放（currentLine==0）或已移到别句时，
     // 在选中句上以小圆点标出"朗读将从这句开始"（调用处保证与正在读高亮互斥）；
     // 跟读模式高亮即选中句，无需光标
-    // 箭头：空闲时恒显示（朗读目标）；播放/暂停中与播放位置不重合（用户移开）时显示
+    // 箭头：空闲时恒显示（朗读目标）；播放中与播放位置不重合（用户移开）时显示
     val showCursor = shape == PoemPlayer.Shape.IDLE || selected != currentLine - 1
 
     val playStatus = when {
         shape == PoemPlayer.Shape.IDLE -> ""
         isPlaying -> (if (shape == PoemPlayer.Shape.LOOP) "连读中" else "朗读中") +
             " · 第 ${currentLine.coerceAtLeast(1)} 句"
-        else -> "已暂停"
+        else -> "加载中…"
     }
 
     CreamBackground {
@@ -231,8 +254,10 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.End)
                 ) {
                     // 切诗芯片：到首/末尾时对应侧禁用；频道键 CH-/CH+ 为等价捷径
+                    // 图标而非 ◀▶ 文字——老盒子（小米盒子4/Android 6）系统字体缺几何符号字形
                     FocusablePillButton(
-                        "◀",
+                        "",
+                        icon = Icons.Filled.ChevronLeft,
                         enabled = prevPoem != null,
                         onClick = { prevPoem?.let { currentPoemId = it.id } },
                         onFocusChange = tone
@@ -242,7 +267,8 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                         color = T.TextSubtle, fontSize = 11.sp, maxLines = 1
                     )
                     FocusablePillButton(
-                        "▶",
+                        "",
+                        icon = Icons.Filled.ChevronRight,
                         enabled = nextPoem != null,
                         onClick = { nextPoem?.let { currentPoemId = it.id } },
                         onFocusChange = tone
@@ -271,10 +297,21 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                                 when (e.key) {
                                     Key.DirectionLeft -> { moveSelection(-1); true }
                                     Key.DirectionRight -> { moveSelection(1); true }
+                                    // ▲▼ 优先滚动诗文（长诗浏览）；滚到顶/底后交还焦点系统移焦点
+                                    Key.DirectionUp ->
+                                        if (poemScroll.canScrollBackward) {
+                                            scope.launch { poemScroll.scrollBy(-poemScrollStep) }
+                                            true
+                                        } else false
+                                    Key.DirectionDown ->
+                                        if (poemScroll.canScrollForward) {
+                                            scope.launch { poemScroll.scrollBy(poemScrollStep) }
+                                            true
+                                        } else false
                                     Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> { okOnPoemArea(); true }
                                     Key.ChannelUp -> { nextPoem?.let { currentPoemId = it.id }; true }    // CH+ 下一首
                                     Key.ChannelDown -> { prevPoem?.let { currentPoemId = it.id }; true }  // CH- 上一首
-                                    else -> false   // 其余按键（含 B/返回、▲▼焦点）交还系统
+                                    else -> false   // 其余按键（含 B/返回）交还系统
                                 }
                             }
                             .focusable(),
@@ -286,11 +323,24 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                             Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Column(Modifier.offset(x = -INDICATOR_SLOT / 2)) {
+                            Column(
+                                Modifier
+                                    .offset(x = -INDICATOR_SLOT / 2)
+                                    .verticalScroll(poemScroll)
+                            ) {
                                 poem.lines.forEachIndexed { i, line ->
-                                Row(verticalAlignment = Alignment.Bottom) {
-                                    // 指示槽：常驻固定宽度。"正在读"徽章贴槽左，起始光标圆点贴槽右
-                                    // （紧邻诗句），诗字起点恒定，不随标记出现或逐句移动而横跳
+                                // 选句（◀▶）/连读推进 → 视口跟随到目标行（最小滚动使其可见；
+                                // 手动 ▲▼ 浏览不改 selected，不受影响）
+                                val bring = remember { BringIntoViewRequester() }
+                                LaunchedEffect(selected) {
+                                    if (i == selected) bring.bringIntoView()
+                                }
+                                Row(
+                                    Modifier.bringIntoViewRequester(bring),
+                                    verticalAlignment = Alignment.Bottom
+                                ) {
+                                    // 指示槽：常驻固定宽度。"正在读"喇叭图标与起始光标箭头均贴槽右
+                                    // （紧邻诗句，不会伸出卡片），诗字起点恒定，不随标记出现或逐句移动而横跳
                                     Box(Modifier.width(INDICATOR_SLOT)) {
                                         if (showCursor && i == selected) {
                                             Icon(
@@ -303,10 +353,16 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                                             )
                                         }
                                         if (i == highlightIdx) {
-                                            Text(
-                                                "▶ 正在读",
-                                                Modifier.align(Alignment.BottomStart),
-                                                color = T.Orange, fontSize = 12.sp, maxLines = 1
+                                            // "正在读"标记用单个矢量图标（喇叭）：文字版贴槽左会随
+                                            // 诗块 offset 伸出卡片左边界；贴槽右紧邻诗字恒在卡内，
+                                            // 与选句箭头逻辑互斥（同行不会同时出现）
+                                            Icon(
+                                                Icons.Filled.VolumeUp, null,
+                                                Modifier
+                                                    .align(Alignment.BottomEnd)
+                                                    .padding(end = 2.dp, bottom = 6.dp)
+                                                    .size(16.dp),
+                                                tint = T.Orange
                                             )
                                         }
                                     }
@@ -319,25 +375,13 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
 
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            // 朗读：只读箭头句；连读生效时禁用（灰显、不可聚焦）
+                            // 连读：循环模式开关（切换按钮）——选中时 OK 播放整首循环（末句回卷往复，
+                            // 再按 OK 停止）；未选中时 OK 朗读箭头单句。只切模式，不立即播放/停止
                             FocusablePillButton(
-                                "朗读", Icons.Filled.PlayArrow, highlight = true,
-                                enabled = shape != PoemPlayer.Shape.LOOP,
-                                onClick = { readSelectedLine() },
-                                onFocusChange = tone
-                            )
-                            // 连读：整首循环开关——按一次开始（从第 1 句循环到末句回卷），再按一次停止
-                            FocusablePillButton(
-                                "连读", Icons.Filled.Replay,
-                                highlight = shape == PoemPlayer.Shape.LOOP,
-                                onClick = {
-                                    if (shape == PoemPlayer.Shape.LOOP) {
-                                        player.stopPlayback()
-                                    } else {
-                                        selected = 0
-                                        player.playContinuousLoop(currentPoemId, lineCount, speed = g.speedMultiplier)
-                                    }
-                                },
+                                "连读",
+                                icon = if (loopEnabled) Icons.Filled.Check else Icons.Filled.Replay,
+                                highlight = loopEnabled,
+                                onClick = { loopEnabled = !loopEnabled },
                                 onFocusChange = tone
                             )
                             FocusablePillButton(
@@ -394,15 +438,15 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                             .verticalScroll(bgScroll),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text("📖 这首诗的意思", color = T.Orange, fontSize = 15.sp, letterSpacing = 2.sp)
+                        Text("📖 释义", color = T.Orange, fontSize = 15.sp, letterSpacing = 2.sp)
                         Text(poem.meaning, color = T.TextBody, fontSize = 16.sp, lineHeight = 28.sp)
-                        Text("🌙 诗人为什么写这首诗？", color = T.Orange, fontSize = 15.sp, letterSpacing = 2.sp)
+                        Text("🌙 背景", color = T.Orange, fontSize = 15.sp, letterSpacing = 2.sp)
                         Text(poem.background, color = T.TextBody, fontSize = 16.sp, lineHeight = 28.sp)
                     }
                 }
             }
 
-            KeyHintBar("◀ ▶ 逐句移动　OK 播放/暂停　B 返回", "顶栏 ◀▶ 或 CH± 切换上一首/下一首 · 已学进度 $progress%")
+            KeyHintBar("← → 逐句移动　OK 播放/停止　B 返回", "顶栏 ← → 或 CH± 切换上一首/下一首 · 已学进度 $progress%")
         }
 
         // 播放失败提示条（覆盖在顶部，不挤压布局；常驻至离屏）
@@ -428,9 +472,11 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
             withFrameNanos { }
             safeFocus.requestFocus()
         }
+        // 配色同清除学习进度对话框：交给 TangshiColorScheme，调用点只定圆角
         AlertDialog(
             onDismissRequest = { showMasteredDialog = false },
             title = { Text("我会背了", color = T.TextTitle) },
+            shape = RoundedCornerShape(18.dp),
             text = { Text("确定已经会背这首诗了吗？", color = T.TextBody) },
             confirmButton = {
                 TextButton(onClick = {

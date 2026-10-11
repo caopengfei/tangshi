@@ -112,7 +112,7 @@ fun GameResultScreen(correct: Int, streak: Int, onAgain: () -> Unit, onHome: () 
                 )
             }
 
-            KeyHintBar("◀ ▶ 选择　OK 确认")
+            KeyHintBar("← → 选择　OK 确认")
         }
     }
 }

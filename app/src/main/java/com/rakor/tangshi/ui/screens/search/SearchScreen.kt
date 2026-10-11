@@ -261,7 +261,7 @@ fun SearchScreen(onPoem: (String) -> Unit) {
                     }
                     if (results.isNotEmpty()) {
                         Spacer(Modifier.height(6.dp))
-                        Text("共找到 ${results.size} 首 · ▲▼ 浏览　OK 进入学习", fontSize = 12.sp, color = T.TextSubtle)
+                        Text("共找到 ${results.size} 首 · ↑↓ 浏览　OK 进入学习", fontSize = 12.sp, color = T.TextSubtle)
                     }
                 }
 
@@ -315,7 +315,7 @@ fun SearchScreen(onPoem: (String) -> Unit) {
             }
 
             Spacer(Modifier.height(10.dp))
-            KeyHintBar("◀ ▲▼▶ 选择　OK 确认　B 返回")   // 计数只留结果列底部一处
+            KeyHintBar("← ↑↓ → 选择　OK 确认　B 返回")   // 计数只留结果列底部一处
         }
 
         // 诗人浮层：半透明遮罩 + 居中白卡；首项"全部诗人"。
@@ -341,7 +341,7 @@ fun SearchScreen(onPoem: (String) -> Unit) {
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text("选择诗人", fontSize = 18.sp, color = T.TextTitle, fontWeight = FontWeight.SemiBold)
-                            Text("▲▼◀▶ 移动　OK 选中　B 关闭", fontSize = 12.sp, color = T.TextSubtle)
+                            Text("↑↓ ←→ 移动　OK 选中　B 关闭", fontSize = 12.sp, color = T.TextSubtle)
                         }
                         // 选项列可滚动：聚焦视口外选项时 bring-into-view 自动滚入
                         Column(

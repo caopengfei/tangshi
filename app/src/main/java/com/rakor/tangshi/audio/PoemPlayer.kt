@@ -2,7 +2,6 @@ package com.rakor.tangshi.audio
 
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
-import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -67,11 +66,10 @@ class PoemPlayer(private val exo: ExoPlayer) {
     }
 
     /** 朗读：只装载 line 一句（1-based），播完即停（END 复位 IDLE），不切下一句 */
-    fun playLineOnce(poemId: String, line: Int, speed: Float = 1f) {
+    fun playLineOnce(poemId: String, line: Int) {
         loopLine = 0
         setShape(Shape.SINGLE)
         exo.setMediaItems(listOf(lineItem(poemId, line)))
-        exo.playbackParameters = PlaybackParameters(speed)
         exo.repeatMode = Player.REPEAT_MODE_OFF
         currentLine.value = line
         exo.prepare()
@@ -79,11 +77,10 @@ class PoemPlayer(private val exo: ExoPlayer) {
     }
 
     /** 连读：整首从第 1 句顺序播到末句后回卷句首，循环往复；停止用 [stopPlayback] */
-    fun playContinuousLoop(poemId: String, lineCount: Int, speed: Float = 1f) {
+    fun playContinuousLoop(poemId: String, lineCount: Int) {
         loopLine = 0
         setShape(Shape.LOOP)
         exo.setMediaItems((1..lineCount).map { lineItem(poemId, it) }, 0, 0)
-        exo.playbackParameters = PlaybackParameters(speed)
         exo.repeatMode = Player.REPEAT_MODE_ALL
         currentLine.value = 1
         exo.prepare()
@@ -98,11 +95,10 @@ class PoemPlayer(private val exo: ExoPlayer) {
     }
 
     /** 单句循环：只装载 line 一句并单曲循环（游戏听音题面复用；归入 SINGLE 形态） */
-    fun playLineLoop(poemId: String, line: Int, speed: Float = 1f) {
+    fun playLineLoop(poemId: String, line: Int) {
         loopLine = line
         setShape(Shape.SINGLE)
         exo.setMediaItems(listOf(lineItem(poemId, line)))
-        exo.playbackParameters = PlaybackParameters(speed)
         exo.repeatMode = Player.REPEAT_MODE_ONE
         currentLine.value = line
         exo.prepare()
@@ -117,8 +113,6 @@ class PoemPlayer(private val exo: ExoPlayer) {
         currentLine.value = 0
         setShape(Shape.IDLE)
     }
-
-    fun togglePause() { if (exo.isPlaying) exo.pause() else exo.play() }
 
     fun pause() { exo.pause() }
 

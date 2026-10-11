@@ -9,5 +9,7 @@ class TangshiApp : Application() {
         AppGraph.instance = AppGraph(this)
         // 常驻收集家长设置到 AppGraph 内存缓存（keyTone beep/播放器启动等主线程同步读）
         AppGraph.instance.startCollecting()
+        // IO 线程预热诗库 JSON 解析，首屏到来时主线程不再做重活
+        AppGraph.instance.warmUp()
     }
 }

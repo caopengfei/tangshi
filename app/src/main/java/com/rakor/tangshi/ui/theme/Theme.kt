@@ -24,12 +24,69 @@ object T {
     val ProgressBarBg = Color(0xFFF7ECDD)
 }
 
-private val scheme = darkColorScheme(  // TV 深色环境；实际颜色全走 T 对象
-    primary = T.Orange, background = T.BgMid, surface = T.Card, onPrimary = Color.White
+/**
+ * 应用 Material3 配色：**全槽位显式映射到 T 色板**，不给 M3 默认值留漏口。
+ *
+ * 为什么必须全量：M3 组件（AlertDialog / TextButton …）的底色与默认文字色不是自绘的，
+ * 而是读 `colorScheme` 的槽位——AlertDialog 容器读 `surfaceContainerHigh`、标题读 `onSurface`、
+ * 正文读 `onSurfaceVariant`、按钮文字读 `primary`。早先只覆盖 primary/background/surface/onPrimary
+ * 四个槽，其余落到 `darkColorScheme` 默认值（surfaceContainerHigh = M3 深灰 #2B2930），
+ * 于是设置页「清除学习进度」、详情页「我会背了」两个对话框弹出深灰底，与米色暖阳风格不符。
+ *
+ * 两条硬约束（改前先看，见 ThemeColorSchemeTest 回归测试）：
+ *  1. `surface` 留米色（BgMid）而 **不要** 赋成 Card：`applyTonalElevation` 仅在容器色 == `surface`
+ *     时才按 surfaceTint 调色，且 AlertDialog 自带 6dp 色调海拔。若两者相等，白底会被掺成橙灰。
+ *  2. `scrim` 必须显式给：默认是纯黑，与浮层自绘的 45% T.Scrim 观感不一致。
+ */
+internal val TangshiColorScheme = darkColorScheme(
+    // 品牌主色（M3 主按钮/选中文字）
+    primary = T.Orange,
+    onPrimary = Color.White,
+    primaryContainer = T.BadgeBg,
+    onPrimaryContainer = T.TextTitle,
+    inversePrimary = T.OrangeLight,
+    // 次级色（AlertDialog 图标默认色走 secondary）
+    secondary = T.OrangeSoft,
+    onSecondary = Color.White,
+    secondaryContainer = T.ChipBg,
+    onSecondaryContainer = T.TextBody,
+    // 第三色（当前无组件使用，补全防漏）
+    tertiary = T.Amber,
+    onTertiary = Color.White,
+    tertiaryContainer = T.BadgeBg,
+    onTertiaryContainer = T.TextTitle,
+    // 全局背景
+    background = T.BgMid,
+    onBackground = T.TextBody,
+    // 普通表面：注意与 surfaceContainerHigh 保持不同色（见上方约束 1）
+    surface = T.BgMid,
+    onSurface = T.TextTitle,          // AlertDialog 标题默认色
+    surfaceVariant = T.Idle,
+    onSurfaceVariant = T.TextBody,    // AlertDialog 正文默认色
+    surfaceTint = T.Orange,
+    inverseSurface = T.TextTitle,
+    inverseOnSurface = T.Card,
+    // 错误态（T.Wrong 已有，补全防漏）
+    error = T.Wrong,
+    onError = Color.White,
+    errorContainer = T.BadgeBg,
+    onErrorContainer = T.TextTitle,
+    // 描边与遮罩
+    outline = T.TextSubtle,
+    outlineVariant = T.Idle,
+    scrim = T.Scrim,
+    // 表面容器层：AlertDialog / M3 Surface 的默认底色全部指到白卡或米色系
+    surfaceBright = T.Card,
+    surfaceDim = T.BgBottom,
+    surfaceContainer = T.Card,
+    surfaceContainerHigh = T.Card,    // AlertDialog 容器底色（修复深灰问题的落点）
+    surfaceContainerHighest = T.ChipBg,
+    surfaceContainerLow = T.Card,
+    surfaceContainerLowest = T.Card,
 )
 
 @Composable
 fun TangshiTheme(content: @Composable () -> Unit) =
-    MaterialTheme(colorScheme = scheme, typography = Typography(
+    MaterialTheme(colorScheme = TangshiColorScheme, typography = Typography(
         titleLarge = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 22.sp, letterSpacing = 4.sp, color = T.TextTitle)
     ), content = content)

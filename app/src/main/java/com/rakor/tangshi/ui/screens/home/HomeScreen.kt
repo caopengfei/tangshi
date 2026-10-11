@@ -18,7 +18,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.MenuBook
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SportsEsports
@@ -37,7 +36,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -62,35 +60,46 @@ import com.rakor.tangshi.ui.components.FocusablePillButton
 import com.rakor.tangshi.ui.components.KeyHintBar
 import com.rakor.tangshi.ui.theme.KaiTi
 import com.rakor.tangshi.ui.theme.T
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 /**
  * 首页数据：
  * - stats：统计卡（已学/连续/已会背）
  * - current：当前学习诗（选择规则见 [selectCurrent]；诗库为空时为 null，不崩）
- * - started：当前诗是否已有进度行（决定 CTA 文案 开始/继续诵读）
  * - progress：当前诗的诵读进度%（主卡进度条，未学习为 0）
  * - total：内置诗库总数（统计卡）
  */
 class HomeViewModel(private val poems: PoemRepository, progress: ProgressRepository) : ViewModel() {
-    val total: Int = poems.loadAll().size
+    /**
+     * 诗库异步加载（1.4MB/325 首 JSON）：解析落在 IO 线程（Application 已 warmUp 预热，
+     * 通常立即命中缓存），首帧以空表起播——主线程构造路径不再做重活，弱设备白屏明显缩短。
+     */
+    private val poemsList: StateFlow<List<Poem>> = flow { emit(poems.loadAll()) }
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    /** 诗库加载完成标志：区分"解析中（首页占位）"与"真的空诗库（提示文案）" */
+    val poemsReady: StateFlow<Boolean> = flow { poems.loadAll(); emit(true) }
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val total: StateFlow<Int> = poemsList.map { it.size }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     val stats: StateFlow<HomeStats> = progress.observeStats()
         .stateIn(viewModelScope, SharingStarted.Eagerly, HomeStats(0, 0, 0, emptySet()))
 
     val current: StateFlow<Poem?> =
-        combine(progress.observeAllSummaries(), flowOf(poems.loadAll())) { s, all ->
+        combine(progress.observeAllSummaries(), poemsList) { s, all ->
             selectCurrent(s, all)
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, poems.loadAll().firstOrNull())
-
-    val started: StateFlow<Boolean> =
-        combine(progress.observeAllSummaries(), current) { s, poem ->
-            poem != null && isStarted(s, poem)
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val progress: StateFlow<Int> =
         combine(progress.observeAllSummaries(), current) { s, poem ->
@@ -108,10 +117,6 @@ class HomeViewModel(private val poems: PoemRepository, progress: ProgressReposit
                 ?.let { p -> poems.firstOrNull { it.id == p.poemId } }
                 ?: poems.firstOrNull { p -> summaries.none { it.poemId == p.id } }
                 ?: poems.firstOrNull()
-
-        /** 有进度行即已开始（LEARNING 或 MASTERED），决定 CTA 文案 开始/继续 */
-        fun isStarted(summaries: List<ProgressSummary>, poem: Poem): Boolean =
-            summaries.any { it.poemId == poem.id }
     }
 }
 
@@ -139,7 +144,8 @@ fun HomeScreen(
     val g = AppGraph.instance
     val stats by vm.stats.collectAsState()
     val poem by vm.current.collectAsState()
-    val started by vm.started.collectAsState()
+    val total by vm.total.collectAsState()
+    val poemsReady by vm.poemsReady.collectAsState()
     val progress by vm.progress.collectAsState()
 
     val focusRequester = remember { FocusRequester() }
@@ -173,7 +179,7 @@ fun HomeScreen(
                 Text("小朋友，今天继续加油哦 🌞", color = T.TextSubtle, fontSize = 15.sp)
             }
 
-            // 主区：左主卡（整卡一个焦点落点，OK 直接开始诵读）+ 右统计列
+            // 主区：左主卡（整卡一个焦点落点，OK 进入详情开始诵读）+ 右统计列
             Row(
                 Modifier.weight(1f).fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -190,8 +196,9 @@ fun HomeScreen(
                 ) {
                     val p = poem
                     if (p == null) {
+                        // 诗库异步解析中先留白（不闪"诗库为空"），加载完成仍无诗才提示
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("诗库为空", color = T.TextMuted)
+                            if (poemsReady) Text("诗库为空", color = T.TextMuted)
                         }
                     } else {
                         Column(
@@ -220,7 +227,7 @@ fun HomeScreen(
                                 )
                             }
                             Spacer(Modifier.height(10.dp))
-                            // 主卡是入口预览：长诗只展示前几句，进度条/CTA 靠 weight 钉在卡底
+                            // 主卡是入口预览：长诗只展示前几句，进度条靠 weight 钉在卡底
                             Column(
                                 Modifier.weight(1f),
                                 verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -258,27 +265,6 @@ fun HomeScreen(
                                 )
                             }
                             Spacer(Modifier.height(14.dp))
-                            // CTA 视觉（非独立焦点：整卡即焦点，OK=开始诵读）
-                            Row(
-                                Modifier
-                                    .background(
-                                        Brush.horizontalGradient(listOf(T.OrangeLight, T.Orange)),
-                                        RoundedCornerShape(20.dp)
-                                    )
-                                    .padding(horizontal = 30.dp, vertical = 11.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    Icons.Filled.PlayArrow, null,
-                                    Modifier.size(26.dp), tint = Color.White
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                Text(
-                                    if (started) "继 续 诵 读" else "开 始 诵 读",
-                                    color = Color.White, fontSize = 18.sp, letterSpacing = 2.sp,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            }
                         }
                     }
                 }
@@ -288,17 +274,16 @@ fun HomeScreen(
                     Modifier.weight(1f).fillMaxHeight(),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    StatCard(Icons.Filled.MenuBook, "已学唐诗", "${stats.learned} / ${vm.total}", Modifier.weight(1f))
+                    StatCard(Icons.Filled.MenuBook, "已学唐诗", "${stats.learned} / $total", Modifier.weight(1f))
                     StatCard(Icons.Filled.LocalFireDepartment, "连续学习", "${stats.streakDays} 天", Modifier.weight(1f))
                     StatCard(Icons.Filled.ThumbUp, "已会背诵", "${stats.mastered} 首", Modifier.weight(1f))
                 }
             }
 
-            // 底部入口（规格：搜索橙描边突出）
+            // 底部入口：四个平级入口，统一普通描边档（不做常驻强调）
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 FocusablePillButton(
                     "搜索", Icons.Filled.Search,
-                    highlight = true,
                     onClick = onSearch, onFocusChange = tone
                 )
                 FocusablePillButton("全部唐诗", onClick = onLibrary, onFocusChange = tone)
@@ -306,7 +291,7 @@ fun HomeScreen(
                 FocusablePillButton("家长设置", Icons.Filled.Settings, onClick = onSettings, onFocusChange = tone)
             }
 
-            KeyHintBar("◀ ▲▼ 选择　OK 确认")
+            KeyHintBar("← ↑↓ 选择　OK 确认")
         }
     }
 }

@@ -162,7 +162,7 @@ fun GameSetupScreen(onBack: () -> Unit, onStart: (mode: String, scope: String) -
                 }
             }
 
-            KeyHintBar("◀ ▲▼ 选择玩法和范围　OK 开始")
+            KeyHintBar("← ↑↓ 选择玩法和范围　OK 开始")
         }
 
         // 题池不足提示条（覆盖顶部，不挤压布局）

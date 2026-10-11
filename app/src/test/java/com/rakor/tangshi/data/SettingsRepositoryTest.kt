@@ -4,7 +4,6 @@ import androidx.test.core.app.ApplicationProvider
 import com.rakor.tangshi.data.repo.SettingsRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -21,17 +20,15 @@ class SettingsRepositoryTest {
     @Test fun `默认值`() = runTest {
         val repo = SettingsRepository(ApplicationProvider.getApplicationContext())
         val s = repo.settings.first()
-        assertEquals(1.0f, s.speed, 1e-6f)
         assertTrue(s.keyTone)
     }
 
     @Test fun `写入后读取`() = runTest {
         val repo = SettingsRepository(ApplicationProvider.getApplicationContext())
-        repo.setSpeed(0.9f); repo.setKeyTone(false)
+        repo.setKeyTone(false)
         val s = repo.settings.first()
-        assertEquals(0.9f, s.speed, 1e-6f)
         assertFalse(s.keyTone)
         // 恢复默认：跨用例共享同一 DataStore 文件，避免污染"默认值"用例
-        repo.setSpeed(1.0f); repo.setKeyTone(true)
+        repo.setKeyTone(true)
     }
 }

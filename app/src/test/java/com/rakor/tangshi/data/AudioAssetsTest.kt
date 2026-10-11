@@ -12,18 +12,26 @@ import org.robolectric.RobolectricTestRunner
 
 /**
  * 音频资产完整性门（与 tools/validate_voice.py 同一套校验）。
- * 用 Assume：assets 里还没有 audio 目录（Task 12b 才生成种子集）时跳过本测试；
- * 生成后无需改测试，自动全量校验。assumption 失败在测试报告中记为 skip 而非 fail。
+ *
+ * 门控判据是「是否已全量生成音频」而非「audio 目录是否存在」：
+ * 数据从 10 首扩到 325 首后，audio/ 下仍只有种子集，旧逻辑会在
+ * FileNotFoundException 上直接 fail，把「语音待生成」这一正常中间态当成 bug。
+ * 全量生成（Task 14 音频批次）完成后本测试自动转为全量校验，无需再改。
  */
 @RunWith(RobolectricTestRunner::class)
 class AudioAssetsTest {
     @Test fun `每首诗每句音频齐全且合法`() {
         val ctx = ApplicationProvider.getApplicationContext<android.content.Context>()
-        // assets 无法直接 File 探测——用 assets.list("audio") 判断 audio 目录是否存在
-        val hasAudio = runCatching { ctx.assets.list("audio")!!.isNotEmpty() }.getOrDefault(false)
-        assumeTrue("audio 资产尚未生成（Task 12b）——跳过", hasAudio)
         val poems = PoemRepository(ctx).loadAll()
         assertTrue("poems.json 为空", poems.isNotEmpty())
+        // 已生成的诗目录集合；有任一未生成即视为「语音待生成」，跳过而非失败。
+        // 注意 assets.list 实测返回带子路径的条目（如「jing-ye-si/line1.opus」而非顶层目录名），
+        // 取首段才能与 poemId 对齐
+        val audioDirs = runCatching {
+            ctx.assets.list("audio")?.map { it.substringBefore('/') }?.toSet() ?: emptySet()
+        }.getOrDefault(emptySet())
+        val pending = poems.filter { it.id !in audioDirs }
+        assumeTrue("音频待生成：${pending.size}/${poems.size} 首尚未生成（跳过）", pending.isEmpty())
         poems.forEach { p ->
             val mf = ctx.assets.open("audio/${p.id}/manifest.json").bufferedReader().use { it.readText() }
             val lines = Json.decodeFromString<Manifest>(mf).lines

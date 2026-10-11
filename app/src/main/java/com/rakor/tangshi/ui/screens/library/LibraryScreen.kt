@@ -258,7 +258,7 @@ fun LibraryScreen(onPoem: (String) -> Unit) {
             }
 
             Spacer(Modifier.height(12.dp))
-            KeyHintBar("◀ ▲▼▶ 浏览　OK 学习　B 返回", "第 $page / $pageCount 页".takeIf { filtered.isNotEmpty() })
+            KeyHintBar("← ↑↓ → 浏览　OK 学习　B 返回", "第 $page / $pageCount 页".takeIf { filtered.isNotEmpty() })
         }
     }
 }

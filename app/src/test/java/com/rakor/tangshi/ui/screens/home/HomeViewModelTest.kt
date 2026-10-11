@@ -4,12 +4,10 @@ import com.rakor.tangshi.data.model.Poem
 import com.rakor.tangshi.data.repo.ProgressStatus
 import com.rakor.tangshi.data.repo.ProgressSummary
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** HomeViewModel 当前诗选择与开始/继续判定（纯函数，普通 JUnit） */
+/** HomeViewModel 当前诗选择（纯函数，普通 JUnit） */
 class HomeViewModelTest {
     private fun poem(id: String, order: Int) = Poem(id, order, "诗$id", "诗人", "唐", emptyList(), "")
     private fun row(poemId: String, status: String, last: Long) =
@@ -36,9 +34,5 @@ class HomeViewModelTest {
         val s = listOf(row("x", ProgressStatus.LEARNING, 500), row("y", ProgressStatus.LEARNING, 100))
         assertEquals("a", HomeViewModel.selectCurrent(s, poems)?.id)   // firstOrNull 忽略未知行 → 第一首未学
         assertNull(HomeViewModel.selectCurrent(s, emptyList()))        // 空诗库 → null 而非抛异常
-        // isStarted：有行（LEARNING 或 MASTERED）即已开始
-        assertTrue(HomeViewModel.isStarted(listOf(row("b", ProgressStatus.LEARNING, 1)), poem("b", 2)))
-        assertTrue(HomeViewModel.isStarted(listOf(row("a", ProgressStatus.MASTERED, 1)), poem("a", 1)))
-        assertFalse(HomeViewModel.isStarted(s, poem("a", 1)))
     }
 }

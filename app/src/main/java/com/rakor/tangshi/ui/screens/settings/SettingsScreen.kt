@@ -2,19 +2,17 @@ package com.rakor.tangshi.ui.screens.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -62,9 +60,9 @@ private const val HINT_DISMISS_MS = 2600L
 /**
  * 家长设置（规格 5.8，无家长门直接进入）。
  *
- * 焦点模型：设置项（语速/提示音胶囊、清除按钮）是独立焦点目标，◀▲▼▶ 由焦点系统
- * 自然导航；初始焦点落第一张卡第一枚胶囊（withFrameNanos 等窗口挂载后落焦，Task 6/7 模式）。
- * 选中态=胶囊 highlight（与玩法范围/筛选同视觉），语速/键音分段胶囊聚焦=4dp 主橙描边+放大不反色
+ * 焦点模型：设置项（提示音胶囊、清除按钮）是独立焦点目标，◀▲▼▶ 由焦点系统
+ * 自然导航；初始焦点落第一枚胶囊（withFrameNanos 等窗口挂载后落焦，Task 6/7 模式）。
+ * 选中态=胶囊 highlight（与玩法范围/筛选同视觉），键音分段胶囊聚焦=4dp 主橙描边+放大不反色
  * （segment，规格 §1 分段组例外）。
  *
  * 清除学习进度：二次确认对话框，安全默认焦点=取消（不可逆动作，Task 7 模式）；
@@ -117,64 +115,30 @@ fun SettingsScreen() {
                 Text("← 返回", color = T.TextSubtle, fontSize = 13.sp, maxLines = 1)
             }
 
-            // 单行三卡（corner=18 白底）：语速 | 提示音 | 清除进度
-            Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                SettingCard(Modifier.weight(1f).fillMaxHeight(), "朗读语速") {
-                    // 三枚语速胶囊总宽超出卡内可用宽（1080p TV 会被挤成竖条），
-                    // 加水平滚动：焦点右移时 Compose focus 系统自动 bring-into-view；
-                    // padding 在 scroll 之后 → 视口两端各留 4dp，端点投影不被视口齐根裁断（放大态仍部分裁切）
-                    Row(
-                        Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
+            // 两块纵向堆叠（全宽卡 corner=18 白底）：提示音 / 清除进度
+            Column(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                SettingCard(Modifier.weight(1f).fillMaxWidth(), "按键提示音") {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FocusablePillButton(
-                            "慢 0.9×", highlight = s.speed == 0.9f,
+                            "开",
+                            icon = if (s.keyTone) Icons.Filled.Check else null,
+                            highlight = s.keyTone,
                             segment = true,
-                            onClick = { vm.setSpeed(0.9f) },
+                            onClick = { vm.setKeyTone(true) },
                             onFocusChange = tone,
                             modifier = Modifier.focusRequester(focusRequester)
                         )
                         FocusablePillButton(
-                            "正常 1.0×", highlight = s.speed == 1.0f,
-                            segment = true,
-                            onClick = { vm.setSpeed(1.0f) },
-                            onFocusChange = tone
-                        )
-                        FocusablePillButton(
-                            "快 1.15×", highlight = s.speed == 1.15f,
-                            segment = true,
-                            onClick = { vm.setSpeed(1.15f) },
-                            onFocusChange = tone
-                        )
-                    }
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        "慢=适合刚学的诗，快=复习用",
-                        color = T.TextMuted, fontSize = 10.sp
-                    )
-                }
-                SettingCard(Modifier.weight(1f).fillMaxHeight(), "按键提示音") {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FocusablePillButton(
-                            "开" + if (s.keyTone) " ✓" else "", highlight = s.keyTone,
-                            segment = true,
-                            onClick = { vm.setKeyTone(true) },
-                            onFocusChange = tone
-                        )
-                        FocusablePillButton(
-                            "关" + if (!s.keyTone) " ✓" else "", highlight = !s.keyTone,
+                            "关",
+                            icon = if (!s.keyTone) Icons.Filled.Check else null,
+                            highlight = !s.keyTone,
                             segment = true,
                             onClick = { vm.setKeyTone(false) },
                             onFocusChange = tone
                         )
                     }
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        "移动焦点时发出短促提示音，帮助孩子确认操作",
-                        color = T.TextMuted, fontSize = 10.sp
-                    )
                 }
-                SettingCard(Modifier.weight(1f).fillMaxHeight(), "清除学习进度") {
+                SettingCard(Modifier.weight(1.4f).fillMaxWidth(), "清除学习进度") {
                     Text(
                         "清空全部学习记录，需二次确认",
                         color = T.TextMuted, fontSize = 11.sp
@@ -188,7 +152,7 @@ fun SettingsScreen() {
             }
 
             // 底栏：按键提示 | 关于
-            KeyHintBar("◀ ▲▼▶ 选择　OK 修改　B 返回", "关于：版本 1.0 · 唐诗数据来源说明")
+            KeyHintBar("← ↑↓ → 选择　OK 修改　B 返回", "关于：版本 1.0 · 唐诗数据来源说明")
         }
 
         // 已清除提示条（覆盖顶部，不挤压布局；停留本页不导航）
@@ -214,9 +178,12 @@ fun SettingsScreen() {
             withFrameNanos { }
             safeFocus.requestFocus()
         }
+        // 配色由 TangshiColorScheme 全槽位提供（容器=surfaceContainerHigh 白卡、文字/按钮主橙），
+        // 这里只保留与页面卡片一致的圆角；不再逐项覆写颜色，避免与主题双源维护
         AlertDialog(
             onDismissRequest = { showWipeDialog = false },
             title = { Text("清除学习进度", color = T.TextTitle) },
+            shape = RoundedCornerShape(18.dp),
             text = { Text("确定清除全部学习进度吗？此操作不可恢复。", color = T.TextBody) },
             confirmButton = {
                 TextButton(onClick = {
@@ -244,8 +211,8 @@ private fun SettingCard(
 ) {
     FocusCard(modifier, focused = false, corner = 18) {
         Column(
-            Modifier.fillMaxSize().padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            Modifier.fillMaxSize().padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(title, color = T.TextBody, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
             content()
@@ -282,7 +249,6 @@ class SettingsViewModel(
     val settings: StateFlow<SettingsRepository.Settings> = settingsRepo.settings
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsRepository.Settings())
 
-    fun setSpeed(v: Float) = viewModelScope.launch { settingsRepo.setSpeed(v) }
     fun setKeyTone(v: Boolean) = viewModelScope.launch { settingsRepo.setKeyTone(v) }
 
     /** 清空全部学习记录 + study_log（Home/Library 各流由 Room 自动刷新） */

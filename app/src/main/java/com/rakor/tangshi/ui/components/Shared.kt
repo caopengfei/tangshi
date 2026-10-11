@@ -135,10 +135,11 @@ fun FocusableCard(
 /**
  * 可聚焦胶囊按钮：内部自管焦点视觉（放大/描边/反色填充动效）。
  * 统一描边款本体（规格 2026-10-08 焦点样式）：
- *  - 未选中：白底 2dp 浅橙描边棕字；highlight 档：ChipBg 底 3dp 橙描边橙字（常驻强调/分段选中指示）
+ *  - 未选中：白底 2dp 浅橙描边棕字；highlight 档：ChipBg 底 3dp 橙描边橙字（主行动按钮/分段选中指示；
+ *    平级并列入口如首页底部四按钮统一用普通档，不传 highlight）
  *  - 选中（B 反色）：橙渐变填充 + 白字白图标 + [FocusScale] 放大 + 暖橙投影——焦点即最强信号
  * OK 触发 onClick（为 null 时仅可聚焦）；焦点变化回调 onFocusChange（提示音挂钩用）。
- * segment：分段选择组成员（语速/键音/过滤/题数等）——焦点不反色填充，
+ * segment：分段选择组成员（键音/过滤/题数等）——焦点不反色填充，
  * 保持本体底色 + 4dp 主橙描边强调（规格 §1 分段组例外）。
  */
 @Composable
@@ -192,9 +193,9 @@ fun FocusablePillButton(
     ) {
         if (icon != null) {
             Icon(icon, null, tint = iconTint)
-            Spacer(Modifier.width(6.dp))
+            if (text.isNotEmpty()) Spacer(Modifier.width(6.dp))
         }
-        Text(text, color = textColor)
+        if (text.isNotEmpty()) Text(text, color = textColor)
     }
 }
 
