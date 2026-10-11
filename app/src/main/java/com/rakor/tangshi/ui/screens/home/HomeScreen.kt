@@ -46,6 +46,13 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.tv.material3.Button
+import androidx.tv.material3.Card
+import androidx.tv.material3.CardDefaults
+import androidx.tv.material3.Surface
+import androidx.tv.material3.SurfaceDefaults
+import androidx.tv.material3.Icon as TvIcon
+import androidx.tv.material3.Text as TvText
 import com.rakor.tangshi.data.model.Poem
 import com.rakor.tangshi.data.repo.HomeStats
 import com.rakor.tangshi.data.repo.PoemRepository
@@ -54,10 +61,14 @@ import com.rakor.tangshi.data.repo.ProgressStatus
 import com.rakor.tangshi.data.repo.ProgressSummary
 import com.rakor.tangshi.di.AppGraph
 import com.rakor.tangshi.ui.components.CreamBackground
-import com.rakor.tangshi.ui.components.FocusCard
-import com.rakor.tangshi.ui.components.FocusableCard
-import com.rakor.tangshi.ui.components.FocusablePillButton
 import com.rakor.tangshi.ui.components.KeyHintBar
+import com.rakor.tangshi.ui.components.cardBorder
+import com.rakor.tangshi.ui.components.cardColors
+import com.rakor.tangshi.ui.components.cardRestingShadow
+import com.rakor.tangshi.ui.components.cardShape
+import com.rakor.tangshi.ui.components.focusTone
+import com.rakor.tangshi.ui.components.normalPillBorder
+import com.rakor.tangshi.ui.components.normalPillColors
 import com.rakor.tangshi.ui.theme.KaiTi
 import com.rakor.tangshi.ui.theme.T
 import kotlinx.coroutines.Dispatchers
@@ -184,15 +195,20 @@ fun HomeScreen(
                 Modifier.weight(1f).fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                FocusableCard(
-                    Modifier
+                Card(
+                    onClick = { poem?.let { onPoem(it.id) } },
+                    modifier = Modifier
+                        .cardRestingShadow(20)
                         .weight(1.55f)
                         .fillMaxHeight()
                         .zIndex(1f)   // 聚焦放大时压过右列邻卡，避免描边被盖
-                        .focusRequester(focusRequester),
-                    scaleFactor = 1.03f,   // 大卡小倍率：1.06 会挤压两侧布局
-                    onFocusChange = tone,
-                    onClick = { poem?.let { onPoem(it.id) } }
+                        .focusRequester(focusRequester)
+                        .focusTone(tone),
+                    shape = cardShape(20),
+                    colors = cardColors(),
+                    border = cardBorder(20),
+                    // 大卡小倍率：官方 1.1 会挤压两侧布局（原 1.03 同值保留）
+                    scale = CardDefaults.scale(focusedScale = 1.03f),
                 ) {
                     val p = poem
                     if (p == null) {
@@ -282,13 +298,42 @@ fun HomeScreen(
 
             // 底部入口：四个平级入口，统一普通描边档（不做常驻强调）
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                FocusablePillButton(
-                    "搜索", Icons.Filled.Search,
-                    onClick = onSearch, onFocusChange = tone
-                )
-                FocusablePillButton("全部唐诗", onClick = onLibrary, onFocusChange = tone)
-                FocusablePillButton("背诗小游戏", Icons.Filled.SportsEsports, onClick = onGames, onFocusChange = tone)
-                FocusablePillButton("家长设置", Icons.Filled.Settings, onClick = onSettings, onFocusChange = tone)
+                Button(
+                    onClick = onSearch,
+                    colors = normalPillColors(),
+                    border = normalPillBorder(),
+                    modifier = Modifier.focusTone(tone)
+                ) {
+                    TvIcon(Icons.Filled.Search, null)
+                    Spacer(Modifier.width(6.dp))
+                    TvText("搜索")
+                }
+                Button(
+                    onClick = onLibrary,
+                    colors = normalPillColors(),
+                    border = normalPillBorder(),
+                    modifier = Modifier.focusTone(tone)
+                ) { TvText("全部唐诗") }
+                Button(
+                    onClick = onGames,
+                    colors = normalPillColors(),
+                    border = normalPillBorder(),
+                    modifier = Modifier.focusTone(tone)
+                ) {
+                    TvIcon(Icons.Filled.SportsEsports, null)
+                    Spacer(Modifier.width(6.dp))
+                    TvText("背诗小游戏")
+                }
+                Button(
+                    onClick = onSettings,
+                    colors = normalPillColors(),
+                    border = normalPillBorder(),
+                    modifier = Modifier.focusTone(tone)
+                ) {
+                    TvIcon(Icons.Filled.Settings, null)
+                    Spacer(Modifier.width(6.dp))
+                    TvText("家长设置")
+                }
             }
 
             KeyHintBar("← ↑↓ 选择　OK 确认")
@@ -299,7 +344,11 @@ fun HomeScreen(
 /** 统计卡：圆形图标底 + 标签 + 数值两端对齐；modifier 通常传等分撑满右列 */
 @Composable
 private fun StatCard(icon: ImageVector, label: String, value: String, modifier: Modifier = Modifier) {
-    FocusCard(modifier, focused = false, corner = 18) {
+    Surface(
+        modifier = modifier.cardRestingShadow(18),
+        shape = RoundedCornerShape(18.dp),
+        colors = SurfaceDefaults.colors(containerColor = T.Card)
+    ) {
         Row(
             Modifier.fillMaxSize().padding(horizontal = 22.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
