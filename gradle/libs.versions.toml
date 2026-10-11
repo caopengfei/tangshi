@@ -1,7 +1,8 @@
 [versions]
 agp = "8.7.3"
-kotlin = "2.0.21"
-composeBom = "2024.12.01"
+kotlin = "2.1.20"
+composeBom = "2026.02.00"
+tvMaterial = "1.1.0"
 media3 = "1.5.1"
 room = "2.6.1"
 navigation = "2.8.5"
@@ -21,6 +22,7 @@ compose-ui = { group = "androidx.compose.ui", name = "ui" }
 compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
 compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 compose-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+tv-material = { group = "androidx.tv", name = "tv-material", version.ref = "tvMaterial" }
 activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
 lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
@@ -42,4 +44,4 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-ksp = { id = "com.google.devtools.ksp", version = "2.0.21-1.0.27" }
+ksp = { id = "com.google.devtools.ksp", version = "2.1.20-1.0.31" }
