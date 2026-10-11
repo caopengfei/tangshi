@@ -195,3 +195,9 @@ app/src/main/assets/audio/{poemId}/manifest.json   ← 每句时长（ffprobe �
 ## 13. 后续版本方向（非 V1）
 
 诗句排序 / 诗句配对玩法、多音色（男声/女声包）切换、真人朗读语音包、install-time asset pack 拆分音频、语音搜索、多孩子档案。
+
+---
+
+## 附注（2026-10-11）：Compose for TV 组件迁移
+
+焦点视觉与组件来源改由 `androidx.tv:tv-material:1.1.0` 官方组件承担（官方默认焦点样式 + `T` 调色板映射）。**屏幕结构、交互流程、配色、字体、音效行为均不变**；仅焦点视觉实现（缩放/描边/投影的载体）与组件类来源变化。详见 [2026-10-11-compose-tv-migration-design.md](2026-10-11-compose-tv-migration-design.md)。

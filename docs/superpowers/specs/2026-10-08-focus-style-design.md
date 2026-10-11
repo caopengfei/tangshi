@@ -3,6 +3,10 @@
 日期：2026-10-08
 状态：已确认（用户批准）
 
+> **已废止（2026-10-11）**：焦点视觉已迁移 tv-material 官方组件默认样式（scale + 描边，取色经 T → tv ColorScheme 的 `border` 槽映射为主橙），本文的 1.06 缩放 / 4dp 橙边 / 暖影**实现规范**不再适用。
+> 仍然有效的**交互语义**（已迁移至新载体，见迁移规格）：禁用药丸不可聚焦（`focusProperties { canFocus = false }`）、分段组焦点不反色（`segmentPillColors/segmentPillBorder`）、焦点提示音首焦静音（各屏 `tone` lambda）。
+> 新事实来源：[2026-10-11-compose-tv-migration-design.md](2026-10-11-compose-tv-migration-design.md)。
+
 ## 背景与问题
 
 TV 端全遥控交互，焦点态是唯一的位置指示。当前实现（`ui/components/Shared.kt`）焦点视觉只有 1.06 倍放大 + 描边变化：

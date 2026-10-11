@@ -12,7 +12,7 @@
 ## 用户决策（已确认）
 
 1. **全面采用官方组件**：屏幕直接使用 tv-material 组件，删除自定义焦点原语（否决"保留组件 API 只换内部实现"的底层替换方案）。
-2. **焦点视觉改用官方默认样式**：废止 2026-10-08 规格书的 1.06 缩放 / 4dp 橙边 / 暖影规范及其守护测试，采用 tv-material 默认 glow + scale。
+2. **焦点视觉改用官方默认样式**：废止 2026-10-08 规格书的 1.06 缩放 / 4dp 橙边 / 暖影规范及其守护测试，采用 tv-material 默认 scale + 描边。
 3. **工具链最小够用升级**：只升到满足 tv-material 1.1.0 的组合，不追最新。
 4. **保留现有暖色调**：`T` 调色板、米白底、橙色主色、KaiTi 字体、风格D 不变，映射进 tv-material 主题。
 5. **迁移路线方案 B（两阶段）**：工具链先行独立验收，再做组件替换；组件替换按屏拆任务。
@@ -78,7 +78,7 @@
 
 | 现有 | 官方替代 | 说明 |
 |---|---|---|
-| `FocusableCard`（自管理焦点卡） | `ClassicCard` / `Card` | 默认焦点 glow + scale，样式走 `CardDefaults` |
+| `FocusableCard`（自管理焦点卡） | `ClassicCard` / `Card` | 默认焦点 scale + 描边，样式走 `CardDefaults` |
 | `FocusCard`（静态白底容器） | 非交互 `Surface` | 无焦点态 |
 | `FocusablePillButton` normal 模式 | `Button` | 官方默认即胶囊 + 焦点效果 |
 | `FocusablePillButton` highlight 模式（静置选中态） | `Button` + 自定义样式参数（`ButtonDefaults.colors/border`，rest 态即强调档） | 保持"未聚焦也高亮"的语义；不引入 `Chip` |
@@ -92,7 +92,7 @@
 - **MENU 键回设置页**（AppNavHost 根 Box）、**ChannelUp/ChannelDown 翻页**（DetailScreen 容器级 `onPreviewKeyEvent`）、**Search 焦点陷阱**（`focusProperties.exit`）、**初始焦点**（`withFrameNanos` + `FocusRequester`）：与官方组件无耦合，原样保留。
 - **禁用态陷阱**：tv-material 明确 disabled Surface **仍可聚焦**（官方设计），而现规格要求禁用药丸不可聚焦——禁用处继续包 `focusProperties { canFocus = false }`，列为逐屏检查项。
 - **焦点驱动分页**（LibraryScreen）、**长文滚动**（DetailScreen）：挂官方组件的 `modifier`，逻辑不动。
-- **glow 降级**：glow 效果 API<28 不渲染（tv-material 内置降级，保留描边/缩放），记录为已知行为。
+- **glow**：本迁移全部组件使用官方默认样式，而官方默认 glow = Glow.None（未启用发光）；API<28 降级规则因此不涉及本应用。
 
 ### 执行顺序
 
@@ -100,7 +100,7 @@
 
 ## 规格书处置
 
-- `2026-10-08-focus-style-design.md`：被本设计取代。改写为记录"焦点视觉已切换 tv-material 官方默认（glow + scale），旧的 1.06 缩放 / 4dp 橙边 / 暖影规范废止"，保留仍有效的交互语义（禁用药丸不可聚焦、焦点音效、分段模式不反色等语义迁移到新载体）。
+- `2026-10-08-focus-style-design.md`：被本设计取代。改写为记录"焦点视觉已切换 tv-material 官方默认（scale + 描边），旧的 1.06 缩放 / 4dp 橙边 / 暖影规范废止"，保留仍有效的交互语义（禁用药丸不可聚焦、焦点音效、分段模式不反色等语义迁移到新载体）。
 - `2026-10-06-tangshi-tv-app-design.md`（风格D 总规格）：不动正文，追加迁移附注指向本设计——屏幕结构、交互流程、配色、字体不变，仅焦点视觉与组件来源改由官方组件承担。
 - 本设计为阶段 1/2 的唯一事实来源。
 
@@ -108,7 +108,7 @@
 
 | 测试 | 处置 |
 |---|---|
-| `CardShadowTest` | **删除**——`CardShadow` 常量随旧组件废止，官方 glow 由官方测试守护 |
+| `CardShadowTest` | **删除**——`CardShadow` 常量随旧组件废止，官方默认样式（glow = None，未启用发光）由官方测试守护 |
 | `ThemeColorSchemeTest` | **保留**——对话框仍走 m3 主题（`TangshiColorScheme` 继续在用），原断言继续有效 |
 | 新增 `TvColorSchemeTest` | 守护"T 调色板 → tv `ColorScheme` 映射"，尤其 `border` 槽位（官方焦点描边取色处） |
 | `LibraryFilterTest`、`HomeViewModelTest`、`PoemRepositoryTest`、`SettingsRepositoryTest`、`AudioAssetsTest` | 保留；仅当编译引用被删组件时做机械适配 |
