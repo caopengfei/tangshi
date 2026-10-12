@@ -18,6 +18,7 @@
 **执行勘误（Task 1 实施中裁定）：**
 1. **多音字 override 非空**：pypinyin 实测 16 处误读（重送/重别/重帏/几重 zhong→chong、长干行/长相思 zhang→chang、鹿柴 chai→zhai、泊×3 po→bo、天姥 lao→mu、给事 gei→ji、岑参 cencan→censhen），已按 Step 4 规则写入 override——计划"预期空表"作废，Step 4 清单中的"预跑已核对 ✓"标注不可当 ground truth。
 2. **ü 形式统一为 u**：pypinyin NORMAL 输出 v 形（lv/nv），运行时 CharPy 是 ü 形（strip 后 lu/nu）——工具 `strip_tone` 与运行时 `stripTone` 均加 `.replace("v","u")`（pinyin 中 v 只作 ü 替身），用户敲 v 也能命中。
+3. **Task 4 质量追加**：`AppGraph.warmUp()` 补 `appScope.launch { poems.loadSearchIndex() }` 预热（导航当帧不再撞 37KB 解析；`buildKeys` 纯 CPU 仍于 VM 初始化主线程一次性执行，记为取舍、Task 6 实测卡顿再议）；Theme.kt Scrim 注释去「搜索浮层」引用。Step 4 注释措辞同步（后注册→BackHandler 先于系统拦截）。
 
 ---
 
@@ -678,7 +679,7 @@ results 派生替换为：
         }
     }
 
-    // B 键两层语义：键盘激活态 > 系统返回（后注册的优先）
+    // B 键两层语义：键盘激活态 > 系统返回（BackHandler 先于系统拦截）
     BackHandler(enabled = keyboardActive) { exitKeyboard() }
 ```
 
