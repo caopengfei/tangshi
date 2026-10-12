@@ -48,7 +48,7 @@
 - Create: `tools/build_search_index.py`
 - Create: `app/src/main/assets/content/search_index.json`（工具生成）
 
-- [ ] **Step 1: 写多音字 override 表（初始为空）**
+- [x] **Step 1: 写多音字 override 表（初始为空）**
 
 `tools/search_index_overrides.json`：
 
@@ -61,7 +61,7 @@
 
 格式说明：key 为诗人名（poets）或诗 id（titles），value 为**音节列表**（pypinyin NORMAL 口径，无声调）。例：`"titles": {"some-id": ["qiang", "jin", "jiu"]}`。
 
-- [ ] **Step 2: 写生成工具**
+- [x] **Step 2: 写生成工具**
 
 > ⚠️ 下方代码块为初始规格；**以 `tools/build_search_index.py` 现文件为准**（后续质量修复——v→u 归一、override 形状校验、`_readme`、死代码清理——已回写工具但未逐 hunk 回写本块，机械照抄会复活旧缺陷）。
 
@@ -150,7 +150,7 @@ if __name__ == "__main__":
     main()
 ```
 
-- [ ] **Step 3: 运行并核对数量**
+- [x] **Step 3: 运行并核对数量**
 
 Run: `cd D:/develop/src/rakor/tangshi && python tools/build_search_index.py`
 
@@ -162,7 +162,7 @@ Expected 首行：`poets=76 titles=325 -> .../search_index.json`（路径分隔�
 python -c "import json; d=json.load(open('app/src/main/assets/content/poems.json',encoding='utf-8')); print(len(d), len({p['poet'] for p in d}))"
 ```
 
-- [ ] **Step 4: 审全量打印（多音字人工核验）**
+- [x] **Step 4: 审全量打印（多音字人工核验）**
 
 逐行扫打印输出，重点对照：
 
@@ -175,7 +175,7 @@ python -c "import json; d=json.load(open('app/src/main/assets/content/poems.json
 
 发现误读 → 按 Step 1 格式写入 `tools/search_index_overrides.json` → 重跑 Step 3。**预期 override 保持空表**（预跑未发现误读）。
 
-- [ ] **Step 5: 校验自测（过期 override 必须报错）**
+- [x] **Step 5: 校验自测（过期 override 必须报错）**
 
 临时把 `tools/search_index_overrides.json` 的 titles 改为 `{"__ghost-id__": ["x"]}` → 运行工具 → Expected：`过期 override 条目: ['__ghost-id__']`，退出码非 0 → 还原为空表 `{}` 再跑一次恢复生成物。
 
@@ -183,7 +183,7 @@ python -c "import json; d=json.load(open('app/src/main/assets/content/poems.json
 python tools/build_search_index.py; echo "exit=$?"
 ```
 
-- [ ] **Step 6: 提交**
+- [x] **Step 6: 提交**
 
 ```bash
 git add tools/build_search_index.py tools/search_index_overrides.json app/src/main/assets/content/search_index.json
@@ -199,7 +199,7 @@ git commit -m "feat: 搜索拼音索引生成工具——诗人/标题全拼+首
 - Create: `app/src/main/java/com/rakor/tangshi/data/model/SearchIndex.kt`
 - Modify: `app/src/main/java/com/rakor/tangshi/data/repo/PoemRepository.kt`
 
-- [ ] **Step 1: 写失败测试**
+- [x] **Step 1: 写失败测试**
 
 `app/src/test/java/com/rakor/tangshi/data/SearchIndexTest.kt`：
 
@@ -241,13 +241,13 @@ class SearchIndexTest {
 }
 ```
 
-- [ ] **Step 2: 运行确认失败**
+- [x] **Step 2: 运行确认失败**
 
 Run: `cd D:/develop/src/rakor/tangshi && ./gradlew :app:testDebugUnitTest --tests "*SearchIndexTest" -q`
 
 Expected: 编译失败——`Unresolved reference: SearchIndex`。
 
-- [ ] **Step 3: 实现模型与加载**
+- [x] **Step 3: 实现模型与加载**
 
 新建 `app/src/main/java/com/rakor/tangshi/data/model/SearchIndex.kt`：
 
@@ -300,13 +300,13 @@ import com.rakor.tangshi.data.model.SearchIndex
     fun loadSearchIndex(): SearchIndex = searchIndex
 ```
 
-- [ ] **Step 4: 运行测试通过**
+- [x] **Step 4: 运行测试通过**
 
 Run: `./gradlew :app:testDebugUnitTest --tests "*SearchIndexTest" -q`
 
 Expected: `BUILD SUCCESSFUL`（3 tests PASS）。
 
-- [ ] **Step 5: 全量回归 + 提交**
+- [x] **Step 5: 全量回归 + 提交**
 
 Run: `./gradlew testDebugUnitTest -q` → Expected: `BUILD SUCCESSFUL`（既有测试不受影响）。
 
@@ -327,7 +327,7 @@ git commit -m "feat: SearchIndex 模型与资产加载（缺文件/坏文件降�
 - Create: `app/src/test/java/com/rakor/tangshi/data/SearchIntegrationTest.kt`
 - Modify: `app/src/main/java/com/rakor/tangshi/data/search/SearchMatcher.kt`
 
-- [ ] **Step 1: 夹具加索引条目**
+- [x] **Step 1: 夹具加索引条目**
 
 `TestFixtures.kt`——加 import：
 
@@ -352,7 +352,7 @@ import com.rakor.tangshi.data.model.SearchIndex
     )
 ```
 
-- [ ] **Step 2: 重写匹配测试（新签名 + 首字母用例）**
+- [x] **Step 2: 重写匹配测试（新签名 + 首字母用例）**
 
 `SearchMatcherTest.kt` 整体替换为：
 
@@ -402,7 +402,7 @@ class SearchMatcherTest {
 }
 ```
 
-- [ ] **Step 3: 写真实资产回归测试（规格示例直测）**
+- [x] **Step 3: 写真实资产回归测试（规格示例直测）**
 
 `app/src/test/java/com/rakor/tangshi/data/SearchIntegrationTest.kt`：
 
@@ -465,13 +465,13 @@ class SearchIntegrationTest {
 }
 ```
 
-- [ ] **Step 4: 运行确认失败**
+- [x] **Step 4: 运行确认失败**
 
 Run: `./gradlew :app:testDebugUnitTest --tests "*SearchMatcherTest" --tests "*SearchIntegrationTest" -q`
 
 Expected: 编译失败——`Unresolved reference: buildKeys` / `matches` 参数不匹配。
 
-- [ ] **Step 5: 实现 SearchMatcher**
+- [x] **Step 5: 实现 SearchMatcher**
 
 `SearchMatcher.kt` 整体替换为：
 
@@ -559,13 +559,13 @@ object SearchMatcher {
 }
 ```
 
-- [ ] **Step 6: 运行新测试**
+- [x] **Step 6: 运行新测试**
 
 Run: `./gradlew :app:testDebugUnitTest --tests "*SearchMatcherTest" --tests "*SearchIntegrationTest" -q`
 
 Expected: `BUILD SUCCESSFUL`（夹具 15 + 集成 6 全 PASS）。集成计数若与 82/1/1 对不上，先核对 `search_index.json` 是否为 Task 1 最新生成物，再查实现——不得改期望值迁就（修正版模拟已核：lineInitKey 去调修复不改变 82/1/14/1/2 五个期望值）。
 
-- [ ] **Step 7: 全量回归 + 提交**
+- [x] **Step 7: 全量回归 + 提交**
 
 Run: `./gradlew testDebugUnitTest -q` → Expected: `BUILD SUCCESSFUL`。
 
@@ -586,7 +586,7 @@ git commit -m "feat: SearchMatcher 首字母+诗人匹配——删诗人过滤�
 **Files:**
 - Modify: `app/src/main/java/com/rakor/tangshi/ui/screens/search/SearchScreen.kt`
 
-- [ ] **Step 1: 替换 SearchViewModel 与 KDoc**
+- [x] **Step 1: 替换 SearchViewModel 与 KDoc**
 
 将 `SearchViewModel` 类（含其上方 KDoc）整体替换：
 
@@ -605,7 +605,7 @@ class SearchViewModel(poems: PoemRepository) : ViewModel() {
 
 （删除 `poets` 属性——随浮层一起消失；`Collator`/`Locale` import 随后清理。）
 
-- [ ] **Step 2: 替换 SearchScreen KDoc**
+- [x] **Step 2: 替换 SearchScreen KDoc**
 
 将 `@Composable fun SearchScreen` 上方整段 KDoc（含 `@OptIn` 注解行）替换：
 
@@ -631,7 +631,7 @@ fun SearchScreen(onPoem: (String) -> Unit) {
 
 同时删除该 KDoc 上方的两行浮层遗留：注释行 `// 浮层焦点陷阱用 focusProperties.exit（ui 1.7 仍标 @ExperimentalComposeUiApi，行为已稳定）` 与 `@OptIn(ExperimentalComposeUiApi::class)` 行，以及文件头 `import androidx.compose.ui.ExperimentalComposeUiApi`（浮层焦点陷阱专用）。
 
-- [ ] **Step 3: 删状态、改 results、改焦点请求器**
+- [x] **Step 3: 删状态、改 results、改焦点请求器**
 
 状态块替换为：
 
@@ -669,7 +669,7 @@ results 派生替换为：
 
 （删除 `pickerFirstFocus` 与其 `LaunchedEffect(poetPickerOpen)`。）
 
-- [ ] **Step 4: exitKeyboard fallback 与 BackHandler 两层化**
+- [x] **Step 4: exitKeyboard fallback 与 BackHandler 两层化**
 
 ```kotlin
     // 收起键盘：焦点回结果首行（空结果回关键字框）
@@ -686,7 +686,7 @@ results 派生替换为：
 
 （删除 `closePoetPicker()` 与第二个 `BackHandler(enabled = poetPickerOpen)`。）
 
-- [ ] **Step 5: 筛选行改关键字行**
+- [x] **Step 5: 筛选行改关键字行**
 
 将整段筛选行（含其上方注释行 `// 筛选行：诗人筛选（弹浮层）+ 关键字显示框（进键盘激活态）` 与诗人钮、关键字钮两个子项的完整 `Row(...)`）替换为：
 
@@ -708,12 +708,12 @@ results 派生替换为：
             }
 ```
 
-- [ ] **Step 6: 删诗人浮层与 PickerItem**
+- [x] **Step 6: 删诗人浮层与 PickerItem**
 
 - 从注释行 `// 诗人浮层：半透明遮罩 + 居中白卡；首项"全部诗人"。` 起，到 `if (poetPickerOpen) { ... }` 块的闭合 `}`（位于 `KeyHintBar(...)` 之后、`CreamBackground` 闭合之前）——整块删除。
 - 删除文件尾部 `PickerItem` 函数（KDoc `/** 浮层诗人项："姓名 诗数"小卡，官方焦点描边+缩放 */` 起至函数结束）。
 
-- [ ] **Step 7: 清理 import**
+- [x] **Step 7: 清理 import**
 
 删除以下 import（浮层/诗人排序专用，删后编译器校验）：
 
@@ -728,7 +728,7 @@ java.text.Collator
 java.util.Locale
 ```
 
-- [ ] **Step 8: 编译 + 全量单测**
+- [x] **Step 8: 编译 + 全量单测**
 
 ```bash
 cd D:/develop/src/rakor/tangshi && ./gradlew assembleDebug -q && ./gradlew testDebugUnitTest -q
@@ -736,7 +736,7 @@ cd D:/develop/src/rakor/tangshi && ./gradlew assembleDebug -q && ./gradlew testD
 
 Expected: `BUILD SUCCESSFUL`（Task 3 的 SearchScreen 引用缺口在此闭合）。
 
-- [ ] **Step 9: 提交**
+- [x] **Step 9: 提交**
 
 ```bash
 git add app/src/main/java/com/rakor/tangshi/ui/screens/search/SearchScreen.kt
@@ -750,7 +750,7 @@ git commit -m "refactor: 搜索页删诗人选择——关键字框主入口（�
 **Files:**
 - Modify: `app/src/main/java/com/rakor/tangshi/ui/screens/search/SearchScreen.kt`（`KeyBox` 内）
 
-- [ ] **Step 1: 修复居中**
+- [x] **Step 1: 修复居中**
 
 `KeyBox` 末尾的内层 Box：
 
@@ -766,11 +766,11 @@ git commit -m "refactor: 搜索页删诗人选择——关键字框主入口（�
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center, content = content)
 ```
 
-- [ ] **Step 2: 编译**
+- [x] **Step 2: 编译**
 
 Run: `./gradlew assembleDebug -q` → Expected: `BUILD SUCCESSFUL`。
 
-- [ ] **Step 3: 提交**
+- [x] **Step 3: 提交**
 
 ```bash
 git add app/src/main/java/com/rakor/tangshi/ui/screens/search/SearchScreen.kt
@@ -783,7 +783,7 @@ git commit -m "fix: 键帽文字居中——KeyBox 内层 Box 补 fillMaxSize（
 
 **Files:** 无代码改动（发现问题回 Task 1-5 修复后重跑本任务）
 
-- [ ] **Step 1: 安装启动**
+- [x] **Step 1: 安装启动**
 
 ```bash
 cd D:/develop/src/rakor/tangshi && ./gradlew :app:installDebug -q
@@ -792,7 +792,7 @@ D:/develop/androidsdk/platform-tools/adb.exe shell monkey -p com.rakor.tangshi -
 
 Expected: szj_tv 模拟器正常启动到首页（`adb devices` 先确认 `emulator-5554` 在线）。
 
-- [ ] **Step 2: 脚本断言（打字/计数/入口/居中）**
+- [x] **Step 2: 脚本断言（打字/计数/入口/居中）**
 
 ```bash
 python tools/verify_search.py LB CQMYG JYS DENGGUANQUELOU CHUANGQIAN
@@ -811,7 +811,7 @@ PASS  CHUANGQIAN: 共找到 2 首（期望 2）——全拼通道不回归
 
 脚本同时内断言：进屏焦点=关键字框（带光标）、全屏无「诗人：」筛选钮、每字母输入后关键字值逐步正确。退出码 0 为过。
 
-- [ ] **Step 3: 空结果态焦点回退**
+- [x] **Step 3: 空结果态焦点回退**
 
 ```bash
 python tools/verify_search.py ABC
@@ -821,18 +821,18 @@ D:/develop/androidsdk/platform-tools/adb.exe exec-out "cat /sdcard/ui.xml" | gre
 
 Expected: 打出 `ABC` 后显示「没有找到相关唐诗」（脚本打印「空结果」）。然后按一次 B（`input keyevent 4`）→ 再 dump → 焦点（`focused="true"`）应落在**关键字框**子树（含 `▏` 文本的容器），即空结果 fallback 生效；同时屏幕上无「诗人：」文本。（勘误：原用词 XYZ 在新 contains 语义下是合法命中 15 首——寻隐者不遇标题首字母 xyzby 等——空态须用真正零结果词 ABC。）
 
-- [ ] **Step 4: 手动走查清单**
+- [x] **Step 4: 手动走查清单**
 
-- [ ] 键盘激活橙色描边：OK 进键盘后键盘白卡亮 4dp 橙边；D-pad 从结果区方向进键盘同样亮
-- [ ] 键盘「搜索」键 OK → 收起激活态，焦点回结果首行
-- [ ] 结果行 OK 进详情、B 返回正常；汉字关键字（实体键盘场景）与高亮渲染不回归
-- [ ] 进屏焦点静音（无首焦提示音）、焦点移动有提示音；KaiTi 诗名、命中高亮正常
-- [ ] 截图目检键帽字母/删除图标/「搜索」键文字居中（`adb exec-out screencap -p > /tmp/s.png` + Read 查看）
+- [x] 键盘激活橙色描边：OK 进键盘后键盘白卡亮 4dp 橙边；D-pad 从结果区方向进键盘同样亮
+- [x] 键盘「搜索」键 OK → 收起激活态，焦点回结果首行
+- [x] 结果行 OK 进详情、B 返回正常；汉字关键字（实体键盘场景）与高亮渲染不回归
+- [x] 进屏焦点静音（无首焦提示音）、焦点移动有提示音；KaiTi 诗名、命中高亮正常
+- [x] 截图目检键帽字母/删除图标/「搜索」键文字居中（`adb exec-out screencap -p > /tmp/s.png` + Read 查看）
 
-- [ ] **Step 5: 终检回归**
+- [x] **Step 5: 终检回归**
 
 Run: `./gradlew testDebugUnitTest -q` → Expected: `BUILD SUCCESSFUL`。
 
-- [ ] **Step 6: 记录结论**
+- [x] **Step 6: 记录结论**
 
 全过 → 本计划完成（修复性改动随各 Task 提交，本任务无新提交）。任何一条不过 → 回对应 Task 修复，重跑本任务，**不带病收工**。
