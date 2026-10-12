@@ -19,6 +19,7 @@
 1. **多音字 override 非空**：pypinyin 实测 16 处误读（重送/重别/重帏/几重 zhong→chong、长干行/长相思 zhang→chang、鹿柴 chai→zhai、泊×3 po→bo、天姥 lao→mu、给事 gei→ji、岑参 cencan→censhen），已按 Step 4 规则写入 override——计划"预期空表"作废，Step 4 清单中的"预跑已核对 ✓"标注不可当 ground truth。
 2. **ü 形式统一为 u**：pypinyin NORMAL 输出 v 形（lv/nv），运行时 CharPy 是 ü 形（strip 后 lu/nu）——工具 `strip_tone` 与运行时 `stripTone` 均加 `.replace("v","u")`（pinyin 中 v 只作 ü 替身），用户敲 v 也能命中。
 3. **Task 4 质量追加**：`AppGraph.warmUp()` 补 `appScope.launch { poems.loadSearchIndex() }` 预热（导航当帧不再撞 37KB 解析；`buildKeys` 纯 CPU 仍于 VM 初始化主线程一次性执行，记为取舍、Task 6 实测卡顿再议）；Theme.kt Scrim 注释去「搜索浮层」引用。Step 4 注释措辞同步（后注册→BackHandler 先于系统拦截）。
+4. **Task 6 验收回归**：①空结果 B 焦点回退失效（BACK 事件期间单次 requestFocus 不生效）——`exitKeyboard()` 改 `scope.launch` + `requestFocusWhenReady` 帧重试；②`verify_search.py` 打字断言 `word.index(ch)` 遇重复字母算错期望——改枚举位 `word[:i+1]`，None 计数显示「空结果」；③Step 3 用词 XYZ→ABC（XYZ 是 15 首合法命中）；④观察项（非回归、计划外）：详情页返回后搜索关键字被清空——nav 重建 composable 丢失 remember 状态，改版前后同行为，规格未要求保留，留待用户裁定。
 
 ---
 
@@ -813,12 +814,12 @@ PASS  CHUANGQIAN: 共找到 2 首（期望 2）——全拼通道不回归
 - [ ] **Step 3: 空结果态焦点回退**
 
 ```bash
-python tools/verify_search.py XYZ
+python tools/verify_search.py ABC
 D:/develop/androidsdk/platform-tools/adb.exe shell "uiautomator dump /sdcard/ui.xml"
 D:/develop/androidsdk/platform-tools/adb.exe exec-out "cat /sdcard/ui.xml" | grep -o 'text="[^"]*"' | grep 没有找到
 ```
 
-Expected: 打出 `XYZ` 后显示「没有找到相关唐诗」。然后按一次 B（`input keyevent 4`）→ 再 dump → 焦点（`focused="true"`）应落在**关键字框**子树（含 `▏` 文本的容器），即空结果 fallback 生效；同时屏幕上无「诗人：」文本。
+Expected: 打出 `ABC` 后显示「没有找到相关唐诗」（脚本打印「空结果」）。然后按一次 B（`input keyevent 4`）→ 再 dump → 焦点（`focused="true"`）应落在**关键字框**子树（含 `▏` 文本的容器），即空结果 fallback 生效；同时屏幕上无「诗人：」文本。（勘误：原用词 XYZ 在新 contains 语义下是合法命中 15 首——寻隐者不遇标题首字母 xyzby 等——空态须用真正零结果词 ABC。）
 
 - [ ] **Step 4: 手动走查清单**
 
