@@ -798,11 +798,11 @@ Expected: szj_tv 模拟器正常启动到首页（`adb devices` 先确认 `emula
 python tools/verify_search.py LB CQMYG JYS DENGGUANQUELOU CHUANGQIAN
 ```
 
-Expected（每词独立走完 强停→首页→搜索页→打字→过滤 全链路，约 5 分钟）：
+Expected（每词独立走完 强停→首页→搜索页→打字→过滤 全链路，约 5 分钟；居中检查在首词计数之后打印）：
 
 ```
-PASS  键帽文字居中: 最大偏移 dx=≤10 dy=≤12px（键 ?；基线 33/20，容差 10/12）
 PASS  LB: 共找到 82 首（期望 82）
+PASS  键帽文字居中: 最大偏移 dx=≤10 dy=≤12px（键 ?；基线 33/20，容差 10/12）
 PASS  CQMYG: 共找到 1 首（期望 1）
 PASS  JYS: 共找到 14 首（期望 14）
 PASS  DENGGUANQUELOU: 共找到 1 首（期望 1）
