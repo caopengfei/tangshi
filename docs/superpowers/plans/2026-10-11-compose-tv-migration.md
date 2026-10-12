@@ -843,9 +843,11 @@ import com.rakor.tangshi.ui.components.normalPillColors
 替换为：
 ```kotlin
                     Card(
-                        // OK 由下方 onPreviewKeyEvent 消费（Enter/NumPadEnter 一并覆盖）；
-                        // onClick 兜底同语义，双保险不重复触发（preview 消费后 clickable 收不到）
-                        onClick = { okOnPoemArea() },
+                        // OK 只走下方 onPreviewKeyEvent 单路径（KeyDown 消费，Enter/NumPadEnter 一并覆盖）。
+                        // onClick 必须是空操作：preview 对 KeyUp 返回 false 不消费，官方 handleDPadEnter 会在
+                        // KeyUp 上触发 onClick——曾因此处挂 okOnPoemArea 双调用，第二次常读到已离开 IDLE 的
+                        // 状态而走 stopPlayback 掐死播放（2026-10-12 实测双日志确认，已修）。
+                        onClick = {},
                         modifier = Modifier
                             .cardRestingShadow(20)
                             .weight(1f)
