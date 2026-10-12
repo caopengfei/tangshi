@@ -400,6 +400,8 @@ private fun KeyBox(
             focusedBorder = Border(border = BorderStroke(3.dp, T.Orange), shape = RoundedCornerShape(KeyCorner))
         ),
     ) {
-        Box(contentAlignment = Alignment.Center, content = content)
+        // fillMaxSize 必需：Surface 内容按 top-start 放置，不填满则文字顶在键帽左上角
+        // （实测偏移 dx=33 dy=20px），填满后 contentAlignment=Center 才真正生效
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center, content = content)
     }
 }
