@@ -18,7 +18,8 @@ class SearchIntegrationTest {
 
     private fun assetText(rel: String): String =
         listOf(File("src/main/assets/$rel"), File("app/src/main/assets/$rel"))
-            .first { it.exists() }.readText()
+            .firstOrNull { it.exists() }?.readText()
+            ?: error("找不到资产 $rel（工作目录 ${File(".").absolutePath}）")
 
     private val poems: List<Poem> = json.decodeFromString(assetText("content/poems.json"))
     private val index: SearchIndex = json.decodeFromString(assetText("content/search_index.json"))
@@ -46,7 +47,8 @@ class SearchIntegrationTest {
         assertTrue(v.isNotEmpty())
     }
 
-    /** 索引覆盖闭环：poems.json 每 id 每诗人都有索引条目（防改诗后忘重跑工具） */
+    /** 索引覆盖闭环：锚 id 集合与诗人名集合（防增删诗/改诗人名后忘重跑工具；
+     *  同 id 改标题的陈旧值不在此拦，由生成物全量打印人审兜底） */
     @Test fun `索引完整覆盖诗库`() {
         assertEquals(poems.map { it.id }.toSet(), index.titles.keys)
         assertEquals(poems.map { it.poet }.toSet(), index.poets.keys)

@@ -35,4 +35,5 @@ class SearchMatcherTest {
     @Test fun `不命中`() = assertFalse(SearchMatcher.matches(poems[0], "xyz", keys(poems[0])))
     @Test fun `空关键字命中全部`() = assertTrue(poems.all { SearchMatcher.matches(it, "", keys(it)) })
     @Test fun `V 形输入与 U 形等价`() = assertTrue(SearchMatcher.matches(poems[1], "lvshui", keys(poems[1])))
+    @Test fun `带调首字归一`() = assertTrue(SearchMatcher.matches(poems[1], "eee", keys(poems[1])))
 }
