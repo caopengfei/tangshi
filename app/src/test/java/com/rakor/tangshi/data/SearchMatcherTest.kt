@@ -36,4 +36,8 @@ class SearchMatcherTest {
     @Test fun `空关键字命中全部`() = assertTrue(poems.all { SearchMatcher.matches(it, "", keys(it)) })
     @Test fun `V 形输入与 U 形等价`() = assertTrue(SearchMatcher.matches(poems[1], "lvshui", keys(poems[1])))
     @Test fun `带调首字归一`() = assertTrue(SearchMatcher.matches(poems[1], "eee", keys(poems[1])))
+
+    /** 隔离守卫 lineInitKey：eeqx 只能经首字母段命中（全拼段为 eeequ…无此子串）——
+     *  去调缺失时 init 段为 éééqx 该断言必红；eee 走全拼通道守不住此缺陷 */
+    @Test fun `首字母通道跨带调字`() = assertTrue(SearchMatcher.matches(poems[1], "eeqx", keys(poems[1])))
 }
