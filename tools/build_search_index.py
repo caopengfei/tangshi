@@ -29,8 +29,8 @@ def strip_tone(s: str) -> str:
 
 def make_key(text: str, override) -> dict:
     natural = lazy_pinyin(text, style=Style.NORMAL)
-    if override is not None and len(override) != len(natural):
-        raise SystemExit(f"override 音节数与分词不符: {text!r} -> {override}")
+    if override is not None and (not isinstance(override, list) or len(override) != len(natural)):
+        raise SystemExit(f"override 须为音节列表且与分词等长: {text!r} -> {override!r}")
     syllables = override if override is not None else natural
     full = strip_tone("".join(syllables))
     # 首字母只取 ASCII 音节首字符——标题里的全角括号/间隔号（古朗月行（节选）、
