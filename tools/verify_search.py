@@ -151,12 +151,12 @@ def type_word(word):
     if any(n["text"].startswith("诗人：") for n in dump_state()[0]):
         raise RuntimeError("检测到旧版「诗人：」筛选钮——诗人选择应已删除")
     keyevent(23)  # 关键字框 OK → 键盘首键 A
-    for ch in word:
+    for i, ch in enumerate(word):
         to_key(ch)
         keyevent(23)
         got = keyword_value(dump_state()[0])
-        if got != word[:word.index(ch) + 1]:
-            raise RuntimeError(f"打字断言失败：期望 {word[:word.index(ch) + 1]}，实际 {got}")
+        if got != word[: i + 1]:
+            raise RuntimeError(f"打字断言失败：期望 {word[: i + 1]}，实际 {got}")
 
 
 def check_centering(tolerance=(10, 12)):
@@ -203,7 +203,9 @@ def main(words):
         got_count = count_of(ns)
         want = EXPECTED.get(w)
         ok = want is None or got_count == want
-        print(f"{'PASS' if ok else 'FAIL'}  {w}: 共找到 {got_count} 首" +
+        shown = ("空结果（没有找到相关唐诗）" if got_count is None
+                 else f"共找到 {got_count} 首")
+        print(f"{'PASS' if ok else 'FAIL'}  {w}: {shown}" +
               (f"（期望 {want}）" if want else ""))
         if not ok:
             failures.append(w)
