@@ -298,9 +298,11 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                 Column(Modifier.weight(1.4f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     // 诗行卡 = 一个焦点目标（初始焦点落这里，聚焦橙描边），◀▶/OK 在其聚焦时生效
                     Card(
-                        // OK 由下方 onPreviewKeyEvent 消费（Enter/NumPadEnter 一并覆盖）；
-                        // onClick 兜底同语义，双保险不重复触发（preview 消费后 clickable 收不到）
-                        onClick = { okOnPoemArea() },
+                        // OK 只走下方 onPreviewKeyEvent 单路径（KeyDown 消费，Enter/NumPadEnter 一并覆盖）。
+                        // onClick 必须是空操作：preview 对 KeyUp 返回 false 不消费，官方 handleDPadEnter 会在
+                        // KeyUp 上触发 onClick——若此处挂 okOnPoemArea 会双调用（第二次常读到已离开 IDLE 的
+                        // 状态而走 stopPlayback，把刚起的播放掐死，2026-10-12 实测双日志确认）。
+                        onClick = {},
                         modifier = Modifier
                             .cardRestingShadow(20)
                             .weight(1f)
