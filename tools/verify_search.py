@@ -5,7 +5,7 @@
     python tools/verify_search.py LB CQMYG DENGGUANQUELOU
 
 每个词独立一轮：强停→启动→首页 D-pad 进搜索页→OK 进键盘→贪心导航逐键 OK 打字→
-断言关键字与结果计数。期望计数在 EXPECTED 表（与 SearchMatcherTest 同源口径）。
+断言关键字与结果计数。期望计数在 EXPECTED 表（与集成测试/模拟口径同源）。
 """
 import subprocess
 import sys

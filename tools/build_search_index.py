@@ -3,7 +3,7 @@
 
 TV 搜索页（2026-10-12 规格）按首字母搜索：LB→李白、CQMYG→床前明月光。
 运行时无拼音库，标题/诗人的拼音在此构建期生成；诗句键由运行时从 CharPy 计算
-（人工校对的权威数据，不进本文件）。
+（人工校对的权威数据，不进本文件）。full/init 均为纯 a-z 连写，标点剔除。
 
 多音字：pypinyin 词组级上下文 + tools/search_index_overrides.json 人工裁定。
 校验：重复诗 id、过期 override、override 音节数、空键——任一非零退出，
@@ -32,7 +32,7 @@ def make_key(text: str, override) -> dict:
     if override is not None and (not isinstance(override, list) or len(override) != len(natural)):
         raise SystemExit(f"override 须为音节列表且与分词等长: {text!r} -> {override!r}")
     syllables = override if override is not None else natural
-    full = strip_tone("".join(syllables))
+    full = "".join(c for c in strip_tone("".join(syllables)) if c.isascii() and c.isalpha())
     # 首字母只取 ASCII 音节首字符——标题里的全角括号/间隔号（古朗月行（节选）、
     # 无题·重帏）不得混进首字母串
     init = "".join(s[0] for s in syllables
