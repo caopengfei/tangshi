@@ -393,6 +393,10 @@ class SearchMatcherTest {
     @Test fun `空关键字命中全部`() = assertTrue(poems.all { SearchMatcher.matches(it, "", keys(it)) })
     @Test fun `V 形输入与 U 形等价`() = assertTrue(SearchMatcher.matches(poems[1], "lvshui", keys(poems[1])))
     @Test fun `带调首字归一`() = assertTrue(SearchMatcher.matches(poems[1], "eee", keys(poems[1])))
+
+    /** 隔离守卫 lineInitKey：eeqx 只能经首字母段命中（全拼段为 eeequ…无此子串）——
+     *  去调缺失时 init 段为 éééqx 该断言必红；eee 走全拼通道守不住此缺陷 */
+    @Test fun `首字母通道跨带调字`() = assertTrue(SearchMatcher.matches(poems[1], "eeqx", keys(poems[1])))
 }
 ```
 
@@ -557,7 +561,7 @@ object SearchMatcher {
 
 Run: `./gradlew :app:testDebugUnitTest --tests "*SearchMatcherTest" --tests "*SearchIntegrationTest" -q`
 
-Expected: `BUILD SUCCESSFUL`（夹具 14 + 集成 6 全 PASS）。集成计数若与 82/1/1 对不上，先核对 `search_index.json` 是否为 Task 1 最新生成物，再查实现——不得改期望值迁就（修正版模拟已核：lineInitKey 去调修复不改变 82/1/14/1/2 五个期望值）。
+Expected: `BUILD SUCCESSFUL`（夹具 15 + 集成 6 全 PASS）。集成计数若与 82/1/1 对不上，先核对 `search_index.json` 是否为 Task 1 最新生成物，再查实现——不得改期望值迁就（修正版模拟已核：lineInitKey 去调修复不改变 82/1/14/1/2 五个期望值）。
 
 - [ ] **Step 7: 全量回归 + 提交**
 
