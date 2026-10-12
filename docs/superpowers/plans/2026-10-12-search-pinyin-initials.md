@@ -559,7 +559,7 @@ git add app/src/test/java/com/rakor/tangshi/data/TestFixtures.kt \
 git commit -m "feat: SearchMatcher 首字母+诗人匹配——删诗人过滤，五段合并键双通道"
 ```
 
-注：此时 `SearchScreen.kt` 尚引用旧 API，编译整包会失败——本任务只跑单测（单测源集不编译 UI），Task 4 完成后整体编译恢复。
+注（执行勘误，实测修正）：此时 `SearchScreen.kt:161` 仍引用旧 5 参 `matches`，而 **`testDebugUnitTest` 依赖 `compileDebugKotlin`**（"单测源集不编译 UI"论断不成立）——Step 6/7 的验证需临时把该行改为新 4 参调用 `SearchMatcher.matches(it, keyword, vm.pinyinKeys.getValue(it.id), keywordKey)` 跑测，跑完 `git checkout -- app/src/main/java/com/rakor/tangshi/ui/screens/search/SearchScreen.kt` 还原。**提交树上单独跑 `testDebugUnitTest` 会红，属计划内已知状态，Task 4 Step 8 的 assembleDebug 才是首次无补丁全量编译。**
 
 ---
 
