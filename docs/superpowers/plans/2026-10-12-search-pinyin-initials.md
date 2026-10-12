@@ -15,6 +15,10 @@
 - gradle 用 `cd D:/develop/src/rakor/tangshi && ./gradlew ...`（Git Bash）。
 - 实机验证脚本 `tools/verify_search.py` 已随本计划提交（导航/入口/居中/计数断言已在旧构建上验证过失败行为符合预期）。
 
+**执行勘误（Task 1 实施中裁定）：**
+1. **多音字 override 非空**：pypinyin 实测 16 处误读（重送/重别/重帏/几重 zhong→chong、长干行/长相思 zhang→chang、鹿柴 chai→zhai、泊×3 po→bo、天姥 lao→mu、给事 gei→ji、岑参 cencan→censhen），已按 Step 4 规则写入 override——计划"预期空表"作废，Step 4 清单中的"预跑已核对 ✓"标注不可当 ground truth。
+2. **ü 形式统一为 u**：pypinyin NORMAL 输出 v 形（lv/nv），运行时 CharPy 是 ü 形（strip 后 lu/nu）——工具 `strip_tone` 与运行时 `stripTone` 均加 `.replace("v","u")`（pinyin 中 v 只作 ü 替身），用户敲 v 也能命中。
+
 ---
 
 ## 文件结构
@@ -364,6 +368,7 @@ class SearchMatcherTest {
     }
     @Test fun `不命中`() = assertFalse(SearchMatcher.matches(poems[0], "xyz", keys(poems[0])))
     @Test fun `空关键字命中全部`() = assertTrue(poems.all { SearchMatcher.matches(it, "", keys(it)) })
+    @Test fun `V 形输入与 U 形等价`() = assertTrue(SearchMatcher.matches(poems[1], "lvshui", keys(poems[1])))
 }
 ```
 
@@ -413,6 +418,12 @@ class SearchIntegrationTest {
     @Test fun `DENGGUANQUELOU 命中登鹳雀楼`() = assertEquals(listOf("deng-que-lou"), hits("DENGGUANQUELOU"))
 
     @Test fun `全拼通道保留 chuangqian 命中静夜思`() = assertTrue("jing-ye-si" in hits("chuangqian"))
+
+    @Test fun `V 形与 U 形全拼等价命中洛阳女儿行`() {
+        val v = hits("LUOYANGNVERXING")
+        assertEquals(hits("LUOYANGNUERXING"), v)
+        assertTrue(v.isNotEmpty())
+    }
 }
 ```
 
@@ -494,9 +505,10 @@ object SearchMatcher {
             line.chars.joinToString("") { it.py.first().lowercase() }
         }
 
-    /** 去声调 + 小写：NFD 分解去组合变音符（ǔ→u），供匹配与缓存共用 */
+    /** 去声调 + 小写：NFD 分解去组合变音符（ǔ→u）+ v→u（lv→lu，与索引侧口径统一） */
     internal fun stripTone(s: String): String =
-        Normalizer.normalize(s, Normalizer.Form.NFD).replace(COMBINING_MARKS, "").lowercase()
+        Normalizer.normalize(s, Normalizer.Form.NFD).replace(COMBINING_MARKS, "")
+            .lowercase().replace("v", "u")
 }
 ```
 
@@ -504,7 +516,7 @@ object SearchMatcher {
 
 Run: `./gradlew :app:testDebugUnitTest --tests "*SearchMatcherTest" --tests "*SearchIntegrationTest" -q`
 
-Expected: `BUILD SUCCESSFUL`（夹具 12 + 集成 4 全 PASS）。集成计数若与 82/1/1 对不上，先核对 `search_index.json` 是否为 Task 1 最新生成物，再查实现——不得改期望值迁就。
+Expected: `BUILD SUCCESSFUL`（夹具 13 + 集成 5 全 PASS）。集成计数若与 82/1/1 对不上，先核对 `search_index.json` 是否为 Task 1 最新生成物，再查实现——不得改期望值迁就。
 
 - [ ] **Step 7: 全量回归 + 提交**
 
