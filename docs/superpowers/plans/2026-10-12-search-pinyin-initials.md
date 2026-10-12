@@ -61,6 +61,8 @@
 
 - [ ] **Step 2: 写生成工具**
 
+> ⚠️ 下方代码块为初始规格；**以 `tools/build_search_index.py` 现文件为准**（后续质量修复——v→u 归一、override 形状校验、`_readme`、死代码清理——已回写工具但未逐 hunk 回写本块，机械照抄会复活旧缺陷）。
+
 `tools/build_search_index.py`：
 
 ```python
