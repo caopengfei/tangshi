@@ -3,6 +3,8 @@ package com.rakor.tangshi.data
 import com.rakor.tangshi.data.model.CharPy
 import com.rakor.tangshi.data.model.Line
 import com.rakor.tangshi.data.model.Poem
+import com.rakor.tangshi.data.model.PyKey
+import com.rakor.tangshi.data.model.SearchIndex
 
 /** 测试夹具：与 assets/content/poems.json 同构的最小诗库（静夜思/咏鹅，拼音取自真实数据） */
 object TestFixtures {
@@ -31,6 +33,18 @@ object TestFixtures {
                 line("白毛浮绿水，", "bái", "máo", "fú", "lǜ", "shuǐ"),
                 line("红掌拨清波。", "hóng", "zhǎng", "bō", "qīng", "bō")
             )
+        )
+    )
+
+    /** 索引夹具：与 search_index.json 同构（键值取真实生成结果口径） */
+    fun searchIndex(): SearchIndex = SearchIndex(
+        poets = mapOf(
+            "李白" to PyKey("libai", "lb"),
+            "骆宾王" to PyKey("luobinwang", "lbw")
+        ),
+        titles = mapOf(
+            "jing-ye-si" to PyKey("jingyesi", "jys"),
+            "yong-e" to PyKey("yonge", "ye")
         )
     )
 }

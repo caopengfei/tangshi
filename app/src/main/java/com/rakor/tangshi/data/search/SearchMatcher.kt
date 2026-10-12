@@ -1,50 +1,72 @@
 package com.rakor.tangshi.data.search
 
 import com.rakor.tangshi.data.model.Poem
+import com.rakor.tangshi.data.model.SearchIndex
 import java.text.Normalizer
 
 /** 组合变音符正则：顶层只编译一次（此前 stripTone 内联 Regex，每次过滤每诗重编译） */
 private val COMBINING_MARKS = Regex("\\p{M}+")
 
 /**
- * 搜索匹配纯函数（规格 5.3）。
+ * 搜索匹配纯函数（规格 5.3，2026-10-12 改版）。
  *
- * 匹配范围（控制器裁定）：拼音数据只存在于诗句 chars（数据模型 title 无逐字拼音，
- * 运行时也无拼音库依赖），因此——
- * - 汉字命中：标题 + 全部诗句文本 contains 关键字（标题用汉字搜）；
- * - 全拼命中：诗句逐字拼音去声调连串 contains 关键字去声调形式（lǜ → lu，
- *   键盘 A-Z 无 ü，NFD 分解去变音符后自然对齐）。
+ * 匹配范围：汉字关键字命中标题 + 全部诗句 + 诗人名（实体键盘可打中文）；
+ * 拼音命中走 [buildKeys] 预构建合并键——首字母（LB→李白、CQMYG→床前明月光）
+ * 与全拼（chuangqian）双通道。拼音数据：诗句来自逐字 CharPy（人工校对，运行时算），
+ * 标题/诗人来自 search_index.json（构建期 pypinyin 生成，缺条目降级空串段）。
  */
 object SearchMatcher {
 
-    /** 测试锚定的三参入口；VM 热路径走五参重载（预构建两类键，每诗仅两次 contains） */
-    fun matches(poem: Poem, poetFilter: String?, keyword: String): Boolean =
-        matches(poem, poetFilter, keyword, pinyinKey(poem), stripTone(keyword.trim()))
+    /** 通用入口；VM 热路径走四参重载（keywordKey 预计算） */
+    fun matches(poem: Poem, keyword: String, keys: String): Boolean =
+        matches(poem, keyword, keys, stripTone(keyword.trim()))
 
     /**
-     * 热路径重载：[pinyin] 为该诗预构建的全拼键（见 [pinyinKey]），[keywordKey] 为
+     * 热路径重载：[keys] 为 [buildKeys] 预构建合并键，[keywordKey] 为
      * stripTone(keyword.trim())——循环不变量，调用方每个按键只算一次；
-     * 语义与三参版完全一致，每首诗只剩汉字文本 / 拼音键两次 contains。
+     * 每首诗只剩汉字文本 / 合并键两次 contains（310+ 首逐键过滤无重复拼接）。
      */
     internal fun matches(
         poem: Poem,
-        poetFilter: String?,
         keyword: String,
-        pinyin: String,
+        keys: String,
         keywordKey: String
     ): Boolean {
-        if (!poetFilter.isNullOrBlank() && poem.poet != poetFilter) return false
         val kw = keyword.trim()
         if (kw.isEmpty()) return true
-        val text = poem.title + poem.lines.joinToString("") { it.text }
-        return text.contains(kw) || pinyin.contains(keywordKey)
+        val text = poem.title + poem.lines.joinToString("") { it.text } + poem.poet
+        return text.contains(kw) || keys.contains(keywordKey)
+    }
+
+    /**
+     * 每诗合并键：五段 `/` 分隔——诗句全拼+首字母 / 标题全拼 / 标题首字母 /
+     * 诗人全拼 / 诗人首字母。索引缺键段为空串（降级，诗句键仍可命中）；
+     * 查询串只含 A-Z/汉字、不含 `/`，不会跨段拼出假命中。
+     */
+    fun buildKeys(poem: Poem, index: SearchIndex): String {
+        val title = index.titles[poem.id]
+        val poet = index.poets[poem.poet]
+        return listOf(
+            pinyinKey(poem) + lineInitKey(poem),
+            title?.full.orEmpty(),
+            title?.init.orEmpty(),
+            poet?.full.orEmpty(),
+            poet?.init.orEmpty()
+        ).joinToString("/")
     }
 
     /** 全诗拼音键：诗句逐字拼音去声调连写（如 chuangqianmingyueguang…），VM 初始化预构建一次 */
     internal fun pinyinKey(poem: Poem): String =
         stripTone(poem.lines.joinToString("") { line -> line.chars.joinToString("") { it.py } })
 
-    /** 去声调 + 小写：NFD 分解去组合变音符（ǔ→u），供匹配与缓存共用 */
+    /** 诗句首字母键：逐字拼音首字母小写连写（床前明月光 → cqmyg），与全拼同源 CharPy */
+    internal fun lineInitKey(poem: Poem): String =
+        poem.lines.joinToString("") { line ->
+            line.chars.joinToString("") { it.py.first().lowercase() }
+        }
+
+    /** 去声调 + 小写：NFD 分解去组合变音符（ǔ→u）+ v→u（lv→lu，与索引侧口径统一） */
     internal fun stripTone(s: String): String =
-        Normalizer.normalize(s, Normalizer.Form.NFD).replace(COMBINING_MARKS, "").lowercase()
+        Normalizer.normalize(s, Normalizer.Form.NFD).replace(COMBINING_MARKS, "")
+            .lowercase().replace("v", "u")
 }
