@@ -89,9 +89,9 @@ OVERRIDES = ROOT / "tools/search_index_overrides.json"
 
 
 def strip_tone(s: str) -> str:
-    """与运行时 SearchMatcher.stripTone 同口径：NFD 去变音符 + 小写（lü→lu）。"""
+    """与运行时 SearchMatcher.stripTone 同口径：NFD 去变音符 + 小写 + v→u（lü→lu）。"""
     decomposed = unicodedata.normalize("NFD", s)
-    return "".join(c for c in decomposed if not unicodedata.combining(c)).lower()
+    return "".join(c for c in decomposed if not unicodedata.combining(c)).lower().replace("v", "u")
 
 
 def make_key(text: str, override) -> dict:
@@ -150,7 +150,7 @@ if __name__ == "__main__":
 
 Run: `cd D:/develop/src/rakor/tangshi && python tools/build_search_index.py`
 
-Expected 首行：`poets=76 titles=325 -> app/src/main/assets/content/search_index.json`，后接 401 行全量打印。
+Expected 首行：`poets=76 titles=325 -> .../search_index.json`（路径分隔符随平台，Windows 下为反斜杠），后接 401 行全量打印。
 
 独立对账（预期输出 `325 76`）：
 
@@ -424,6 +424,12 @@ class SearchIntegrationTest {
         assertEquals(hits("LUOYANGNUERXING"), v)
         assertTrue(v.isNotEmpty())
     }
+
+    /** 索引覆盖闭环：poems.json 每 id 每诗人都有索引条目（防改诗后忘重跑工具） */
+    @Test fun `索引完整覆盖诗库`() {
+        assertEquals(poems.map { it.id }.toSet(), index.titles.keys)
+        assertEquals(poems.map { it.poet }.toSet(), index.poets.keys)
+    }
 }
 ```
 
@@ -516,7 +522,7 @@ object SearchMatcher {
 
 Run: `./gradlew :app:testDebugUnitTest --tests "*SearchMatcherTest" --tests "*SearchIntegrationTest" -q`
 
-Expected: `BUILD SUCCESSFUL`（夹具 13 + 集成 5 全 PASS）。集成计数若与 82/1/1 对不上，先核对 `search_index.json` 是否为 Task 1 最新生成物，再查实现——不得改期望值迁就。
+Expected: `BUILD SUCCESSFUL`（夹具 13 + 集成 6 全 PASS）。集成计数若与 82/1/1 对不上，先核对 `search_index.json` 是否为 Task 1 最新生成物，再查实现——不得改期望值迁就。
 
 - [ ] **Step 7: 全量回归 + 提交**
 
