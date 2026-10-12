@@ -23,9 +23,9 @@ OVERRIDES = ROOT / "tools/search_index_overrides.json"
 
 
 def strip_tone(s: str) -> str:
-    """与运行时 SearchMatcher.stripTone 同口径：NFD 去变音符 + 小写（lü→lu）。"""
+    """与运行时 SearchMatcher.stripTone 同口径：NFD 去变音符 + 小写 + v→u（lü→lu）。"""
     decomposed = unicodedata.normalize("NFD", s)
-    return "".join(c for c in decomposed if not unicodedata.combining(c)).lower()
+    return "".join(c for c in decomposed if not unicodedata.combining(c)).lower().replace("v", "u")
 
 
 def make_key(text: str, override) -> dict:

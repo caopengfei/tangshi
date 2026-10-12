@@ -759,7 +759,7 @@
       "init": "jlt"
     },
     "jin-lv-yi": {
-      "full": "jinlvyi",
+      "full": "jinluyi",
       "init": "jly"
     },
     "jin-se": {
@@ -819,7 +819,7 @@
       "init": "lzc"
     },
     "lie-nv-cao": {
-      "full": "lienvcao",
+      "full": "lienucao",
       "init": "lnc"
     },
     "liu-bie-wang-wei": {
@@ -847,15 +847,15 @@
       "init": "lh"
     },
     "luo-yang-nv-er-xing": {
-      "full": "luoyangnverxing",
+      "full": "luoyangnuerxing",
       "init": "lynex"
     },
     "lv-su": {
-      "full": "lvsu",
+      "full": "lusu",
       "init": "ls"
     },
     "lv-ye-shu-huai": {
-      "full": "lvyeshuhuai",
+      "full": "luyeshuhuai",
       "init": "lysh"
     },
     "ma-wei-po": {
@@ -887,7 +887,7 @@
       "init": "ppx"
     },
     "pin-nv": {
-      "full": "pinnv",
+      "full": "pinnu",
       "init": "pn"
     },
     "po-qin-huai": {
@@ -1083,7 +1083,7 @@
       "init": "swwzj"
     },
     "song-yang-shi-nv": {
-      "full": "songyangshinv",
+      "full": "songyangshinu",
       "init": "sysn"
     },
     "song-you-ren": {
