@@ -1,0 +1,22 @@
+{
+  "poets": {
+    "岑参": ["cen", "shen"]
+  },
+  "titles": {
+    "feng-ji-yi-zhong-song-yan-gong-si-yun": ["feng", "ji", "yi", "chong", "song", "yan", "gong", "si", "yun"],
+    "feng-qiao-ye-bo": ["feng", "qiao", "ye", "bo"],
+    "jiang-zhou-zhong-bie-xue-liu-liu": ["jiang", "zhou", "chong", "bie", "xue", "liu", "liu"],
+    "lu-chai": ["lu", "zhai"],
+    "meng-you-tian-lao-yin-liu-bie": ["meng", "you", "tian", "mu", "yin", "liu", "bie"],
+    "po-qin-huai": ["bo", "qin", "huai"],
+    "wu-ti-feng-wei-xiang-luo-bao-ji-zhong": ["wu", "ti", "·", "feng", "wei", "xiang", "luo", "bao", "ji", "chong"],
+    "wu-ti-zhong-wei-shen-xia-mo-chou-tang": ["wu", "ti", "·", "chong", "wei", "shen", "xia", "mo", "chou", "tang"],
+    "ye-po-niu-zhu-huai-gu": ["ye", "bo", "niu", "zhu", "huai", "gu"],
+    "zeng-guo-gei-shi": ["zeng", "guo", "ji", "shi"],
+    "zhang-gan-hang-jia-lin-jiu-jiang-shui": ["chang", "gan", "xing", "·", "jia", "lin", "jiu", "jiang", "shui"],
+    "zhang-gan-xing-jun-jia-he-chu-zhu": ["chang", "gan", "xing", "·", "jun", "jia", "he", "chu", "zhu"],
+    "zhang-gan-xing-qi-yi": ["chang", "gan", "xing", "·", "qi", "yi"],
+    "zhang-xiang-si-qi-er": ["chang", "xiang", "si", "·", "qi", "er"],
+    "zhang-xiang-si-qi-yi": ["chang", "xiang", "si", "·", "qi", "yi"]
+  }
+}

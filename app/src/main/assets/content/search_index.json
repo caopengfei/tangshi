@@ -1,0 +1,1610 @@
+{
+  "poets": {
+    "丘为": {
+      "full": "qiuwei",
+      "init": "qw"
+    },
+    "佚名": {
+      "full": "yiming",
+      "init": "ym"
+    },
+    "元稹": {
+      "full": "yuanzhen",
+      "init": "yz"
+    },
+    "元结": {
+      "full": "yuanjie",
+      "init": "yj"
+    },
+    "刘方平": {
+      "full": "liufangping",
+      "init": "lfp"
+    },
+    "刘昚虚": {
+      "full": "liushenxu",
+      "init": "lsx"
+    },
+    "刘禹锡": {
+      "full": "liuyuxi",
+      "init": "lyx"
+    },
+    "刘长卿": {
+      "full": "liuzhangqing",
+      "init": "lzq"
+    },
+    "卢纶": {
+      "full": "lulun",
+      "init": "ll"
+    },
+    "司空曙": {
+      "full": "sikongshu",
+      "init": "sks"
+    },
+    "孟浩然": {
+      "full": "menghaoran",
+      "init": "mhr"
+    },
+    "孟郊": {
+      "full": "mengjiao",
+      "init": "mj"
+    },
+    "宋之问": {
+      "full": "songzhiwen",
+      "init": "szw"
+    },
+    "岑参": {
+      "full": "censhen",
+      "init": "cs"
+    },
+    "崔曙": {
+      "full": "cuishu",
+      "init": "cs"
+    },
+    "崔涂": {
+      "full": "cuitu",
+      "init": "ct"
+    },
+    "崔颢": {
+      "full": "cuihao",
+      "init": "ch"
+    },
+    "常建": {
+      "full": "changjian",
+      "init": "cj"
+    },
+    "张乔": {
+      "full": "zhangqiao",
+      "init": "zq"
+    },
+    "张九龄": {
+      "full": "zhangjiuling",
+      "init": "zjl"
+    },
+    "张旭": {
+      "full": "zhangxu",
+      "init": "zx"
+    },
+    "张泌": {
+      "full": "zhangmi",
+      "init": "zm"
+    },
+    "张祜": {
+      "full": "zhanghu",
+      "init": "zh"
+    },
+    "张籍": {
+      "full": "zhangji",
+      "init": "zj"
+    },
+    "张继": {
+      "full": "zhangji",
+      "init": "zj"
+    },
+    "戴叔伦": {
+      "full": "daishulun",
+      "init": "dsl"
+    },
+    "朱庆馀": {
+      "full": "zhuqingyu",
+      "init": "zqy"
+    },
+    "权德舆": {
+      "full": "quandeyu",
+      "init": "qdy"
+    },
+    "李商隐": {
+      "full": "lishangyin",
+      "init": "lsy"
+    },
+    "李白": {
+      "full": "libai",
+      "init": "lb"
+    },
+    "李益": {
+      "full": "liyi",
+      "init": "ly"
+    },
+    "李端": {
+      "full": "liduan",
+      "init": "ld"
+    },
+    "李绅": {
+      "full": "lishen",
+      "init": "ls"
+    },
+    "李隆基": {
+      "full": "lilongji",
+      "init": "llj"
+    },
+    "李颀": {
+      "full": "liqi",
+      "init": "lq"
+    },
+    "杜审言": {
+      "full": "dushenyan",
+      "init": "dsy"
+    },
+    "杜牧": {
+      "full": "dumu",
+      "init": "dm"
+    },
+    "杜甫": {
+      "full": "dufu",
+      "init": "df"
+    },
+    "杜荀鹤": {
+      "full": "duxunhe",
+      "init": "dxh"
+    },
+    "柳中庸": {
+      "full": "liuzhongyong",
+      "init": "lzy"
+    },
+    "柳宗元": {
+      "full": "liuzongyuan",
+      "init": "lzy"
+    },
+    "沈佺期": {
+      "full": "shenquanqi",
+      "init": "sqq"
+    },
+    "温庭筠": {
+      "full": "wentingyun",
+      "init": "wty"
+    },
+    "王之涣": {
+      "full": "wangzhihuan",
+      "init": "wzh"
+    },
+    "王勃": {
+      "full": "wangbo",
+      "init": "wb"
+    },
+    "王建": {
+      "full": "wangjian",
+      "init": "wj"
+    },
+    "王昌龄": {
+      "full": "wangchangling",
+      "init": "wcl"
+    },
+    "王湾": {
+      "full": "wangwan",
+      "init": "ww"
+    },
+    "王维": {
+      "full": "wangwei",
+      "init": "ww"
+    },
+    "王翰": {
+      "full": "wanghan",
+      "init": "wh"
+    },
+    "白居易": {
+      "full": "baijuyi",
+      "init": "bjy"
+    },
+    "皇甫冉": {
+      "full": "huangfuran",
+      "init": "hfr"
+    },
+    "皎然": {
+      "full": "jiaoran",
+      "init": "jr"
+    },
+    "祖咏": {
+      "full": "zuyong",
+      "init": "zy"
+    },
+    "秦韬玉": {
+      "full": "qintaoyu",
+      "init": "qty"
+    },
+    "綦毋潜": {
+      "full": "qiwuqian",
+      "init": "qwq"
+    },
+    "薛逢": {
+      "full": "xuefeng",
+      "init": "xf"
+    },
+    "裴迪": {
+      "full": "peidi",
+      "init": "pd"
+    },
+    "西鄙人": {
+      "full": "xibiren",
+      "init": "xbr"
+    },
+    "许浑": {
+      "full": "xuhun",
+      "init": "xh"
+    },
+    "贺知章": {
+      "full": "hezhizhang",
+      "init": "hzz"
+    },
+    "贾岛": {
+      "full": "jiadao",
+      "init": "jd"
+    },
+    "郑畋": {
+      "full": "zhengtian",
+      "init": "zt"
+    },
+    "金昌绪": {
+      "full": "jinchangxu",
+      "init": "jcx"
+    },
+    "钱起": {
+      "full": "qianqi",
+      "init": "qq"
+    },
+    "陈子昂": {
+      "full": "chenziang",
+      "init": "cza"
+    },
+    "陈陶": {
+      "full": "chentao",
+      "init": "ct"
+    },
+    "韦庄": {
+      "full": "weizhuang",
+      "init": "wz"
+    },
+    "韦应物": {
+      "full": "weiyingwu",
+      "init": "wyw"
+    },
+    "韩偓": {
+      "full": "hanwo",
+      "init": "hw"
+    },
+    "韩愈": {
+      "full": "hanyu",
+      "init": "hy"
+    },
+    "韩翃": {
+      "full": "hanhong",
+      "init": "hh"
+    },
+    "顾况": {
+      "full": "gukuang",
+      "init": "gk"
+    },
+    "马戴": {
+      "full": "madai",
+      "init": "md"
+    },
+    "骆宾王": {
+      "full": "luobinwang",
+      "init": "lbw"
+    },
+    "高适": {
+      "full": "gaoshi",
+      "init": "gs"
+    }
+  },
+  "titles": {
+    "ai-jiang-tou": {
+      "full": "aijiangtou",
+      "init": "ajt"
+    },
+    "ai-wang-sun": {
+      "full": "aiwangsun",
+      "init": "aws"
+    },
+    "ba-shang-qiu-ju": {
+      "full": "bashangqiuju",
+      "init": "bsqj"
+    },
+    "ba-yue-shi-wu-ye-zeng-zhang-gong-cao": {
+      "full": "bayueshiwuyezengzhanggongcao",
+      "init": "byswyzzgc"
+    },
+    "ba-zhen-tu": {
+      "full": "bazhentu",
+      "init": "bzt"
+    },
+    "bai-xue-ge-song-wu-pan-guan-gui-jing": {
+      "full": "baixuegesongwupanguanguijing",
+      "init": "bxgswpggj"
+    },
+    "bei-qing-luo": {
+      "full": "beiqingluo",
+      "init": "bql"
+    },
+    "bie-fang-tai-wei-mu": {
+      "full": "biefangtaiweimu",
+      "init": "bftwm"
+    },
+    "bing-che-xing": {
+      "full": "bingchexing",
+      "init": "bcx"
+    },
+    "chan": {
+      "full": "chan",
+      "init": "c"
+    },
+    "chang-an-yu-feng-zhu": {
+      "full": "changanyufengzhu",
+      "init": "cayfz"
+    },
+    "chang-e": {
+      "full": "change",
+      "init": "ce"
+    },
+    "chang-hen-ge": {
+      "full": "changhenge",
+      "init": "chg"
+    },
+    "chang-sha-guo-jia-yi-zhai": {
+      "full": "changshaguojiayizhai",
+      "init": "csgjyz"
+    },
+    "chen-yi-chao-shi-yuan-du-chan-jing": {
+      "full": "chenyichaoshiyuanduchanjing",
+      "init": "cycsydcj"
+    },
+    "chi-bi": {
+      "full": "chibi",
+      "init": "cb"
+    },
+    "chou-bi-yi": {
+      "full": "choubiyi",
+      "init": "cby"
+    },
+    "chou-cheng-yan-qiu-ye-ji-shi-jian-zeng": {
+      "full": "chouchengyanqiuyejishijianzeng",
+      "init": "ccyqyjsjz"
+    },
+    "chou-zhang-shao-fu": {
+      "full": "chouzhangshaofu",
+      "init": "czsf"
+    },
+    "chu-fa-yang-zi-ji-yuan-da-xiao-shu": {
+      "full": "chufayangzijiyuandaxiaoshu",
+      "init": "cfyzjydxs"
+    },
+    "chu-jiang-huai-gu-san-shou-qi-yi": {
+      "full": "chujianghuaigusanshou·qiyi",
+      "init": "cjhgssqy"
+    },
+    "chu-sai-qin-shi-ming-yue-han-shi-guan": {
+      "full": "chusai·qinshimingyuehanshiguan",
+      "init": "csqsmyhsg"
+    },
+    "chu-ye-you-huai": {
+      "full": "chuyeyouhuai",
+      "init": "cyyh"
+    },
+    "chu-zhou-xi-jian": {
+      "full": "chuzhouxijian",
+      "init": "czxj"
+    },
+    "chun-ci": {
+      "full": "chunci",
+      "init": "cc"
+    },
+    "chun-fan-ruo-ye-xi": {
+      "full": "chunfanruoyexi",
+      "init": "cfryx"
+    },
+    "chun-gong-qu": {
+      "full": "chungongqu",
+      "init": "cgq"
+    },
+    "chun-gong-yuan": {
+      "full": "chungongyuan",
+      "init": "cgy"
+    },
+    "chun-si": {
+      "full": "chunsi",
+      "init": "cs"
+    },
+    "chun-si-2": {
+      "full": "chunsi",
+      "init": "cs"
+    },
+    "chun-su-zuo-sheng": {
+      "full": "chunsuzuosheng",
+      "init": "cszs"
+    },
+    "chun-wang": {
+      "full": "chunwang",
+      "init": "cw"
+    },
+    "chun-xiao": {
+      "full": "chunxiao",
+      "init": "cx"
+    },
+    "chun-yu": {
+      "full": "chunyu",
+      "init": "cy"
+    },
+    "chun-yuan": {
+      "full": "chunyuan",
+      "init": "cy"
+    },
+    "chun-yuan-2": {
+      "full": "chunyuan",
+      "init": "cy"
+    },
+    "ci-bei-gu-shan-xia": {
+      "full": "cibeigushanxia",
+      "init": "cbgsx"
+    },
+    "dan-qing-yin-zeng-cao-ba-jiang-jun": {
+      "full": "danqingyinzengcaobajiangjun",
+      "init": "dqyzcbjj"
+    },
+    "deng-gao": {
+      "full": "denggao",
+      "init": "dg"
+    },
+    "deng-huang-he-lou": {
+      "full": "denghuanghelou",
+      "init": "dhhl"
+    },
+    "deng-jin-ling-feng-huang-tai": {
+      "full": "dengjinlingfenghuangtai",
+      "init": "djlfht"
+    },
+    "deng-le-you-yuan": {
+      "full": "dengleyouyuan",
+      "init": "dlyy"
+    },
+    "deng-liu-zhou-cheng-lou-ji-zhang-ting-feng-lian-si-zhou": {
+      "full": "dengliuzhouchengloujizhangtingfengliansizhou",
+      "init": "dlzcljztflsz"
+    },
+    "deng-lou": {
+      "full": "denglou",
+      "init": "dl"
+    },
+    "deng-que-lou": {
+      "full": "dengguanquelou",
+      "init": "dgql"
+    },
+    "deng-you-zhou-tai-ge": {
+      "full": "dengyouzhoutaige",
+      "init": "dyztg"
+    },
+    "deng-yue-yang-lou": {
+      "full": "dengyueyanglou",
+      "init": "dyyl"
+    },
+    "dong-jiao": {
+      "full": "dongjiao",
+      "init": "dj"
+    },
+    "du-bu-jian": {
+      "full": "dubujian",
+      "init": "dbj"
+    },
+    "du-han-jiang": {
+      "full": "duhanjiang",
+      "init": "dhj"
+    },
+    "du-jing-men-song-bie": {
+      "full": "dujingmensongbie",
+      "init": "djmsb"
+    },
+    "feng-he-sheng-zhi-cong-peng-lai-xiang-xing-qing-ge-dao": {
+      "full": "fengheshengzhicongpenglaixiangxingqinggedao",
+      "init": "fhszcplxxqgd"
+    },
+    "feng-he-zhong-shu-she-ren-jia-zhi-zao-chao": {
+      "full": "fenghezhongshusherenjiazhizaochao",
+      "init": "fhzssrjzzc"
+    },
+    "feng-ji-yi-zhong-song-yan-gong-si-yun": {
+      "full": "fengjiyichongsongyangongsiyun",
+      "init": "fjycsygsy"
+    },
+    "feng-qiao-ye-bo": {
+      "full": "fengqiaoyebo",
+      "init": "fqyb"
+    },
+    "feng-ru-jing-shi": {
+      "full": "fengrujingshi",
+      "init": "frjs"
+    },
+    "feng-yu": {
+      "full": "fengyu",
+      "init": "fy"
+    },
+    "fu-de-gu-yuan-cao-song-bie": {
+      "full": "fudeguyuancaosongbie",
+      "init": "fdgycsb"
+    },
+    "fu-de-mu-yu-song-li-cao": {
+      "full": "fudemuyusonglicao",
+      "init": "fdmyslc"
+    },
+    "fu-rong-lou-song-xin-jian": {
+      "full": "furonglousongxinjian",
+      "init": "frlsxj"
+    },
+    "gan-yu-gu-hong-hai-shang-lai": {
+      "full": "ganyu·guhonghaishanglai",
+      "init": "gyghhsl"
+    },
+    "gan-yu-jiang-nan-you-dan-ju": {
+      "full": "ganyu·jiangnanyoudanju",
+      "init": "gyjnydj"
+    },
+    "gan-yu-lan-ye-chun-wei-rui": {
+      "full": "ganyu·lanyechunweirui",
+      "init": "gylycwr"
+    },
+    "gan-yu-you-ren-gui-du-wo": {
+      "full": "ganyu·yourenguiduwo",
+      "init": "gyyrgdw"
+    },
+    "ge-shu-ge": {
+      "full": "geshuge",
+      "init": "gsg"
+    },
+    "ge-ye": {
+      "full": "geye",
+      "init": "gy"
+    },
+    "gong-ci": {
+      "full": "gongci",
+      "init": "gc"
+    },
+    "gong-ci-2": {
+      "full": "gongci",
+      "init": "gc"
+    },
+    "gong-ci-3": {
+      "full": "gongci",
+      "init": "gc"
+    },
+    "gong-zhong-ci": {
+      "full": "gongzhongci",
+      "init": "gzc"
+    },
+    "gu-bai-xing": {
+      "full": "gubaixing",
+      "init": "gbx"
+    },
+    "gu-cong-jun-xing": {
+      "full": "gucongjunxing",
+      "init": "gcjx"
+    },
+    "gu-kou-shu-zhai-ji-yang-bu-que": {
+      "full": "gukoushuzhaijiyangbuque",
+      "init": "gkszjybq"
+    },
+    "gu-lang-yu-xing": {
+      "full": "gulangyuexing（jiexuan）",
+      "init": "glyxjx"
+    },
+    "gu-yan": {
+      "full": "guyan",
+      "init": "gy"
+    },
+    "gu-yi": {
+      "full": "guyi",
+      "init": "gy"
+    },
+    "guan-gong-sun-da-niang-di-zi-wu-jian-qi-xing": {
+      "full": "guangongsundaniangdiziwujianqixing",
+      "init": "ggsdndzwjqx"
+    },
+    "guan-shan-yue": {
+      "full": "guanshanyue",
+      "init": "gsy"
+    },
+    "gui-song-shan-zuo": {
+      "full": "guisongshanzuo",
+      "init": "gssz"
+    },
+    "gui-yuan": {
+      "full": "guiyuan",
+      "init": "gy"
+    },
+    "guo-gu-ren-zhuang": {
+      "full": "guogurenzhuang",
+      "init": "ggrz"
+    },
+    "guo-xiang-ji-si": {
+      "full": "guoxiangjisi",
+      "init": "gxjs"
+    },
+    "han-bei": {
+      "full": "hanbei",
+      "init": "hb"
+    },
+    "han-jiang-lin-tiao": {
+      "full": "hanjianglintiao",
+      "init": "hjlt"
+    },
+    "han-shi": {
+      "full": "hanshi",
+      "init": "hs"
+    },
+    "he-jia-zhi-she-ren-zao-chao-da-ming-gong": {
+      "full": "hejiazhisherenzaochaodaminggong",
+      "init": "hjzsrzcdmg"
+    },
+    "he-jin-ling-lu-cheng-zao-chun-you-wang": {
+      "full": "hejinlingluchengzaochunyouwang",
+      "init": "hjllczcyw"
+    },
+    "hou-gong-ci": {
+      "full": "hougongci",
+      "init": "hgc"
+    },
+    "huai-shang-xi-hui-liang-zhou-gu-ren": {
+      "full": "huaishangxihuiliangzhouguren",
+      "init": "hsxhlzgr"
+    },
+    "huang-he-lou-song-meng-hao-ran-zhi-guang-ling": {
+      "full": "huanghelousongmenghaoranzhiguangling",
+      "init": "hhlsmhrzgl"
+    },
+    "hui-xiang-ou-shu-qi-yi": {
+      "full": "huixiangoushu·qiyi",
+      "init": "hxosqy"
+    },
+    "ji-han-jian-yi": {
+      "full": "jihanjianyi",
+      "init": "jhjy"
+    },
+    "ji-li-dan-yuan-xi": {
+      "full": "jilidanyuanxi",
+      "init": "jldyx"
+    },
+    "ji-ling-hu-lang-zhong": {
+      "full": "jilinghulangzhong",
+      "init": "jlhlz"
+    },
+    "ji-ling-tai-qi-er": {
+      "full": "jilingtai·qier",
+      "init": "jltqe"
+    },
+    "ji-ling-tai-qi-yi": {
+      "full": "jilingtai·qiyi",
+      "init": "jltqy"
+    },
+    "ji-quan-jiao-shan-zhong-dao-shi": {
+      "full": "jiquanjiaoshanzhongdaoshi",
+      "init": "jqjszds"
+    },
+    "ji-ren": {
+      "full": "jiren",
+      "init": "jr"
+    },
+    "ji-yang-zhou-han-chuo-pan-guan": {
+      "full": "jiyangzhouhanchuopanguan",
+      "init": "jyzhcpg"
+    },
+    "ji-yu-wang-chuan-zhuang-zuo": {
+      "full": "jiyuwangchuanzhuangzuo",
+      "init": "jywczz"
+    },
+    "ji-zuo-sheng-du-shi-yi": {
+      "full": "jizuoshengdushiyi",
+      "init": "jzsdsy"
+    },
+    "jia-ren": {
+      "full": "jiaren",
+      "init": "jr"
+    },
+    "jia-sheng": {
+      "full": "jiasheng",
+      "init": "js"
+    },
+    "jian-bie-wang-shi-yi-nan-you": {
+      "full": "jianbiewangshiyinanyou",
+      "init": "jbwsyny"
+    },
+    "jiang-fu-wu-xing-deng-le-you-yuan-yi-jue": {
+      "full": "jiangfuwuxingdengleyouyuanyijue",
+      "init": "jfwxdlyyyj"
+    },
+    "jiang-nan-feng-li-gui-nian": {
+      "full": "jiangnanfengliguinian",
+      "init": "jnflgn"
+    },
+    "jiang-nan-qu": {
+      "full": "jiangnanqu",
+      "init": "jnq"
+    },
+    "jiang-xiang-gu-ren-ou-ji-ke-she": {
+      "full": "jiangxianggurenoujikeshe",
+      "init": "jxgrojks"
+    },
+    "jiang-xue": {
+      "full": "jiangxue",
+      "init": "jx"
+    },
+    "jiang-zhou-zhong-bie-xue-liu-liu": {
+      "full": "jiangzhouchongbiexueliuliu",
+      "init": "jzcbxll"
+    },
+    "jin-gu-yuan": {
+      "full": "jinguyuan",
+      "init": "jgy"
+    },
+    "jin-ling-jiu-si-liu-bie": {
+      "full": "jinlingjiusiliubie",
+      "init": "jljslb"
+    },
+    "jin-ling-tu": {
+      "full": "jinlingtu",
+      "init": "jlt"
+    },
+    "jin-lv-yi": {
+      "full": "jinlvyi",
+      "init": "jly"
+    },
+    "jin-se": {
+      "full": "jinse",
+      "init": "js"
+    },
+    "jin-shi-shang-zhang-shui-bu": {
+      "full": "jinshishangzhangshuibu",
+      "init": "jsszsb"
+    },
+    "jing-ye-si": {
+      "full": "jingyesi",
+      "init": "jys"
+    },
+    "jing-zou-lu-ji-kong-zi-er-tan-zhi": {
+      "full": "jingzoulujikongziertanzhi",
+      "init": "jzljkzetz"
+    },
+    "jiu-ri-deng-wang-xian-tai-cheng-liu-ming-fu": {
+      "full": "jiuridengwangxiantaichengliumingfu",
+      "init": "jrdwxtclmf"
+    },
+    "jiu-yue-jiu-ri-yi-shan-dong-xiong-di": {
+      "full": "jiuyuejiuriyishandongxiongdi",
+      "init": "jyjrysdxd"
+    },
+    "jun-zhai-yu-zhong-yu-zhu-wen-shi-yan-ji": {
+      "full": "junzhaiyuzhongyuzhuwenshiyanji",
+      "init": "jzyzyzwsyj"
+    },
+    "ke-zhi": {
+      "full": "kezhi",
+      "init": "kz"
+    },
+    "lao-jiang-xing": {
+      "full": "laojiangxing",
+      "init": "ljx"
+    },
+    "li-ren-xing": {
+      "full": "lirenxing",
+      "init": "lrx"
+    },
+    "li-zhou-nan-du": {
+      "full": "lizhounandu",
+      "init": "lznd"
+    },
+    "liang-si": {
+      "full": "liangsi",
+      "init": "ls"
+    },
+    "liang-zhou-ci": {
+      "full": "liangzhouci",
+      "init": "lzc"
+    },
+    "liang-zhou-ci-2": {
+      "full": "liangzhouci",
+      "init": "lzc"
+    },
+    "lie-nv-cao": {
+      "full": "lienvcao",
+      "init": "lnc"
+    },
+    "liu-bie-wang-wei": {
+      "full": "liubiewangwei",
+      "init": "lbww"
+    },
+    "long-xi-xing": {
+      "full": "longxixing",
+      "init": "lxx"
+    },
+    "lu-chai": {
+      "full": "luzhai",
+      "init": "lz"
+    },
+    "lu-shan-yao-ji-lu-shi-yu-xu-zhou": {
+      "full": "lushanyaojilushiyuxuzhou",
+      "init": "lsyjlsyxz"
+    },
+    "lun-tai-ge-feng-song-feng-da-fu-chu-shi": {
+      "full": "luntaigefengsongfengdafuchushi",
+      "init": "ltgfsfdfcs"
+    },
+    "luo-hua": {
+      "full": "luohua",
+      "init": "lh"
+    },
+    "luo-yang-nv-er-xing": {
+      "full": "luoyangnverxing",
+      "init": "lynex"
+    },
+    "lv-su": {
+      "full": "lvsu",
+      "init": "ls"
+    },
+    "lv-ye-shu-huai": {
+      "full": "lvyeshuhuai",
+      "init": "lysh"
+    },
+    "ma-wei-po": {
+      "full": "maweipo",
+      "init": "mwp"
+    },
+    "mei-fan-gu-ren": {
+      "full": "meifanguren",
+      "init": "mfgr"
+    },
+    "meng-li-bai-qi-er": {
+      "full": "menglibai·qier",
+      "init": "mlbqe"
+    },
+    "meng-li-bai-qi-yi": {
+      "full": "menglibai·qiyi",
+      "init": "mlbqy"
+    },
+    "meng-you-tian-lao-yin-liu-bie": {
+      "full": "mengyoutianmuyinliubie",
+      "init": "mytmylb"
+    },
+    "min-nong": {
+      "full": "minnong（qier）",
+      "init": "mnqe"
+    },
+    "pi-pa-xing": {
+      "full": "pipaxing",
+      "init": "ppx"
+    },
+    "pin-nv": {
+      "full": "pinnv",
+      "init": "pn"
+    },
+    "po-qin-huai": {
+      "full": "boqinhuai",
+      "init": "bqh"
+    },
+    "qian-bei-huai-san-shou-qi-er": {
+      "full": "qianbeihuaisanshou·qier",
+      "init": "qbhssqe"
+    },
+    "qian-bei-huai-san-shou-qi-san": {
+      "full": "qianbeihuaisanshou·qisan",
+      "init": "qbhssqs"
+    },
+    "qian-bei-huai-san-shou-qi-yi": {
+      "full": "qianbeihuaisanshou·qiyi",
+      "init": "qbhssqy"
+    },
+    "qian-huai": {
+      "full": "qianhuai",
+      "init": "qh"
+    },
+    "qiang-jin-jiu": {
+      "full": "qiangjinjiu",
+      "init": "qjj"
+    },
+    "qin-ge": {
+      "full": "qinge",
+      "init": "qg"
+    },
+    "qin-zhong-ji-yuan-shang-ren": {
+      "full": "qinzhongjiyuanshangren",
+      "init": "qzjysr"
+    },
+    "qing-ping-diao-ming-hua-qing-guo-liang-xiang-huan": {
+      "full": "qingpingdiao·minghuaqingguoliangxianghuan",
+      "init": "qpdmhqglxh"
+    },
+    "qing-ping-diao-yi-zhi-hong-yan-lu-ning-xiang": {
+      "full": "qingpingdiao·yizhihongyanluningxiang",
+      "init": "qpdyzhylnx"
+    },
+    "qing-ping-diao-yun-xiang-yi-shang-hua-xiang-rong": {
+      "full": "qingpingdiao·yunxiangyishanghuaxiangrong",
+      "init": "qpdyxyshxr"
+    },
+    "qing-xi": {
+      "full": "qingxi",
+      "init": "qx"
+    },
+    "qiu-deng-lan-shan-ji-zhang-wu": {
+      "full": "qiudenglanshanjizhangwu",
+      "init": "qdlsjzw"
+    },
+    "qiu-ri-deng-wu-gong-tai-shang-si-yuan-tiao": {
+      "full": "qiuridengwugongtaishangsiyuantiao",
+      "init": "qrdwgtssyt"
+    },
+    "qiu-ri-fu-que-ti-tong-guan-yi-lou": {
+      "full": "qiurifuquetitongguanyilou",
+      "init": "qrfqttgyl"
+    },
+    "qiu-xi": {
+      "full": "qiuxi",
+      "init": "qx"
+    },
+    "qiu-ye-ji-qiu-yuan-wai": {
+      "full": "qiuyejiqiuyuanwai",
+      "init": "qyjqyw"
+    },
+    "qiu-ye-qu": {
+      "full": "qiuyequ",
+      "init": "qyq"
+    },
+    "que-ti": {
+      "full": "queti",
+      "init": "qt"
+    },
+    "sai-shang-qu-chan-ming-kong-sang-lin": {
+      "full": "saishangqu·chanmingkongsanglin",
+      "init": "ssqcmksl"
+    },
+    "sai-xia-qu-jiu-ling-jin-pu-gu": {
+      "full": "saixiaqu·jiulingjinpugu",
+      "init": "sxqjljpg"
+    },
+    "sai-xia-qu-lin-an-cao-jing-feng": {
+      "full": "saixiaqu·linancaojingfeng",
+      "init": "sxqlacjf"
+    },
+    "sai-xia-qu-ye-mu-chang-qiong-yan": {
+      "full": "saixiaqu·yemuchangqiongyan",
+      "init": "sxqymcqy"
+    },
+    "sai-xia-qu-yin-ma-du-qiu-shui": {
+      "full": "saixiaqu·yinmaduqiushui",
+      "init": "sxqymdqs"
+    },
+    "sai-xia-qu-yue-hei-yan-fei-gao": {
+      "full": "saixiaqu·yueheiyanfeigao",
+      "init": "sxqyhyfg"
+    },
+    "shan-ju-qiu-ming": {
+      "full": "shanjuqiuming",
+      "init": "sjqm"
+    },
+    "shan-shi": {
+      "full": "shanshi",
+      "init": "ss"
+    },
+    "shan-xing": {
+      "full": "shanxing",
+      "init": "sx"
+    },
+    "shan-zhong-song-bie": {
+      "full": "shanzhongsongbie",
+      "init": "szsb"
+    },
+    "shi-gu-ge": {
+      "full": "shiguge",
+      "init": "sgg"
+    },
+    "shi-yu-hu-shang-zui-ge": {
+      "full": "shiyuhushangzuige",
+      "init": "syhszg"
+    },
+    "shu-bian-shi": {
+      "full": "shubianshi",
+      "init": "sbs"
+    },
+    "shu-dao-nan": {
+      "full": "shudaonan",
+      "init": "sdn"
+    },
+    "shu-xian-zhu-miao": {
+      "full": "shuxianzhumiao",
+      "init": "sxzm"
+    },
+    "shu-xiang": {
+      "full": "shuxiang",
+      "init": "sx"
+    },
+    "song-bie": {
+      "full": "songbie",
+      "init": "sb"
+    },
+    "song-chen-zhang-fu": {
+      "full": "songchenzhangfu",
+      "init": "sczf"
+    },
+    "song-cui-jiu": {
+      "full": "songcuijiu",
+      "init": "scj"
+    },
+    "song-du-shao-fu-zhi-ren-shu-zhou": {
+      "full": "songdushaofuzhirenshuzhou",
+      "init": "sdsfzrsz"
+    },
+    "song-li-duan": {
+      "full": "songliduan",
+      "init": "sld"
+    },
+    "song-li-shao-fu-bian-xia-zhong-wang-shao-fu-bian": {
+      "full": "songlishaofubianxiazhongwangshaofubian",
+      "init": "slsfbxzwsfb"
+    },
+    "song-li-zhong-cheng-gui-han-yang-bie-ye": {
+      "full": "songlizhongchengguihanyangbieye",
+      "init": "slzcghyby"
+    },
+    "song-ling-che-shang-ren": {
+      "full": "songlingcheshangren",
+      "init": "slcsr"
+    },
+    "song-qi-wu-qian-luo-di-huan-xiang": {
+      "full": "songqiwuqianluodihuanxiang",
+      "init": "sqwqldhx"
+    },
+    "song-ren-dong-you": {
+      "full": "songrendongyou",
+      "init": "srdy"
+    },
+    "song-seng-gui-ri-ben": {
+      "full": "songsengguiriben",
+      "init": "ssgrb"
+    },
+    "song-shang-ren": {
+      "full": "songshangren",
+      "init": "ssr"
+    },
+    "song-wei-wan-zhi-jing": {
+      "full": "songweiwanzhijing",
+      "init": "swwzj"
+    },
+    "song-yang-shi-nv": {
+      "full": "songyangshinv",
+      "init": "sysn"
+    },
+    "song-you-ren": {
+      "full": "songyouren",
+      "init": "syr"
+    },
+    "song-zi-zhou-li-shi-jun": {
+      "full": "songzizhoulishijun",
+      "init": "szzlsj"
+    },
+    "su-fu": {
+      "full": "sufu",
+      "init": "sf"
+    },
+    "su-jian-de-jiang": {
+      "full": "sujiandejiang",
+      "init": "sjdj"
+    },
+    "su-tong-lu-jiang-ji-guang-ling-jiu-you": {
+      "full": "sutonglujiangjiguanglingjiuyou",
+      "init": "stljjgljy"
+    },
+    "su-wang-chang-ling-yin-ju": {
+      "full": "suwangchanglingyinju",
+      "init": "swclyj"
+    },
+    "su-wu-miao": {
+      "full": "suwumiao",
+      "init": "swm"
+    },
+    "su-ye-shi-shan-fang-dai-ding-da-bu-zhi": {
+      "full": "suyeshishanfangdaidingdabuzhi",
+      "init": "syssfdddbz"
+    },
+    "sui-gong": {
+      "full": "suigong",
+      "init": "sg"
+    },
+    "sui-gong-2": {
+      "full": "suigong",
+      "init": "sg"
+    },
+    "sui-mu-gui-nan-shan": {
+      "full": "suimuguinanshan",
+      "init": "smgns"
+    },
+    "tao-hua-xi": {
+      "full": "taohuaxi",
+      "init": "thx"
+    },
+    "tao-yuan-xing": {
+      "full": "taoyuanxing",
+      "init": "tyx"
+    },
+    "ti-da-yu-ling-bei-yi": {
+      "full": "tidayulingbeiyi",
+      "init": "tdylby"
+    },
+    "ti-jin-ling-du": {
+      "full": "tijinlingdu",
+      "init": "tjld"
+    },
+    "ti-po-shan-si-hou-chan-yuan": {
+      "full": "tiposhansihouchanyuan",
+      "init": "tpsshcy"
+    },
+    "tian-mo-huai-li-bai": {
+      "full": "tianmohuailibai",
+      "init": "tmhlb"
+    },
+    "ting-an-wan-shan-chui-bi-li-ge": {
+      "full": "tinganwanshanchuibilige",
+      "init": "tawscblg"
+    },
+    "ting-dong-da-dan-hu-jia-sheng-jian-ji-yu": {
+      "full": "tingdongdadanhujiashengjianjiyu",
+      "init": "tdddhjsjjy"
+    },
+    "ting-shu-seng-jun-tan-qin": {
+      "full": "tingshusengjuntanqin",
+      "init": "tssjtq"
+    },
+    "ting-tan-qin": {
+      "full": "tingtanqin",
+      "init": "ttq"
+    },
+    "ting-zheng": {
+      "full": "tingzheng",
+      "init": "tz"
+    },
+    "tong-cong-di-xiao-nan-zhai-wan-yue-yi-shan-yin": {
+      "full": "tongcongdixiaonanzhaiwanyueyishanyin",
+      "init": "tcdxnzwyysy"
+    },
+    "tong-ti-xian-you-guan": {
+      "full": "tongtixianyouguan",
+      "init": "ttxyg"
+    },
+    "wan-ci-e-zhou": {
+      "full": "wanciezhou",
+      "init": "wcez"
+    },
+    "wang-chuan-xian-ju-zeng-pei-xiu-cai-di": {
+      "full": "wangchuanxianjuzengpeixiucaidi",
+      "init": "wcxjzpxcd"
+    },
+    "wang-dong-ting-hu-zeng-zhang-cheng-xiang": {
+      "full": "wangdongtinghuzengzhangchengxiang",
+      "init": "wdthzzcx"
+    },
+    "wang-ji-men": {
+      "full": "wangjimen",
+      "init": "wjm"
+    },
+    "wang-lu-shan-pu-bu": {
+      "full": "wanglushanpubu",
+      "init": "wlspb"
+    },
+    "wang-yue": {
+      "full": "wangyue",
+      "init": "wy"
+    },
+    "wang-yue-huai-yuan": {
+      "full": "wangyuehuaiyuan",
+      "init": "wyhy"
+    },
+    "wang-yue-you-gan": {
+      "full": "wangyueyougan",
+      "init": "wyyg"
+    },
+    "wei-cheng-qu": {
+      "full": "weichengqu",
+      "init": "wcq"
+    },
+    "wei-chuan-tian-jia": {
+      "full": "weichuantianjia",
+      "init": "wctj"
+    },
+    "wei-feng-lu-shi-zhai-guan-cao-jiang-jun-hua-ma": {
+      "full": "weifenglushizhaiguancaojiangjunhuama",
+      "init": "wflszgcjjhm"
+    },
+    "wei-you": {
+      "full": "weiyou",
+      "init": "wy"
+    },
+    "wen-guan-jun-shou-he-nan-he-bei": {
+      "full": "wenguanjunshouhenanhebei",
+      "init": "wgjshnhb"
+    },
+    "wen-liu-shi-jiu": {
+      "full": "wenliushijiu",
+      "init": "wlsj"
+    },
+    "wu-ti-feng-wei-xiang-luo-bao-ji-zhong": {
+      "full": "wuti·fengweixiangluobaojichong",
+      "init": "wtfwxlbjc"
+    },
+    "wu-ti-lai-shi-kong-yan-qu-jue-zong": {
+      "full": "wuti·laishikongyanqujuezong",
+      "init": "wtlskyqjz"
+    },
+    "wu-ti-sa-sa-dong-feng-xi-yu-lai": {
+      "full": "wuti·sasadongfengxiyulai",
+      "init": "wtssdfxyl"
+    },
+    "wu-ti-xiang-jian-shi-nan-bie-yi-nan": {
+      "full": "wuti·xiangjianshinanbieyinan",
+      "init": "wtxjsnbyn"
+    },
+    "wu-ti-zhong-wei-shen-xia-mo-chou-tang": {
+      "full": "wuti·chongweishenxiamochoutang",
+      "init": "wtcwsxmct"
+    },
+    "wu-ti-zuo-ye-xing-chen-zuo-ye-feng": {
+      "full": "wuti·zuoyexingchenzuoyefeng",
+      "init": "wtzyxczyf"
+    },
+    "wu-yi-xiang": {
+      "full": "wuyixiang",
+      "init": "wyx"
+    },
+    "xi-ci-xu-yi-xian": {
+      "full": "xicixuyixian",
+      "init": "xcxyx"
+    },
+    "xi-jian-wai-di-you-yan-bie": {
+      "full": "xijianwaidiyouyanbie",
+      "init": "xjwdyyb"
+    },
+    "xi-ju": {
+      "full": "xiju",
+      "init": "xj"
+    },
+    "xi-sai-shan-huai-gu": {
+      "full": "xisaishanhuaigu",
+      "init": "xsshg"
+    },
+    "xi-shi-yong": {
+      "full": "xishiyong",
+      "init": "xsy"
+    },
+    "xi-wai-di-lu-lun-jian-su": {
+      "full": "xiwaidilulunjiansu",
+      "init": "xwdlljs"
+    },
+    "xia-ri-nan-ting-huai-xin-da": {
+      "full": "xiarinantinghuaixinda",
+      "init": "xrnthxd"
+    },
+    "xia-zhong-nan-shan-guo-hu-si-shan-ren-su-zhi-jiu": {
+      "full": "xiazhongnanshanguohusishanrensuzhijiu",
+      "init": "xznsghssrszj"
+    },
+    "xiang-si": {
+      "full": "xiangsi",
+      "init": "xs"
+    },
+    "xin-jia-niang-ci": {
+      "full": "xinjianiangci",
+      "init": "xjnc"
+    },
+    "xin-nian-zuo": {
+      "full": "xinnianzuo",
+      "init": "xnz"
+    },
+    "xing-gong": {
+      "full": "xinggong",
+      "init": "xg"
+    },
+    "xing-jing-hua-yin": {
+      "full": "xingjinghuayin",
+      "init": "xjhy"
+    },
+    "xing-lu-nan-da-dao-ru-qing-tian": {
+      "full": "xinglunan·dadaoruqingtian",
+      "init": "xlnddrqt"
+    },
+    "xing-lu-nan-jin-zun-qing-jiu-dou-shi-qian": {
+      "full": "xinglunan·jinzunqingjiudoushiqian",
+      "init": "xlnjzqjdsq"
+    },
+    "xing-lu-nan-you-er-mo-xi-ying-chuan-shui": {
+      "full": "xinglunan·youermoxiyingchuanshui",
+      "init": "xlnyemxycs"
+    },
+    "xuan-zhou-xie-tiao-lou-jian-bie-xiao-shu-shu-yun": {
+      "full": "xuanzhouxietiaoloujianbiexiaoshushuyun",
+      "init": "xzxtljbxssy"
+    },
+    "xun-lu-hong-jian-bu-yu": {
+      "full": "xunluhongjianbuyu",
+      "init": "xlhjby"
+    },
+    "xun-nan-xi-chang-dao-shi": {
+      "full": "xunnanxichangdaoshi",
+      "init": "xnxcds"
+    },
+    "xun-xi-shan-yin-zhe-bu-yu": {
+      "full": "xunxishanyinzhebuyu",
+      "init": "xxsyzby"
+    },
+    "xun-yin-zhe-bu-yu": {
+      "full": "xunyinzhebuyu",
+      "init": "xyzby"
+    },
+    "yan-ge-xing": {
+      "full": "yangexing",
+      "init": "ygx"
+    },
+    "yan-mei-dao-shi-shan-fang": {
+      "full": "yanmeidaoshishanfang",
+      "init": "ymdssf"
+    },
+    "yao-chi": {
+      "full": "yaochi",
+      "init": "yc"
+    },
+    "yao-se-yuan": {
+      "full": "yaoseyuan",
+      "init": "ysy"
+    },
+    "ye-gui-lu-men-shan-ge": {
+      "full": "yeguilumenshange",
+      "init": "yglmsg"
+    },
+    "ye-heng-yue-miao-sui-su-yue-si-ti-men-lou": {
+      "full": "yehengyuemiaosuisuyuesitimenlou",
+      "init": "yhymssystml"
+    },
+    "ye-po-niu-zhu-huai-gu": {
+      "full": "yeboniuzhuhuaigu",
+      "init": "ybnzhg"
+    },
+    "ye-shang-shou-xiang-cheng-wen-di": {
+      "full": "yeshangshouxiangchengwendi",
+      "init": "yssxcwd"
+    },
+    "ye-wang": {
+      "full": "yewang",
+      "init": "yw"
+    },
+    "ye-yu-ji-bei": {
+      "full": "yeyujibei",
+      "init": "yyjb"
+    },
+    "yi-liang": {
+      "full": "yiliang",
+      "init": "yl"
+    },
+    "yong-e": {
+      "full": "yonge",
+      "init": "ye"
+    },
+    "yong-huai-gu-ji-qi-er": {
+      "full": "yonghuaiguji·qier",
+      "init": "yhgjqe"
+    },
+    "yong-huai-gu-ji-qi-san": {
+      "full": "yonghuaiguji·qisan",
+      "init": "yhgjqs"
+    },
+    "yong-huai-gu-ji-qi-si": {
+      "full": "yonghuaiguji·qisi",
+      "init": "yhgjqs"
+    },
+    "yong-huai-gu-ji-qi-wu": {
+      "full": "yonghuaiguji·qiwu",
+      "init": "yhgjqw"
+    },
+    "yong-huai-gu-ji-qi-yi": {
+      "full": "yonghuaiguji·qiyi",
+      "init": "yhgjqy"
+    },
+    "you-zi-yin": {
+      "full": "youziyin",
+      "init": "yzy"
+    },
+    "yu-gao-shi-xue-ju-tong-deng-ci-en-si": {
+      "full": "yugaoshixuejutongdengciensi",
+      "init": "ygsxjtdces"
+    },
+    "yu-jie-yuan": {
+      "full": "yujieyuan",
+      "init": "yjy"
+    },
+    "yu-tai-ti": {
+      "full": "yutaiti",
+      "init": "ytt"
+    },
+    "yu-weng": {
+      "full": "yuweng",
+      "init": "yw"
+    },
+    "yu-zhu-zi-deng-xian-shan": {
+      "full": "yuzhuzidengxianshan",
+      "init": "yzzdxs"
+    },
+    "yuan-qing": {
+      "full": "yuanqing",
+      "init": "yq"
+    },
+    "yue-xia-du-zhuo-si-shou-qi-yi": {
+      "full": "yuexiaduzhuosishou·qiyi",
+      "init": "yxdzssqy"
+    },
+    "yue-ye": {
+      "full": "yueye",
+      "init": "yy"
+    },
+    "yue-ye-2": {
+      "full": "yueye",
+      "init": "yy"
+    },
+    "yue-ye-yi-she-di": {
+      "full": "yueyeyishedi",
+      "init": "yyysd"
+    },
+    "yun-yang-guan-yu-han-shen-su-bie": {
+      "full": "yunyangguanyuhanshensubie",
+      "init": "yygyhssb"
+    },
+    "za-shi": {
+      "full": "zashi",
+      "init": "zs"
+    },
+    "za-shi-2": {
+      "full": "zashi",
+      "init": "zs"
+    },
+    "za-shi-san-shou-qi-san": {
+      "full": "zashisanshou·qisan",
+      "init": "zsssqs"
+    },
+    "zai-yu-yong-chan": {
+      "full": "zaiyuyongchan",
+      "init": "zyyc"
+    },
+    "zao-fa-bai-di-cheng": {
+      "full": "zaofabaidicheng",
+      "init": "zfbdc"
+    },
+    "zao-han-you-huai": {
+      "full": "zaohanyouhuai",
+      "init": "zhyh"
+    },
+    "zao-qiu": {
+      "full": "zaoqiu",
+      "init": "zq"
+    },
+    "zei-ping-hou-song-ren-bei-gui": {
+      "full": "zeipinghousongrenbeigui",
+      "init": "zphsrbg"
+    },
+    "zei-tui-shi-guan-li": {
+      "full": "zeituishiguanli",
+      "init": "ztsgl"
+    },
+    "zeng-bie-qi-er": {
+      "full": "zengbie·qier",
+      "init": "zbqe"
+    },
+    "zeng-bie-qi-yi": {
+      "full": "zengbie·qiyi",
+      "init": "zbqy"
+    },
+    "zeng-guo-gei-shi": {
+      "full": "zengguojishi",
+      "init": "zgjs"
+    },
+    "zeng-meng-hao-ran": {
+      "full": "zengmenghaoran",
+      "init": "zmhr"
+    },
+    "zeng-nei-ren": {
+      "full": "zengneiren",
+      "init": "znr"
+    },
+    "zeng-que-xia-pei-she-ren": {
+      "full": "zengquexiapeisheren",
+      "init": "zqxpsr"
+    },
+    "zeng-wei-ba-chu-shi": {
+      "full": "zengweibachushi",
+      "init": "zwbcs"
+    },
+    "zhang-gan-hang-jia-lin-jiu-jiang-shui": {
+      "full": "changganxing·jialinjiujiangshui",
+      "init": "cgxjljjs"
+    },
+    "zhang-gan-xing-jun-jia-he-chu-zhu": {
+      "full": "changganxing·junjiahechuzhu",
+      "init": "cgxjjhcz"
+    },
+    "zhang-gan-xing-qi-yi": {
+      "full": "changganxing·qiyi",
+      "init": "cgxqy"
+    },
+    "zhang-tai-ye-si": {
+      "full": "zhangtaiyesi",
+      "init": "ztys"
+    },
+    "zhang-xiang-si-qi-er": {
+      "full": "changxiangsi·qier",
+      "init": "cxsqe"
+    },
+    "zhang-xiang-si-qi-yi": {
+      "full": "changxiangsi·qiyi",
+      "init": "cxsqy"
+    },
+    "zhang-xin-yuan": {
+      "full": "zhangxinyuan",
+      "init": "zxy"
+    },
+    "zheng-ren-yuan": {
+      "full": "zhengrenyuan",
+      "init": "zry"
+    },
+    "zhi-de-er-zai-fu-zi-jing-jin-guang-men-chu-jian-dao-gui-feng-xiang-qian-yuan-chu-zhi-qi-de-xiao-xiang-yi-ling-san-xia-zhi-zuo": {
+      "full": "zhideerzaifuzijingjinguangmenchujiandaoguifengxiangqianyuanchuzhiqidexiaoxiangyilingsanxiazhizuo",
+      "init": "zdezfzjjgmcjdgfxqyczqdxxylsxzz"
+    },
+    "zhong-nan-bie-ye": {
+      "full": "zhongnanbieye",
+      "init": "znby"
+    },
+    "zhong-nan-shan": {
+      "full": "zhongnanshan",
+      "init": "zns"
+    },
+    "zhong-nan-wang-yu-xue": {
+      "full": "zhongnanwangyuxue",
+      "init": "znwyx"
+    },
+    "zhu-li-guan": {
+      "full": "zhuliguan",
+      "init": "zlg"
+    },
+    "zi-xia-kou-zhi-ying-wu-zhou-xi-wang-yue-yang": {
+      "full": "zixiakouzhiyingwuzhouxiwangyueyang",
+      "init": "zxkzywzxwyy"
+    },
+    "zi-ye-wu-ge-chun-ge": {
+      "full": "ziyewuge·chunge",
+      "init": "zywgcg"
+    },
+    "zi-ye-wu-ge-dong-ge": {
+      "full": "ziyewuge·dongge",
+      "init": "zywgdg"
+    },
+    "zi-ye-wu-ge-qiu-ge": {
+      "full": "ziyewuge·qiuge",
+      "init": "zywgqg"
+    },
+    "zi-ye-wu-ge-xia-ge": {
+      "full": "ziyewuge·xiage",
+      "init": "zywgxg"
+    },
+    "zou-ma-chuan-xing-feng-song-feng-da-fu-chu-shi": {
+      "full": "zoumachuanxingfengsongfengdafuchushi",
+      "init": "zmcxfsfdfcs"
+    }
+  }
+}
