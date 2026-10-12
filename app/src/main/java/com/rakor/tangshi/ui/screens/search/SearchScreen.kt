@@ -31,6 +31,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
@@ -76,6 +77,7 @@ import com.rakor.tangshi.ui.components.normalPillBorder
 import com.rakor.tangshi.ui.components.normalPillColors
 import com.rakor.tangshi.ui.theme.KaiTi
 import com.rakor.tangshi.ui.theme.T
+import kotlinx.coroutines.launch
 
 // ---- 屏幕键盘规格：5 行规则网格——A-G / H-N / O-U / V-Z 各一行，末行 删除(跨3列)+搜索(跨4列) ----
 private val KEY_ROWS = listOf("ABCDEFG", "HIJKLMN", "OPQRSTU", "VWXYZ")
@@ -105,11 +107,14 @@ private val searchViewModelFactory = viewModelFactory {
 @Composable
 private fun searchViewModel(): SearchViewModel = viewModel(factory = searchViewModelFactory)
 
-/** 等 requester 挂上再请求焦点（照 LibraryScreen：先等一帧，未挂上再让帧重试） */
+/**
+ * 等 requester 挂上再请求焦点：本工程 requestFocus() 返回 Boolean（false=未授予，
+ * 不抛异常），按返回值重试；runCatching 仅兜意外异常。
+ */
 private suspend fun requestFocusWhenReady(requester: FocusRequester) {
     withFrameNanos { }
     repeat(3) {
-        if (runCatching { requester.requestFocus() }.isSuccess) return
+        if (runCatching { requester.requestFocus() }.getOrNull() == true) return
         withFrameNanos { }
     }
 }
@@ -137,6 +142,7 @@ fun SearchScreen(onPoem: (String) -> Unit) {
     // 本屏状态：关键字、键盘激活态
     var keyword by remember { mutableStateOf("") }
     var keyboardActive by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     // 实时结果（拼音键走 VM 合并键缓存；关键字键每键只 stripTone 一次，每首诗
     // 只剩汉字文本 / 合并键两次 contains——325 首逐键过滤无重复拼接）
@@ -165,8 +171,12 @@ fun SearchScreen(onPoem: (String) -> Unit) {
     // 收起键盘：焦点回结果首行（空结果回关键字框）
     fun exitKeyboard() {
         keyboardActive = false
-        if (runCatching { firstResultFocus.requestFocus() }.isFailure) {
-            runCatching { keywordBtnFocus.requestFocus() }
+        scope.launch {
+            // requestFocus() 返回 Boolean（false=未授予，空结果时首行未挂载即 false）；
+            // 必须按返回值分支——异常语义的 isSuccess 在此 Compose 版本恒真，曾致回退死路
+            if (!firstResultFocus.requestFocus()) {
+                requestFocusWhenReady(keywordBtnFocus)
+            }
         }
     }
 
