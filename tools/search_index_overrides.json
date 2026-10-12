@@ -1,4 +1,5 @@
 {
+  "_readme": "诗人/标题多音字人工裁定表（搜索索引专用）。poets 的 key=诗人名；titles 的 key=诗 id（非标题文本）；value=逐字符无声调音节列表（pypinyin NORMAL 口径，与原文逐字符对应，`·`、全角括号等标点各自成一个元素，长度须与 pypinyin 分词等长——工具会校验，过期条目或音节数不符均非零退出）。先于 pypinyin 默认读音生效，用途：修正古诗语境下 pypinyin 的误判（实测「重送」→zhong、「鹿柴」→chai、「泊秦淮」→pō、「天姥」→lao、「岑参」→can）。修改后重跑 `python tools/build_search_index.py` 重新生成 app/src/main/assets/content/search_index.json。",
   "poets": {
     "岑参": ["cen", "shen"]
   },

@@ -6,12 +6,11 @@ TV 搜索页（2026-10-12 规格）按首字母搜索：LB→李白、CQMYG→�
 （人工校对的权威数据，不进本文件）。
 
 多音字：pypinyin 词组级上下文 + tools/search_index_overrides.json 人工裁定。
-校验：重复诗 id、过期 override、空键——任一非零退出，防 poems.json 更新后
-索引未重跑或残留旧条目。
+校验：重复诗 id、过期 override、override 音节数、空键——任一非零退出，
+防 poems.json 更新后索引未重跑或残留旧条目。
 """
 import json
 import pathlib
-import sys
 import unicodedata
 
 from pypinyin import Style, lazy_pinyin
@@ -29,7 +28,10 @@ def strip_tone(s: str) -> str:
 
 
 def make_key(text: str, override) -> dict:
-    syllables = override or lazy_pinyin(text, style=Style.NORMAL)
+    natural = lazy_pinyin(text, style=Style.NORMAL)
+    if override is not None and len(override) != len(natural):
+        raise SystemExit(f"override 音节数与分词不符: {text!r} -> {override}")
+    syllables = override if override is not None else natural
     full = strip_tone("".join(syllables))
     # 首字母只取 ASCII 音节首字符——标题里的全角括号/间隔号（古朗月行（节选）、
     # 无题·重帏）不得混进首字母串
@@ -42,7 +44,7 @@ def make_key(text: str, override) -> dict:
 
 def main() -> None:
     poems = json.loads(POEMS.read_text(encoding="utf-8"))
-    ov = json.loads(OVERRIDES.read_text(encoding="utf-8")) if OVERRIDES.exists() else {}
+    ov = json.loads(OVERRIDES.read_text(encoding="utf-8"))
     ov_titles, ov_poets = ov.get("titles", {}), ov.get("poets", {})
 
     seen = set()
@@ -60,8 +62,6 @@ def main() -> None:
     stale = (set(ov_titles) - seen) | (set(ov_poets) - {p["poet"] for p in poems})
     if stale:
         raise SystemExit(f"过期 override 条目: {sorted(stale)}")
-    if len(titles) != len(poems) or len(poets) != len({p["poet"] for p in poems}):
-        raise SystemExit("条目数与 poems.json 不一致")
 
     OUT.write_text(
         json.dumps({"poets": poets, "titles": titles},
