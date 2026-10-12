@@ -170,7 +170,7 @@ fun SearchScreen(onPoem: (String) -> Unit) {
         }
     }
 
-    // B 键两层语义：键盘激活态 > 系统返回（后注册的优先）
+    // B 键两层语义：键盘激活态 > 系统返回（BackHandler 先于系统拦截）
     BackHandler(enabled = keyboardActive) { exitKeyboard() }
 
     CreamBackground {

@@ -40,10 +40,11 @@ class AppGraph(context: Context) {
         }
     }
 
-    /** Application onCreate 调一次：把 1.4MB 诗库 JSON 的解析放到 IO 线程预热，
-     *  避免首屏/进详情时主线程撞上未完成的解析而阻塞（弱设备上解释执行时尤为明显）。 */
+    /** Application onCreate 调一次：把 1.4MB 诗库 JSON 与搜索索引的解析放到
+     *  后台线程预热，避免首屏/进搜索时主线程撞上未完成的解析而阻塞。 */
     fun warmUp() {
         appScope.launch { poems.loadAll() }
+        appScope.launch { poems.loadSearchIndex() }
     }
 
     companion object { lateinit var instance: AppGraph }
