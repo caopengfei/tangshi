@@ -209,7 +209,11 @@ import kotlinx.serialization.json.Json
 import org.junit.Assert.*
 import org.junit.Test
 
-/** search_index.json 解析：条目读取 + 缺字段默认双空表（降级路径） */
+/**
+ * search_index.json 解析：条目读取 + 缺字段默认（本类覆盖范围）。
+ * 注意：真正的降级路径（文件缺失/坏文件/空表 → PoemRepository 捕获 + Log.w）不在本类
+ * 覆盖——由 Task 3 集成测试读真实资产间接兜底，勿误以为已被此处测试保护。
+ */
 class SearchIndexTest {
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -226,6 +230,11 @@ class SearchIndexTest {
         val idx = json.decodeFromString<SearchIndex>("{}")
         assertTrue(idx.poets.isEmpty())
         assertTrue(idx.titles.isEmpty())
+    }
+
+    @Test fun `条目缺字段降级空串`() {
+        val idx = json.decodeFromString<SearchIndex>("""{"poets":{"李白":{"full":"libai"}}}""")
+        assertEquals("", idx.poets["李白"]?.init)
     }
 }
 ```
@@ -260,19 +269,31 @@ data class SearchIndex(
 `PoemRepository.kt`——加 import 与成员（`json` 实例复用现有私有属性）：
 
 ```kotlin
+import android.util.Log
 import com.rakor.tangshi.data.model.SearchIndex
 ```
 
 在 `loadAll()` 之前追加：
 
 ```kotlin
-    /** 搜索拼音索引；缺文件/坏文件降级空表（诗句键运行时可算，搜索不崩） */
+    /**
+     * 搜索拼音索引；缺文件/坏文件/空表降级为双空表并留 logcat 痕迹
+     * （诗句键运行时可算，搜索不崩；catch Exception 不吞 Error——OOM 等仍大声失败）。
+     * 空表守卫：生成器保证双表恒非空，解码成功却为空 = schema 漂移，同样要留痕。
+     */
     private val searchIndex: SearchIndex by lazy {
-        runCatching {
-            context.assets.open("content/search_index.json").bufferedReader().use { r ->
+        try {
+            val idx = context.assets.open("content/search_index.json").bufferedReader().use { r ->
                 json.decodeFromString<SearchIndex>(r.readText())
             }
-        }.getOrDefault(SearchIndex())
+            require(idx.poets.isNotEmpty() && idx.titles.isNotEmpty()) {
+                "search_index.json 解析为空（schema 漂移？）"
+            }
+            idx
+        } catch (e: Exception) {
+            Log.w("PoemRepository", "search_index.json 加载失败，降级空表", e)
+            SearchIndex()
+        }
     }
     fun loadSearchIndex(): SearchIndex = searchIndex
 ```
@@ -281,7 +302,7 @@ import com.rakor.tangshi.data.model.SearchIndex
 
 Run: `./gradlew :app:testDebugUnitTest --tests "*SearchIndexTest" -q`
 
-Expected: `BUILD SUCCESSFUL`（2 tests PASS）。
+Expected: `BUILD SUCCESSFUL`（3 tests PASS）。
 
 - [ ] **Step 5: 全量回归 + 提交**
 
