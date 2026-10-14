@@ -2,8 +2,13 @@
 <!-- 应用 banner（Android TV 启动横幅，320x180dp）：月夜山水 + 字标。
      与 mipmap/ic_launcher 同一套视觉语言；字标字形取自 res/font/wenkai.ttf（霞鹜文楷）。
      TV-BN 规范要求 banner 含应用名，故「唐诗三百首」直接画进图形。
-     由 tools/make_banner.py 生成，手改请同步改脚本。 -->
+     由 tools/make_banner.py 生成，手改请同步改脚本。
+     lint 抑制说明：VectorRaster/VectorPath 针对"反复绘制的小图标"给建议，
+     本图是启动器一次性绘制的大横幅（banner 规格 320x180dp），字形路径天然较长，
+     不适用其阈值，故按实情抑制。 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="VectorRaster,VectorPath"
     android:width="320dp"
     android:height="180dp"
     android:viewportWidth="320"
