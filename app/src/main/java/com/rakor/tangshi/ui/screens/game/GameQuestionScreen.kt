@@ -2,7 +2,12 @@ package com.rakor.tangshi.ui.screens.game
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +22,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.filled.VolumeUp
@@ -29,6 +35,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
@@ -37,7 +44,13 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -61,6 +74,7 @@ import com.rakor.tangshi.ui.components.normalPillBorder
 import com.rakor.tangshi.ui.components.normalPillColors
 import com.rakor.tangshi.ui.theme.KaiTi
 import com.rakor.tangshi.ui.theme.T
+import kotlinx.coroutines.launch
 
 /** 听音题可重听次数（自动播放一次不计入） */
 private const val MAX_REPLAYS = 3
@@ -116,6 +130,8 @@ fun GameQuestionScreen(
 
     // 进屏自动落焦的那次不响提示音（Task 6 模式）
     val firstFocus = remember { mutableStateOf(true) }
+    // 填空题诗块是否溢出视口（长诗才在提示条里出现 ▲▼ 翻诗）——由 FillBody 实测上报
+    var poemScrollable by remember(state.index) { mutableStateOf(false) }
     val tone: (Boolean) -> Unit = { focused ->
         if (focused) {
             if (firstFocus.value) firstFocus.value = false else g.keyTone.focusMove()
@@ -187,7 +203,8 @@ fun GameQuestionScreen(
                                 picked = state.picked?.firstOrNull(),
                                 modifier = Modifier.weight(1f),
                                 tone = tone,
-                                onAnswer = vm::answerFill
+                                onAnswer = vm::answerFill,
+                                onScrollableChange = { poemScrollable = it }
                             )
                         } else {
                             val q = (question as Question.Listen).q
@@ -210,7 +227,9 @@ fun GameQuestionScreen(
             // 底部按键提示（按题型区分）
             when (state.phase) {
                 GamePhase.PLAYING, GamePhase.DONE -> KeyHintBar(
-                    if (state.mode == GameViewModel.MODE_FILL) "← → 选择　OK 确认" else "OK 播放　← → 选诗"
+                    if (state.mode == GameViewModel.MODE_FILL) {
+                        if (poemScrollable) "← → 选择　▲▼ 翻诗　OK 确认" else "← → 选择　OK 确认"
+                    } else "OK 播放　← → 选诗"
                 )
                 GamePhase.NEED_MORE -> KeyHintBar("OK 返回")
                 GamePhase.IDLE -> {}
@@ -236,7 +255,9 @@ fun GameQuestionScreen(
  * A 填空题面：诗全文 + 候选字。非目标行复用共享 PoemLine；目标行由 [BlankLine] 渲染
  * （缺字位换橙色"？"方块且不显示拼音，避免拼音提示答案）。初始焦点落第一枚候选。
  * 题目切换的焦点复位按 index 键控（data-class 相等的相邻题目也能重新触发）。
+ * 诗库最长 120 句（长恨歌），诗全文区可滚动并自动把缺字句带进视口——见下方注释。
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun FillBody(
     q: QuizGenerator.FillBlank,
@@ -246,9 +267,30 @@ private fun FillBody(
     picked: Char?,
     modifier: Modifier = Modifier,
     tone: (Boolean) -> Unit,
-    onAnswer: (Char) -> Unit
+    onAnswer: (Char) -> Unit,
+    onScrollableChange: (Boolean) -> Unit = {}
 ) {
     val focusRequester = remember { FocusRequester() }
+    // 诗块可滚动：容器高度被 weight(1f) 框定，诗长于视口时（诗库最长 120 句）必须能滚，
+    // 否则超出部分出屏。与详情页诗区同一套做法（verticalScroll + bringIntoView 跟随）。
+    val poemScroll = remember(index) { ScrollState(0) }
+    val scrollStep = with(LocalDensity.current) { 120.dp.toPx() }
+    val scope = rememberCoroutineScope()
+    // 缺字行的视口跟随器：每题只挂一个，挂在缺字那一行上（见下方 Box）
+    val blankBring = remember(index) { BringIntoViewRequester() }
+    // 把缺字句带进视口（最小滚动：已经在视口里就不滚）。
+    // 必须等诗区高度定稿再滚——首帧测量期间调用会误滚整整一行，
+    // 表现为进题时诗的第一句被顶出视口。
+    LaunchedEffect(index) {
+        withFrameNanos { }
+        withFrameNanos { }
+        runCatching { blankBring.bringIntoView() }
+    }
+    // 实测溢出后上报（提示条据此才出现 ▲▼ 翻诗）——不用句数阈值硬猜视口容量。
+    // key 必须带 index：父层状态按题目 index 重置为 false，若相邻两题都可滚，
+    // 只 key scrollable 则值不变、effect 不重跑，提示条就不会出现。
+    val scrollable = poemScroll.canScrollForward || poemScroll.canScrollBackward
+    LaunchedEffect(index, scrollable) { onScrollableChange(scrollable) }
     LaunchedEffect(index) {
         withFrameNanos { }
         repeat(3) {
@@ -258,16 +300,37 @@ private fun FillBody(
     }
 
     Column(
-        modifier.fillMaxWidth(),
+        modifier
+            .fillMaxWidth()
+            // 焦点在 4 枚候选字上（诗块本身不可聚焦），故 ▲▼ 在本层拦截做翻诗；
+            // 短诗滚不动时不消费，交还焦点系统，行为与改动前一致。
+            .onPreviewKeyEvent { e ->
+                if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                when (e.key) {
+                    Key.DirectionUp -> if (poemScroll.canScrollBackward) {
+                        scope.launch { poemScroll.scrollBy(-scrollStep) }; true
+                    } else false
+                    Key.DirectionDown -> if (poemScroll.canScrollForward) {
+                        scope.launch { poemScroll.scrollBy(scrollStep) }; true
+                    } else false
+                    else -> false
+                }
+            },
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // 诗全文（重量占位，长诗也放得下——内置诗库最长 4 句；垂直居中避免与选项间挖大空）
-        Column(
+        // 诗全文（重量占位；短诗垂直居中，长诗滚到缺字句）
+        Box(
             Modifier.weight(1f).fillMaxWidth(),
-            verticalArrangement = Arrangement.Center
+            contentAlignment = Alignment.Center
         ) {
-            q.poem.lines.forEachIndexed { i, line ->
-                if (i == q.lineIndex) BlankLine(line, q.charIndex) else PoemLine(line, highlighted = false)
+            Column(Modifier.verticalScroll(poemScroll)) {
+                q.poem.lines.forEachIndexed { i, line ->
+                    Box(
+                        if (i == q.lineIndex) Modifier.bringIntoViewRequester(blankBring) else Modifier
+                    ) {
+                        if (i == q.lineIndex) BlankLine(line, q.charIndex) else PoemLine(line, highlighted = false)
+                    }
+                }
             }
         }
 
