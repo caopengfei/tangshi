@@ -23,8 +23,10 @@ class AppGraph(context: Context) {
     val progress = ProgressRepository(poemDatabase(context)) { id -> poems.byId(id)?.lines?.size ?: 4 }
     val settings = SettingsRepository(context)
 
-    // 首次 DataStore 落盘前默认值兜底（与 Settings 默认一致：提示音开）
+    // 首次 DataStore 落盘前默认值兜底（与 Settings 默认一致：提示音开、连读关）
     @Volatile var keyToneEnabled: Boolean = true
+        private set
+    @Volatile var loopEnabled: Boolean = false
         private set
 
     val keyTone = KeyTonePlayer { keyToneEnabled }
@@ -36,8 +38,15 @@ class AppGraph(context: Context) {
         appScope.launch {
             settings.settings.collect {
                 keyToneEnabled = it.keyTone
+                loopEnabled = it.loopEnabled
             }
         }
+    }
+
+    /** 详情页连读开关：先写内存缓存（同屏同步读一致），再落 DataStore */
+    fun setLoopEnabled(v: Boolean) {
+        loopEnabled = v
+        appScope.launch { settings.setLoopEnabled(v) }
     }
 
     /** Application onCreate 调一次：把 1.4MB 诗库 JSON 与搜索索引的解析放到

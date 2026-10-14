@@ -21,14 +21,18 @@ class SettingsRepositoryTest {
         val repo = SettingsRepository(ApplicationProvider.getApplicationContext())
         val s = repo.settings.first()
         assertTrue(s.keyTone)
+        assertFalse(s.loopEnabled)
     }
 
     @Test fun `写入后读取`() = runTest {
         val repo = SettingsRepository(ApplicationProvider.getApplicationContext())
         repo.setKeyTone(false)
+        repo.setLoopEnabled(true)
         val s = repo.settings.first()
         assertFalse(s.keyTone)
+        assertTrue(s.loopEnabled)
         // 恢复默认：跨用例共享同一 DataStore 文件，避免污染"默认值"用例
         repo.setKeyTone(true)
+        repo.setLoopEnabled(false)
     }
 }

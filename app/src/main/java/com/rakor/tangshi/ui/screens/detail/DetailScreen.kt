@@ -96,6 +96,7 @@ import kotlinx.coroutines.launch
  *
  * 播放语义（开关 + OK 两键模型，替代原"朗读整首/逐句跟读"）：
  * - 连读：循环模式开关（切换按钮，选中常驻 highlight）——只切模式不立即播放；
+ *   开关状态持久化在家长设置（DataStore），跨进屏/重启记忆（2026-10-14）；
  *   选中时按 OK 播放不停句，一句接一句自动推进，读到末句回卷句首往复循环；
  * - OK（诗行区聚焦）：空闲 → 连读开=整首循环播放（第 1 句起），连读关=朗读箭头所指句
  *   （播完即停）；播放中 → 停止（回空闲，清高亮）；
@@ -154,8 +155,10 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
     PlayerLifecycleEffect(player)
 
     var selected by remember(currentPoemId) { mutableStateOf(0) }   // 0-based 箭头句：空闲=朗读目标；连读=跟随播放位置
-    // 连读开关：屏内生命周期（切诗不复位，进屏默认关）。只切模式不触发播放，OK 播放时按它决定循环/单句
-    var loopEnabled by remember { mutableStateOf(false) }
+    // 连读开关：全局家长设置（DataStore 持久化，跨进屏/重启记忆）。进屏初值取 AppGraph
+    // 同步缓存（启动即由常驻协程灌入），切换即写穿缓存+落盘。只切模式不触发播放，
+    // OK 播放时按它决定循环/单句
+    var loopEnabled by remember { mutableStateOf(g.loopEnabled) }
     var showMasteredDialog by remember { mutableStateOf(false) }
     var showAudioError by remember { mutableStateOf(false) }
 
@@ -405,7 +408,11 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                             // 连读：循环模式开关（切换按钮）——选中时 OK 播放整首循环（末句回卷往复，
                             // 再按 OK 停止）；未选中时 OK 朗读箭头单句。只切模式，不立即播放/停止
                             Button(
-                                onClick = { loopEnabled = !loopEnabled },
+                                onClick = {
+                                    val v = !loopEnabled
+                                    loopEnabled = v
+                                    g.setLoopEnabled(v)
+                                },
                                 colors = if (loopEnabled) highlightPillColors() else normalPillColors(),
                                 border = if (loopEnabled) highlightPillBorder() else normalPillBorder(),
                                 modifier = Modifier.focusTone(tone)
