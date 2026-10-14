@@ -1,5 +1,7 @@
 # 唐诗三百首 TV 应用 V1 实施计划
 
+> **执行状态（2026-10-14 补记）**：本计划 14 个任务**已全部执行完毕**（对应提交见 git log；Task 13 冒烟带执行记录）。**复选框未逐项回填**——只有 Task 13 那几步打了勾，其余步骤当时执行完只提交代码、没回填。**判断进度请看代码/产物与提交，不要看勾选状态。**
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 构建离线 Android TV 儿童唐诗学习应用（诵读跟读/进度/创作背景/两个背诗小游戏/搜索/家长设置）。

@@ -1,5 +1,7 @@
 # Compose for TV 迁移实现计划（tv-material 1.1.0 重构 UI）
 
+> **执行状态（2026-10-14 补记）**：Task 1~14 **已执行完毕**（8 屏全部迁移，旧原语与 CardShadowTest 已删，见 git log 的 `refactor: …迁移 tv-material` 系列）。**复选框整份未勾**，进度以代码/提交为准。Task 15「全量验收」的 Step 1（全量单测 + debug/release 双出包）2026-10-14 复跑通过；Step 2/3（实机行为走查 + 视觉验收）按计划本身写明"验收结论记录在对话中"，未落档到仓库。遗留项现状见本文件 Task 8 Step 9 第 3 条与 `docs/superpowers/specs/2026-10-06-tangshi-tv-app-design.md` §5.6。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 引入 `androidx.tv:tv-material:1.1.0`，用官方组件替换全部手写 TV 焦点原语（`tvFocusable`/`FocusCard`/`FocusableCard`/`FocusablePillButton`），焦点视觉切换官方默认样式，暖色调与全部交互行为保持不变。
@@ -1186,6 +1188,7 @@ Expected: `BUILD SUCCESSFUL`
 1. **首/末结果行外绘环被 LazyColumn 滚动轴裁剪**（与 Task 6 同源）→ 结果 LazyColumn 加 `contentPadding = PaddingValues(vertical = 10.dp)`（预批修复）。
 2. **结果行右环被键盘卡遮挡**（官方 1.1 外扩伸入 x≥1090 键盘区）→ ResultRow 的 Card 加 `scale = CardDefaults.scale(focusedScale = 1f)`（border-only 焦点，与详情页大卡同款先例），右环落回 14dp 缝隙内。
 3. 已知既有行为（非回归项，记录即可）：浮层 UP 键焦点微漏到底层但浮层不关（Task 3 观察 C2，迁移前基线一致）；结果列表 D-pad 第 3 行后卡焦（迁移前既有，stash 基线对照确认）——两项归 Task 13 顺路清理。
+   - **2026-10-14 复核结案（均无需改代码）**：①「浮层 UP 键焦点微漏」随 2026-10-12 搜索页改版删掉诗人浮层，已不复存在。②「结果列表 D-pad 第 3 行后卡焦」在 szj_tv 实测**不是功能缺陷**——按 ↓ 焦点每次都在前进（连续实测三行：古朗月行 → 山行 → 行宫，↑ 亦正常回退，用 uiautomator 的父子关系确认焦点行内容确实在换）。"像卡住"是因为 LazyColumn 每步焦点移动都滚动、把焦点行压在屏幕同一位置：焦点环不动、内容在下面滑，观感误导。若要改成"焦点环移动、仅到视口边缘才滚"属独立观感项，未做。
 
 - [ ] **Step 10: 提交**
 
