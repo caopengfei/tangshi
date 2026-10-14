@@ -117,7 +117,20 @@ class HomeViewModel(private val poems: PoemRepository, progress: ProgressReposit
             poem?.let { p -> s.firstOrNull { it.poemId == p.id }?.progress } ?: 0
         }.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
+    /**
+     * 当前学习诗在列表里的位次（1 起；无当前诗为 0），供「当前学习 · 第 N 首」展示。
+     * 用**列表位次**而非 `order`：order 是卷内编号（1~603），与诗库总数 325 不同量纲，
+     * 直接上屏会出现「第 587 / 325 首」这种自相矛盾的计数。
+     */
+    val currentPosition: StateFlow<Int> =
+        combine(current, poemsList) { p, all -> positionOf(all, p) }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+
     companion object {
+        /** 诗在（按 order 排序后的）列表里的位次，1 起；诗为 null 或不在列表时为 0 */
+        fun positionOf(all: List<Poem>, poem: Poem?): Int =
+            if (poem == null) 0 else all.indexOfFirst { it.id == poem.id } + 1
+
         /**
          * 首页当前诗：最近学习的诗优先（LEARNING 中 lastPlayedAt 最新），
          * 否则第一首未学，否则第一首。全程 firstOrNull：进度行指向已删除的诗、
@@ -158,6 +171,7 @@ fun HomeScreen(
     val total by vm.total.collectAsState()
     val poemsReady by vm.poemsReady.collectAsState()
     val progress by vm.progress.collectAsState()
+    val curPos by vm.currentPosition.collectAsState()
 
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(poem) { if (poem != null) focusRequester.requestFocus() }
@@ -222,7 +236,7 @@ fun HomeScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                "当前学习 · 第 ${p.order} 首",
+                                "当前学习 · 第 $curPos 首",
                                 color = T.Orange, fontSize = 14.sp, letterSpacing = 3.sp
                             )
                             Spacer(Modifier.height(10.dp))

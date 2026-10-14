@@ -35,4 +35,13 @@ class HomeViewModelTest {
         assertEquals("a", HomeViewModel.selectCurrent(s, poems)?.id)   // firstOrNull 忽略未知行 → 第一首未学
         assertNull(HomeViewModel.selectCurrent(s, emptyList()))        // 空诗库 → null 而非抛异常
     }
+    @Test fun `展示位次取列表下标而非 order`() {
+        // 卷内编号 order 与列表位次不同量纲（真实数据里 order 可达 603 而诗库 325 首），
+        // 「第 N 首 / 共 M 首」必须用位次，否则出现「第 587 / 325 首」
+        val all = listOf(poem("a", 1), poem("b", 2), poem("c", 580))
+        assertEquals(1, HomeViewModel.positionOf(all, all[0]))
+        assertEquals(3, HomeViewModel.positionOf(all, all[2]))         // order=580 但它是列表第 3 首
+        assertEquals(0, HomeViewModel.positionOf(all, null))           // 无当前诗
+        assertEquals(0, HomeViewModel.positionOf(all, poem("z", 9)))   // 不在列表
+    }
 }

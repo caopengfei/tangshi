@@ -275,7 +275,9 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                             .focusProperties { canFocus = prevPoem != null }
                     ) { TvIcon(Icons.Filled.ChevronLeft, null) }
                     Text(
-                        "第 ${poem.order} / ${poems.size} 首",
+                        // 位次用列表下标而非 poem.order：order 是卷内编号（1~603），
+                        // 与诗库总数不同量纲，直接上屏会出现「第 587 / 325 首」
+                        "第 ${poemIndex + 1} / ${poems.size} 首",
                         color = T.TextSubtle, fontSize = 11.sp, maxLines = 1
                     )
                     Button(
