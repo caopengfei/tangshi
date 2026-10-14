@@ -88,7 +88,7 @@ import kotlinx.coroutines.launch
  * ProgressRepository），状态全部 hoist 在组合内，不设独立 ViewModel。
  *
  * 焦点模型：诗行区是一个焦点目标（初始焦点落这里），◀▶/OK 按键仅在其聚焦时被
- * onPreviewKeyEvent 接管并消费（B/返回等其余按键交还系统）；操作按钮与右侧背景卡
+ * onPreviewKeyEvent 接管并消费（后退键等其余按键交还系统）；操作按钮与右侧背景卡
  * 是独立焦点目标，聚焦时 OK 触发按钮自身 onClick，互不拦截（兄弟节点，不在同一条
  * 预览链上）；背景卡聚焦时 ▲▼ 滚动长文。诗行卡聚焦时 ▲▼ 同样优先滚动诗文（长诗浏览），
  * 滚到顶/底后交还焦点系统移焦点；◀▶ 选句与连读推进时视口自动跟随到目标行。
@@ -138,7 +138,7 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
     val poemScroll = remember(currentPoemId) { ScrollState(0) }
     val poemScrollStep = with(LocalDensity.current) { 120.dp.toPx() }
 
-    // B 键返回 = 系统返回键，显式接 onBack 保持路由契约
+    // 后退键返回 = 系统返回键，显式接 onBack 保持路由契约
     BackHandler(onBack = onBack)
 
     // 播放器：进屏创建、离屏释放、切诗重建
@@ -245,7 +245,7 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
             // 顶栏：返回提示 | 诗名·朝代·诗人 | ◀ 上一首 · 序号 · 下一首 ▶
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "← 返回（B 键返回）",
+                    "← 返回（后退键返回）",
                     Modifier.weight(1f),
                     color = T.TextSubtle, fontSize = 13.sp, maxLines = 1
                 )
@@ -328,7 +328,7 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                                     Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> { okOnPoemArea(); true }
                                     Key.ChannelUp -> { nextPoem?.let { currentPoemId = it.id }; true }    // CH+ 下一首
                                     Key.ChannelDown -> { prevPoem?.let { currentPoemId = it.id }; true }  // CH- 上一首
-                                    else -> false   // 其余按键（含 B/返回）交还系统
+                                    else -> false   // 其余按键（含后退键）交还系统
                                 }
                             },
                         shape = cardShape(20),
@@ -477,7 +477,7 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
                 }
             }
 
-            KeyHintBar("← → 逐句移动　OK 播放/停止　B 返回", "顶栏 ← → 或 CH± 切换上一首/下一首 · 已学进度 $progress%")
+            KeyHintBar("← → 逐句移动　OK 播放/停止　后退键 返回", "顶栏 ← → 或 CH± 切换上一首/下一首 · 已学进度 $progress%")
         }
 
         // 播放失败提示条（覆盖在顶部，不挤压布局；常驻至离屏）

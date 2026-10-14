@@ -51,7 +51,7 @@ import com.rakor.tangshi.ui.theme.T
  *
  * 两枚按钮：再来一轮（highlight，初始焦点）= 重新进入同 mode+scope 的题面路由（由导航层
  * popUpTo 玩法选择页，避免旧题面残留在返回栈）；返回首页 = popBackStack 到 HOME。
- * B 键 = 返回首页（与"返回首页"语义一致，避免退回已结束的题面）。
+ * 后退键 = 返回首页（与"返回首页"语义一致，避免退回已结束的题面）。
  */
 @Composable
 fun GameResultScreen(correct: Int, streak: Int, onAgain: () -> Unit, onHome: () -> Unit) {

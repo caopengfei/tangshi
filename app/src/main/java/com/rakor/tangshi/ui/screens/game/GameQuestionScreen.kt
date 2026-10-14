@@ -74,7 +74,7 @@ private enum class Feedback { NORMAL, CORRECT, WRONG }
  * - B 听音辨诗：进题自动循环朗读目标句（可重听 3 次）+ 诗名选项卡。
  *
  * 播放器生命周期：进屏创建 PoemPlayer、离屏 release；每题装载 playLineLoop 循环到作答，
- * 作答即 pause，切题重新装载；B 键/顶栏 ← 返回 = 放弃本轮回玩法选择页（BackHandler）。
+ * 作答即 pause，切题重新装载；后退键/顶栏 ← 返回 = 放弃本轮回玩法选择页（BackHandler）。
  * 答题判定与推进在 [GameViewModel]：作答后 800ms 反馈（答对块变绿/答错块标红）自动进下一题，
  * 一轮完成时置 DONE 并由本屏导航结算（携带答对数与当日连续学习天数）。
  */
@@ -92,7 +92,7 @@ fun GameQuestionScreen(
     // 进屏开局（题池不足 → NEED_MORE 空态）
     LaunchedEffect(mode, scope) { vm.start(mode, scope) }
 
-    // B 返回 = 放弃本轮回玩法选择页
+    // 后退键返回 = 放弃本轮回玩法选择页
     BackHandler(onBack = onBack)
 
     // 一轮完成 → 结算（correct 判星与文案；streak=VM 落账后新鲜读取的当日连续学习天数）

@@ -836,3 +836,12 @@ Run: `./gradlew testDebugUnitTest -q` → Expected: `BUILD SUCCESSFUL`。
 - [x] **Step 6: 记录结论**
 
 全过 → 本计划完成（修复性改动随各 Task 提交，本任务无新提交）。任何一条不过 → 回对应 Task 修复，重跑本任务，**不带病收工**。
+
+## 追加改版（2026-10-12）：键盘精简 + 「后退键」文案统一（计划外补做）
+
+本计划 Step 4 的验收项「键盘「搜索」键 OK → 收起激活态」已被后续改版取代：实时过滤逐键即时生效，「搜索」键无用户，已移除。
+
+- [x] **删除「搜索」键**（`SearchScreen.kt` 键盘末行）：末行改为 V-Z(5 键) + 删除(跨 2 列) = 356dp，与上三行 7 键行宽相等，末行与上行右端对齐；
+- [x] **键盘退出只留后退键**：`BackHandler(enabled = keyboardActive)` 收起键盘，焦点回结果首行（空结果回关键字框）；
+- [x] **按键文案统一**：全 App 提示语里的「B」（系统返回键代称）改为「后退键」，含 4 处 `KeyHintBar`（搜索页 / 详情页 / 全部唐诗 / 家长设置）+ 详情页顶栏返回提示 + 相关 KDoc/注释；
+- [x] **回归**：`:app:compileDebugKotlin`、`:app:testDebugUnitTest` 全绿。规格同步：`docs/superpowers/specs/2026-10-12-search-pinyin-initials-design.md`、`docs/superpowers/specs/2026-10-06-tangshi-tv-app-design.md`。

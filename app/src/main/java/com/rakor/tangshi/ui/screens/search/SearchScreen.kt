@@ -79,7 +79,7 @@ import com.rakor.tangshi.ui.theme.KaiTi
 import com.rakor.tangshi.ui.theme.T
 import kotlinx.coroutines.launch
 
-// ---- 屏幕键盘规格：5 行规则网格——A-G / H-N / O-U / V-Z 各一行，末行 删除(跨3列)+搜索(跨4列) ----
+// ---- 屏幕键盘规格：4 行规则网格——A-G / H-N / O-U 各 7 键，末行 V-Z(5 键)+删除(跨 2 列) 补满 7 列 ----
 private val KEY_ROWS = listOf("ABCDEFG", "HIJKLMN", "OPQRSTU", "VWXYZ")
 private val KeySize = 44.dp
 private val KeyGap = 8.dp
@@ -127,9 +127,9 @@ private suspend fun requestFocusWhenReady(requester: FocusRequester) {
  * - 进屏初始焦点落关键字框；
  * - 关键字框 OK → 焦点移到键盘首键 A；键盘卡 hasFocus 双向驱动 keyboardActive
  *   （D-pad 从结果区直接进键盘同样亮激活边框），移出键盘区自动退激活；
- * - 键盘"搜索"键 OK / 键盘激活态按 B → 收起键盘（退高亮），焦点回结果列表首行
+ * - 键盘激活态按后退键 → 收起键盘（退高亮），焦点回结果列表首行
  *   （空结果回关键字框）；
- * - B 键两层语义：键盘激活态 > 系统返回（退出本屏回首页）。
+ * - 后退键两层语义：键盘激活态 > 系统返回（退出本屏回首页）。
  *
  * 实时过滤：keyword 变化即重算 results（VM 持每诗合并拼音键，matches 四参重载复用，
  * 避免每次按键重复拼接 325 首键串）。
@@ -180,7 +180,7 @@ fun SearchScreen(onPoem: (String) -> Unit) {
         }
     }
 
-    // B 键两层语义：键盘激活态 > 系统返回（BackHandler 先于系统拦截）
+    // 后退键两层语义：键盘激活态 > 系统返回（BackHandler 先于系统拦截）
     BackHandler(enabled = keyboardActive) { exitKeyboard() }
 
     CreamBackground {
@@ -281,13 +281,13 @@ fun SearchScreen(onPoem: (String) -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(KeyGap, Alignment.CenterVertically),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        KEY_ROWS.forEach { row ->
+                        KEY_ROWS.forEachIndexed { r, row ->
                             Row(horizontalArrangement = Arrangement.spacedBy(KeyGap)) {
                                 row.forEachIndexed { i, ch ->
                                     KeyBox(
                                         KeySize,
                                         onClick = { keyword += ch },
-                                        modifier = if (row === KEY_ROWS[0] && i == 0) Modifier.focusRequester(firstKeyFocus) else Modifier,
+                                        modifier = if (r == 0 && i == 0) Modifier.focusRequester(firstKeyFocus) else Modifier,
                                         onFocusChange = tone
                                     ) {
                                         Text(
@@ -296,19 +296,12 @@ fun SearchScreen(onPoem: (String) -> Unit) {
                                         )
                                     }
                                 }
-                            }
-                        }
-                        Row(horizontalArrangement = Arrangement.spacedBy(KeyGap)) {
-                            KeyBox(keyWidth(3), onClick = { keyword = keyword.dropLast(1) }, onFocusChange = tone) {
-                                Icon(Icons.Filled.Backspace, "删除", Modifier.size(20.dp), tint = T.Orange)
-                            }
-                            // 实时搜索已生效："搜索"键 = 收起键盘回结果列表
-                            KeyBox(keyWidth(4), onClick = { exitKeyboard() }, onFocusChange = tone) {
-                                Text(
-                                    "搜索",
-                                    fontSize = 15.sp, letterSpacing = 2.sp,
-                                    color = T.TextTitle, fontWeight = FontWeight.SemiBold
-                                )
+                                // 末行 V-Z 只有 5 键：删除键补跨 2 列（96dp）凑满 7 列宽，与上行右端对齐
+                                if (r == KEY_ROWS.lastIndex) {
+                                    KeyBox(keyWidth(2), onClick = { keyword = keyword.dropLast(1) }, onFocusChange = tone) {
+                                        Icon(Icons.Filled.Backspace, "删除", Modifier.size(20.dp), tint = T.Orange)
+                                    }
+                                }
                             }
                         }
                     }
@@ -316,7 +309,7 @@ fun SearchScreen(onPoem: (String) -> Unit) {
             }
 
             Spacer(Modifier.height(10.dp))
-            KeyHintBar("← ↑↓ → 选择　OK 确认　B 返回")   // 计数只留结果列底部一处
+            KeyHintBar("← ↑↓ → 选择　OK 确认　后退键 返回")   // 计数只留结果列底部一处
         }
     }
 }

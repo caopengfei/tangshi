@@ -169,7 +169,7 @@ fun LibraryScreen(onPoem: (String) -> Unit) {
 
     CreamBackground {
         Column(Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 20.dp)) {
-            // 顶栏：标题 + 计数 | 右侧返回提示（B 走系统返回，无返回按钮）
+            // 顶栏：标题 + 计数 | 右侧返回提示（后退键走系统返回，无返回按钮）
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     "全部唐诗",
@@ -274,7 +274,7 @@ fun LibraryScreen(onPoem: (String) -> Unit) {
             }
 
             Spacer(Modifier.height(12.dp))
-            KeyHintBar("← ↑↓ → 浏览　OK 学习　B 返回", "第 $page / $pageCount 页".takeIf { filtered.isNotEmpty() })
+            KeyHintBar("← ↑↓ → 浏览　OK 学习　后退键 返回", "第 $page / $pageCount 页".takeIf { filtered.isNotEmpty() })
         }
     }
 }

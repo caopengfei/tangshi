@@ -94,7 +94,7 @@ fun AppNavHost() {
             GameQuestionScreen(
                 mode = entry.arguments?.getString("mode") ?: GameViewModel.MODE_FILL,
                 scope = entry.arguments?.getString("scope") ?: GameViewModel.SCOPE_ALL,
-                onBack = { nav.popBackStack() },   // 顶栏 ← 返回 / B = 放弃本轮回玩法选择页
+                onBack = { nav.popBackStack() },   // 顶栏 ← 返回 / 后退键 = 放弃本轮回玩法选择页
                 onFinished = { correct, streak ->
                     val mode = entry.arguments?.getString("mode") ?: GameViewModel.MODE_FILL
                     val scope = entry.arguments?.getString("scope") ?: GameViewModel.SCOPE_ALL
