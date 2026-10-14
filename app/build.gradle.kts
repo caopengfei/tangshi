@@ -43,7 +43,14 @@ android {
                 ?: signingConfigs.getByName("debug")
         }
     }
-    lint { disable += "NullSafeMutableLiveData" }
+    lint {
+        // 两处都是 lint.jar 与 AGP 8.7.3 的版本不兼容，不是代码问题：
+        // - NullSafeMutableLiveData：lifecycle 2.9.4 的 lint.jar（BOM 2026.02）
+        // - RememberInComposition：Compose 检测器崩在 Kotlin 分析 API 上
+        //   （IncompatibleClassChangeError: Found class KaSimpleVariableAccessCall,
+        //   but interface was expected），会让 :app:lintDebug 整体失败、报告停更
+        disable += setOf("NullSafeMutableLiveData", "RememberInComposition")
+    }
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
