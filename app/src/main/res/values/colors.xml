@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#1B2A4E</color>
+    <!-- 暖阳天空：与页内「童趣暖阳」米色底同族（ui/theme/Theme.kt 的 T.BgTop/BgMid/BgBottom）。
+         2026-10-14 改：原为「月夜」夜空 #1B2A4E，与页内暖色割裂。 -->
+    <color name="ic_launcher_background">#FFF4E4</color>
 </resources>

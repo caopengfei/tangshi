@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Android 13+ 主题图标单色剪影：月、山、书 -->
+<!-- Android 13+ 主题图标单色剪影：日、山、书。
+     只用 alpha，颜色由系统主题着色，故 2026-10-14 的暖色换肤不涉及本文件（几何与前景层一致）。 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- 明月 -->
+    <!-- 暖阳 -->
     <path
         android:fillColor="#FFFFFF"
         android:pathData="M64,34 m-11,0 a11,11 0,1 1,22 0 a11,11 0,1 1,-22 0" />

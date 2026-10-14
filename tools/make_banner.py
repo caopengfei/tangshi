@@ -13,7 +13,7 @@
 （霞鹜文楷，SIL OFL 1.1，见 app/THIRD-PARTY-NOTICES.md），用 fontTools 取轮廓后转 pathData。
 字体本身不上屏，只是轮廓来源。
 
-场景与 mipmap/ic_launcher 同一套视觉语言（月夜山水），调色板逐值对齐。
+场景与 mipmap/ic_launcher 同一套视觉语言（暖阳山水），调色板逐值对齐。
 """
 import argparse
 import os
@@ -31,19 +31,23 @@ OUT_XML = os.path.join(ROOT, "app", "src", "main", "res", "drawable", "app_banne
 
 W, H = 320, 180
 
-# ---- 调色板（与 ic_launcher / colors.xml 一致）--------------------------------
-SKY = "#1B2A4E"      # 夜空 = ic_launcher_background
-MOON = "#F7E9C6"     # 明月 / 月晕
-STAR = "#FFF6E0"     # 疏星
-CLOUD = "#EAF0FF"    # 流云
-FAR = "#294467"      # 远山
-NEAR = "#16233D"     # 近山
+# ---- 调色板（与 ic_launcher / colors.xml / 页内 T 色板一致）--------------------
+# 2026-10-14 改：原为「月夜」夜色板（夜空 #1b2a4e、明月 #f7e9c6、青黛山），与页内
+# 「童趣暖阳」（米色底 + 珊瑚橙，ui/theme/Theme.kt 的 T）割裂——启动图标/桌面卡片
+# 是冷色调，应用里是暖色调。现整体换到页内暖色族：天空取页内米色底同族暖白、
+# 明月改暖阳、山色取暖沙/暖赭、字标由米白改暖棕（米白字在米色天上看不见）。
+SKY = "#FFF4E4"      # 暖阳天空 = ic_launcher_background（页内 BgTop/Mid/Bottom 同族）
+SUN = "#FF8A50"      # 暖阳（品牌橙 T.Orange #FF7A50 与 OrangeLight #FF9A76 之间）
+HALO = "#FFB347"     # 日晕（T.Amber）
+CLOUD = "#FFFFFF"    # 流云
+FAR = "#F5CDA8"      # 远山（浅暖沙）
+NEAR = "#E3A87A"     # 近山（暖赭）
 PAGE_L = "#FAF3E3"   # 诗书左页
 PAGE_R = "#EFE4CE"   # 诗书右页
 SPINE = "#D9C9A8"    # 书脊
 RULE_INK = "#B9A98A"  # 页上诗行
 CORAL = "#FF7A50"    # 品牌主色，只用作字标下划线
-TITLE = "#FAF3E3"    # 字标
+TITLE = "#6B4F3A"    # 字标（页内 TextTitle 暖棕）
 
 # ---- 字标排布 ----------------------------------------------------------------
 TEXT = "唐诗三百首"
@@ -55,13 +59,9 @@ RULE_Y = 88.0            # 字标下划线顶边
 RULE_W, RULE_H = 56.0, 3.4
 
 # ---- 场景元素 ----------------------------------------------------------------
-MOON_C = (272.0, 42.0)
-MOON_R, HALO_R = 20.0, 32.0
-STARS = [(214, 22, 1.5, 0.85), (230, 46, 1.2, 0.7), (312, 26, 1.2, 0.7),
-         (308, 88, 1.5, 0.8), (14, 26, 1.5, 0.85), (44, 16, 1.0, 0.7),
-         (76, 24, 1.2, 0.65), (186, 24, 1.3, 0.8), (212, 68, 1.0, 0.6),
-         (12, 60, 1.1, 0.7), (292, 62, 1.1, 0.6)]
-CLOUDS = [(216, 80, 74, 5.5, 0.10), (92, 30, 74, 5.0, 0.07)]
+SUN_C = (272.0, 42.0)
+SUN_R, HALO_R = 20.0, 32.0
+CLOUDS = [(216, 80, 74, 5.5, 0.85), (92, 30, 74, 5.0, 0.70)]
 FAR_RIDGE = ("M-2,118 Q30,100 62,114 Q94,96 126,112 Q158,96 190,112 "
              "Q222,96 254,112 Q286,98 322,114 L322,182 L-2,182 Z")
 NEAR_RIDGE = ("M-2,142 Q34,122 72,138 Q110,120 148,136 Q186,120 224,136 "
@@ -181,11 +181,9 @@ def build_scene(title_d):
              f"L{spine_b[0]},{spine_b[1]} L{spine_a[0]},{spine_b[1]} Z")
 
     shapes = [
-        {"note": "夜空", "d": f"M0,0 h{W} v{H} h-{W} z", "fill": SKY},
-        {"note": "月晕", "d": circle(*MOON_C, HALO_R), "fill": MOON, "alpha": 0.10},
-        {"note": "明月", "d": circle(*MOON_C, MOON_R), "fill": MOON},
-        {"note": "疏星", "d": [circle(x, y, r) for x, y, r, _ in STARS],
-         "fill": STAR, "alpha": [a for *_, a in STARS]},
+        {"note": "暖阳天空", "d": f"M0,0 h{W} v{H} h-{W} z", "fill": SKY},
+        {"note": "日晕", "d": circle(*SUN_C, HALO_R), "fill": HALO, "alpha": 0.22},
+        {"note": "暖阳", "d": circle(*SUN_C, SUN_R), "fill": SUN},
         {"note": "流云", "d": [pill(x, y, w, h) for x, y, w, h, _ in CLOUDS],
          "fill": CLOUD, "alpha": [a for *_, a in CLOUDS]},
         {"note": "远山", "d": FAR_RIDGE, "fill": FAR},
@@ -224,8 +222,9 @@ def build_scene(title_d):
 def dump_xml(shapes, path):
     head = [
         '<?xml version="1.0" encoding="utf-8"?>',
-        f'<!-- 应用 banner（Android TV 启动横幅，{W}x{H}dp）：月夜山水 + 字标。',
-        '     与 mipmap/ic_launcher 同一套视觉语言；字标字形取自 res/font/wenkai.ttf（霞鹜文楷）。',
+        f'<!-- 应用 banner（Android TV 启动横幅，{W}x{H}dp）：暖阳山水 + 字标。',
+        '     与 mipmap/ic_launcher 同一套视觉语言，并与页内「童趣暖阳」同色族；',
+        '     字标字形取自 res/font/wenkai.ttf（霞鹜文楷）。',
         '     TV-BN 规范要求 banner 含应用名，故「唐诗三百首」直接画进图形。',
         '     由 tools/make_banner.py 生成，手改请同步改脚本。',
         '     lint 抑制说明：VectorRaster/VectorPath 针对"反复绘制的小图标"给建议，',

@@ -46,7 +46,8 @@ tangshi/
 - **点缀色**：琥珀 `#ffb347`（结算星星）。
 - **字体**：诗体内容用楷体系（KaiTi 回退），界面常规用系统无衬线；诗名大字号、宽字距（letter-spacing ≈ 3~4）。
 - **图标**：全部使用单色矢量图标（Material Symbols）染主题色（珊瑚橙/暖棕），**禁止彩色 emoji 图标**；"已会背"徽章统一用 thumb_up（实心）。
-- **启动图标 / TV banner（月夜山水，自成一套夜色板，不套用页内暖色）**：`mipmap/ic_launcher`（API 26+ adaptive icon，含 monochrome 剪影）与 `drawable/app_banner`（320×180dp）。两者共用同一套视觉语言——夜空 `#1b2a4e`／明月·月晕 `#f7e9c6`／疏星 `#fff6e0`／流云 `#eaf0ff`／远山 `#294467`／近山 `#16233d`／山前一卷翻开的诗书 `#faf3e3`+`#efe4ce`、书脊 `#d9c9a8`；字标下划线用品牌主色珊瑚橙 `#ff7a50` 作唯一暖色点缀。banner 按 Google TV 应用质量规范 TV-BN 必须含应用名，字标「唐诗三百首」字形取自 `res/font/wenkai.ttf`（轮廓转路径，字体本身不上屏），由 `tools/make_banner.py` 生成。
+- **启动图标 / TV banner（暖阳山水，与页内「童趣暖阳」同色族）**：`mipmap/ic_launcher`（API 23-25 legacy 全幅图；API 26+ adaptive icon，含 monochrome 剪影）与 `drawable/app_banner`（320×180dp）。两者共用同一套视觉语言，配色向 `ui/theme/Theme.kt` 的 `T` 色板取齐——暖阳天空 `#fff4e4`（= `ic_launcher_background`，页内米色底同族）／暖阳 `#ff8a50` + 日晕 `#ffb347`（品牌橙与琥珀）／流云 `#ffffff`／远山 `#f5cda8`／近山 `#e3a87a`／山前一卷翻开的诗书 `#faf3e3`+`#efe4ce`、书脊 `#d9c9a8`；字标用页内标题暖棕 `#6b4f3a`，其下划线用品牌主色珊瑚橙 `#ff7a50`。banner 按 Google TV 应用质量规范 TV-BN 必须含应用名，字标「唐诗三百首」字形取自 `res/font/wenkai.ttf`（轮廓转路径，字体本身不上屏），由 `tools/make_banner.py` 生成；改色请改脚本调色板后重新生成，别手改 XML。
+  - 2026-10-14 改（配色对齐页内）：原为「月夜」自成一套夜色板——夜空 `#1b2a4e`／明月·月晕 `#f7e9c6`／疏星 `#fff6e0`／流云 `#eaf0ff`／远山 `#294467`／近山 `#16233d`，冷色调与页内米色 + 珊瑚橙割裂：启动图标与 TV 桌面卡片是冷色，进应用却是暖色。现整体换到页内暖色族，几何未动、只换色，并去掉在米色天上不成立的「疏星」。monochrome 剪影只被系统着色、几何同前景层，不受本次换色影响。
   - 改图标不等于改 TV 桌面：launcher 的「应用卡片」渲染的是 `android:banner`（`appsview/BannerView` + `ActivityInfo.loadBanner`/`PackageManager.getApplicationBanner`），16:9 卡片；`android:icon` 只在系统设置等处出现。两处要一起改才一致。（2026-10-14 修：banner 此前一直是建工程时的米白+橙块占位图，导致图标换新后桌面看起来没变。）
 - **通用布局**：16:9 全屏，顶部标题行 + 主内容区 + 底部按键提示行；焦点元素放大 1.05~1.1 + 描边动效。
 
