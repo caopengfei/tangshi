@@ -3,6 +3,7 @@ package com.rakor.tangshi.ui.screens.game
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,8 +11,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ThumbUp
@@ -55,6 +58,12 @@ import kotlinx.coroutines.launch
 /** 题池不足提示条的停留时长 */
 private const val HINT_DISMISS_MS = 2600L
 
+/** 玩法大卡封顶高度：给官方卡焦点 scale=1.1 的上下外扩（320dp × 5% ≈ 16dp）留出余量 */
+private val CardMaxHeight = 320.dp
+
+/** 范围胶囊统一宽度：原先按文字自适应（实测 89dp 与 107dp 参差） */
+private val ScopePillWidth = 160.dp
+
 /**
  * 背诗小游戏 · 玩法选择页（规格 5.5）。
  *
@@ -75,8 +84,9 @@ fun GameSetupScreen(onBack: () -> Unit, onStart: (mode: String, scope: String) -
     val cs = rememberCoroutineScope()
 
     var mode by remember { mutableStateOf(GameViewModel.MODE_FILL) }
-    // 默认"全部"：首启今日池为空会直接拦截（规格 5.5 裁定），见规格注释
-    var scope by remember { mutableStateOf(GameViewModel.SCOPE_ALL) }
+    // 默认"已学全部"（2026-10-12 改版，原为"全部"）：已学池 < MIN_POOL(5) 时按 OK 会走题池不足
+    // 拦截（"先去学几首诗再来吧！"）——新装/还没学过诗的用户需先学几首，或手动切到"全部"
+    var scope by remember { mutableStateOf(GameViewModel.SCOPE_LEARNED) }
     var showPoolHint by remember { mutableStateOf(false) }
 
     // 提示条自动消退
@@ -126,42 +136,48 @@ fun GameSetupScreen(onBack: () -> Unit, onStart: (mode: String, scope: String) -
             }
 
             // 主区：玩法大卡 ×2 | 题目范围
-            Row(
-                Modifier.weight(1f).fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                GameModeCard(
-                    Icons.Filled.ThumbUp, "填空补诗", "诗里缺了个字，选出来！",
-                    selected = mode == GameViewModel.MODE_FILL,
-                    modifier = Modifier.weight(1f).fillMaxHeight().focusRequester(focusRequester),
-                    onFocusChange = tone,
-                    onClick = { startWith(GameViewModel.MODE_FILL) }
-                )
-                GameModeCard(
-                    Icons.Filled.VolumeUp, "听音辨诗", "听朗读，猜猜是哪首诗？",
-                    selected = mode == GameViewModel.MODE_LISTEN,
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                    onFocusChange = tone,
-                    onClick = { startWith(GameViewModel.MODE_LISTEN) }
-                )
-
-                // 右列：题目范围（竖排三选一，highlight=选中，与全部唐诗页筛选同视觉；整列垂直居中）
-                Column(
-                    Modifier.weight(0.8f).fillMaxHeight(),
-                    verticalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterVertically)
+            // 卡高封顶 CardMaxHeight 并整块垂直居中（2026-10-12 改版）：原先 fillMaxHeight 撑满
+            // 410dp，卡内内容被 weight 撑到正中、上下各空 ~112dp；且官方卡焦点 scale=1.1 以中心
+            // 外扩 ~16dp，主区上下只剩 14dp 余量时，外扩直接压住顶栏标题与底部提示条（实机截图确认）。
+            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Row(
+                    Modifier.fillMaxWidth().heightIn(max = CardMaxHeight),
+                    horizontalArrangement = Arrangement.spacedBy(28.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("题目范围", color = T.TextSubtle, fontSize = 12.sp, letterSpacing = 2.sp)
-                    listOf(
-                        GameViewModel.SCOPE_TODAY to "今日所学",
-                        GameViewModel.SCOPE_LEARNED to "已学全部",
-                        GameViewModel.SCOPE_ALL to "全部 ${vm.all.size} 首"
-                    ).forEach { (value, label) ->
-                        Button(
-                            onClick = { scope = value },
-                            colors = segmentPillColors(scope == value),
-                            border = segmentPillBorder(scope == value),
-                            modifier = Modifier.focusTone(tone)
-                        ) { TvText(label) }
+                    GameModeCard(
+                        Icons.Filled.ThumbUp, "填空补诗", "诗里缺了个字，选出来！",
+                        selected = mode == GameViewModel.MODE_FILL,
+                        modifier = Modifier.weight(1f).fillMaxHeight().focusRequester(focusRequester),
+                        onFocusChange = tone,
+                        onClick = { startWith(GameViewModel.MODE_FILL) }
+                    )
+                    GameModeCard(
+                        Icons.Filled.VolumeUp, "听音辨诗", "听朗读，猜猜是哪首诗？",
+                        selected = mode == GameViewModel.MODE_LISTEN,
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        onFocusChange = tone,
+                        onClick = { startWith(GameViewModel.MODE_LISTEN) }
+                    )
+
+                    // 右列：题目范围（竖排三选一，highlight=选中，与全部唐诗页筛选同视觉；整列垂直居中）
+                    Column(
+                        Modifier.weight(0.8f).fillMaxHeight(),
+                        verticalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterVertically)
+                    ) {
+                        Text("题目范围", color = T.TextSubtle, fontSize = 12.sp, letterSpacing = 2.sp)
+                        listOf(
+                            GameViewModel.SCOPE_TODAY to "今日所学",
+                            GameViewModel.SCOPE_LEARNED to "已学全部",
+                            GameViewModel.SCOPE_ALL to "全部 ${vm.all.size} 首"
+                        ).forEach { (value, label) ->
+                            Button(
+                                onClick = { scope = value },
+                                colors = segmentPillColors(scope == value),
+                                border = segmentPillBorder(scope == value),
+                                modifier = Modifier.width(ScopePillWidth).focusTone(tone)
+                            ) { TvText(label) }
+                        }
                     }
                 }
             }
@@ -216,19 +232,21 @@ private fun GameModeCard(
             Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // 内容整块居中：图标 / 标题 / 副标题 / 页脚成组，页脚紧贴内容块（原先页脚被 weight 顶到卡片下沿）
             Spacer(Modifier.weight(1f))
             Icon(icon, null, Modifier.size(40.dp), tint = T.Orange)
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(14.dp))
             Text(
                 title,
                 fontSize = 22.sp, letterSpacing = 3.sp,
                 color = T.TextTitle, fontWeight = FontWeight.SemiBold,
                 maxLines = 1
             )
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(8.dp))
             Text(subtitle, color = T.TextBody, fontSize = 14.sp, maxLines = 1)
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.height(26.dp))
             Text("${GameViewModel.ROUND_LEN} 题一轮 · 支持已学唐诗", color = T.TextSubtle, fontSize = 12.sp)
+            Spacer(Modifier.weight(1f))
         }
     }
 }
