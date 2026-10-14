@@ -69,6 +69,7 @@ import com.rakor.tangshi.ui.components.KeyHintBar
 import com.rakor.tangshi.ui.components.PoemCharCell
 import com.rakor.tangshi.ui.components.PoemLine
 import com.rakor.tangshi.ui.components.POEM_CHAR_CELL
+import com.rakor.tangshi.ui.components.PlayerLifecycleEffect
 import com.rakor.tangshi.ui.components.focusTone
 import com.rakor.tangshi.ui.components.normalPillBorder
 import com.rakor.tangshi.ui.components.normalPillColors
@@ -118,6 +119,9 @@ fun GameQuestionScreen(
     val context = LocalContext.current
     val player = remember { PoemPlayer(ExoPlayer.Builder(context).build()) }
     DisposableEffect(Unit) { onDispose { player.release() } }
+    // 退到后台（主页键/切应用/息屏）自动暂停听音题循环朗读、回前台续播；循环朗读/待作答期间
+    // 窗口常亮（同详情页，见 PlayerLifecycleEffect）
+    PlayerLifecycleEffect(player)
     var showAudioError by remember { mutableStateOf(false) }
     LaunchedEffect(player) {
         player.error.collect { failed ->

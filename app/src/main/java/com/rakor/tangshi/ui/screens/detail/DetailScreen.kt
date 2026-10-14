@@ -69,6 +69,7 @@ import com.rakor.tangshi.audio.PoemPlayer
 import com.rakor.tangshi.di.AppGraph
 import com.rakor.tangshi.ui.components.CreamBackground
 import com.rakor.tangshi.ui.components.KeyHintBar
+import com.rakor.tangshi.ui.components.PlayerLifecycleEffect
 import com.rakor.tangshi.ui.components.PoemLine
 import com.rakor.tangshi.ui.components.cardBorder
 import com.rakor.tangshi.ui.components.cardColors
@@ -147,6 +148,10 @@ fun DetailScreen(poemId: String, onBack: () -> Unit) {
     val currentLine by player.currentLine.collectAsState()
     val isPlaying by player.isPlaying.collectAsState()
     val shape by player.shape.collectAsState()
+
+    // 退到后台（主页键/切应用/息屏）自动暂停朗读、回前台续播；播放期间窗口常亮（连读几分钟
+    // 无按键，不挂常亮会被屏保/熄屏掐停）。切诗重建的播放器随 effect 重挂
+    PlayerLifecycleEffect(player)
 
     var selected by remember(currentPoemId) { mutableStateOf(0) }   // 0-based 箭头句：空闲=朗读目标；连读=跟随播放位置
     // 连读开关：屏内生命周期（切诗不复位，进屏默认关）。只切模式不触发播放，OK 播放时按它决定循环/单句

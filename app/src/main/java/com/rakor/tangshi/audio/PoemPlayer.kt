@@ -32,6 +32,9 @@ class PoemPlayer(private val exo: ExoPlayer) {
      *  回调据此回写 loopLine 而非按索引推，避免把跟读行号覆盖成 1 */
     private var loopLine = 0
 
+    /** 本次暂停是否由「退到后台」引起（回前台自动续播的判据；用户停止/游戏作答暂停都不置此位） */
+    private var pausedInBackground = false
+
     private fun setShape(v: Shape) {
         exoShape = v
         shape.value = v
@@ -110,14 +113,37 @@ class PoemPlayer(private val exo: ExoPlayer) {
         exo.stop()
         exo.clearMediaItems()
         loopLine = 0
+        pausedInBackground = false
         currentLine.value = 0
         setShape(Shape.IDLE)
     }
 
     fun pause() { exo.pause() }
 
+    /**
+     * 退到后台（主页键/切应用/息屏）暂停朗读：ExoPlayer 自身不随 Activity 进出后台停声——
+     * 缺这层按主页键回桌面后诗还在念（2026-10-14 实机验证：HOME 后 AudioTrack 仍 state:started）。
+     * 判据用 playWhenReady 而非 isPlaying，把「刚按 OK 还在加载」也算进来，否则缓冲期按主页键
+     * 会等加载完在后台念出来；再叠 mediaItemCount>0 排除无装载的空转。游戏作答暂停、用户
+     * OK 停止都不会置位（那些是主动暂停，回前台不该自己响）。
+     */
+    fun pauseForBackground() {
+        if (exo.playWhenReady && exo.mediaItemCount > 0) {
+            pausedInBackground = true
+            exo.pause()
+        }
+    }
+
+    /** 回前台：只续播「因退后台而暂停」的那一次，其余暂停状态一概不动 */
+    fun resumeAfterBackground() {
+        if (!pausedInBackground) return
+        pausedInBackground = false
+        exo.play()
+    }
+
     fun release() {
         loopLine = 0
+        pausedInBackground = false
         exo.release()
     }
 
