@@ -4,7 +4,7 @@
 
 - 来源：https://github.com/lxgw/LxgwWenKai（v1.522）
 - 文件：app/src/main/res/font/wenkai.ttf
-- 用途：诗体内容渲染（诗句/诗名）
+- 用途：诗体内容渲染（诗句/诗名）；并作为 TV banner 字标的轮廓来源——`app/src/main/res/drawable/app_banner.xml` 里的「唐诗三百首」由 `tools/make_banner.py` 从本字体提取字形轮廓转成矢量路径（banner 上不渲染文字，字体文件本身不重复嵌入）
 - 许可：SIL Open Font License 1.1（保留版权声明如下）
 
 Copyright 2021-2026 LXGW (https://github.com/lxgw/LxgwWenKai)

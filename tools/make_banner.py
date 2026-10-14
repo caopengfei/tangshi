@@ -10,7 +10,7 @@
 为什么需要脚本而不是手写 XML：Android TV 启动横幅按 Google TV 应用质量规范
 （TV-BN「应用启动横幅包含应用名」）必须含应用名，而 VectorDrawable 不支持文字，
 「唐诗三百首」只能以轮廓路径画进去。字形取自 app/src/main/res/font/wenkai.ttf
-（霞鹜文楷，SIL OFL 1.1，见 tools/NOTICE.md），用 fontTools 取轮廓后转 pathData。
+（霞鹜文楷，SIL OFL 1.1，见 app/THIRD-PARTY-NOTICES.md），用 fontTools 取轮廓后转 pathData。
 字体本身不上屏，只是轮廓来源。
 
 场景与 mipmap/ic_launcher 同一套视觉语言（月夜山水），调色板逐值对齐。
