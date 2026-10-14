@@ -3,18 +3,26 @@ package com.rakor.tangshi.ui.screens.settings
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -29,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -62,6 +71,10 @@ import kotlinx.coroutines.launch
 
 /** "已清除"提示条停留时长（照 GameSetupScreen 题池提示模式） */
 private const val HINT_DISMISS_MS = 2600L
+
+/** 设置卡封顶高度：两项设置内容量小，定太高卡内会留大片空白；按内容量取 240dp，
+ *  整块在主区垂直居中（卡内内容再整体居中，见 [SettingCard]） */
+private val SettingCardMaxHeight = 240.dp
 
 /**
  * 家长设置（规格 5.8，无家长门直接进入）。
@@ -121,51 +134,65 @@ fun SettingsScreen() {
                 Text("← 返回", color = T.TextSubtle, fontSize = 13.sp, maxLines = 1)
             }
 
-            // 两块纵向堆叠（全宽卡 corner=18 白底）：提示音 / 清除进度
-            Column(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                SettingCard(Modifier.weight(1f).fillMaxWidth(), "按键提示音") {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(
-                            onClick = { vm.setKeyTone(true) },
-                            colors = segmentPillColors(s.keyTone),
-                            border = segmentPillBorder(s.keyTone),
-                            modifier = Modifier.focusTone(tone).focusRequester(focusRequester)
-                        ) {
-                            if (s.keyTone) {
-                                TvIcon(Icons.Filled.Check, null)
-                                Spacer(Modifier.width(6.dp))
+            // 两块设置卡并排（各占一半宽），整块在主区垂直居中（2026-10-14 改版）：原先全宽一行一项，
+            // 标签钉最左、控件钉最右，单行横跨 896dp，中间约 800dp 全是死白，两块卡看上去像断裂的
+            // 空条。改并排卡后卡宽 ~438dp，图标+标题+控件收在近处（沿用首页统计卡的圆形图标语言），
+            // 两卡横向铺满、纵向由封顶高度定形，主区不再有一大片空白
+            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Row(
+                    Modifier.fillMaxWidth().heightIn(max = SettingCardMaxHeight),
+                    horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SettingCard(
+                        icon = Icons.AutoMirrored.Filled.VolumeUp,
+                        title = "按键提示音",
+                        description = "按键操作时播放轻提示音",
+                        modifier = Modifier.weight(1f).fillMaxHeight()
+                    ) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Button(
+                                onClick = { vm.setKeyTone(true) },
+                                colors = segmentPillColors(s.keyTone),
+                                border = segmentPillBorder(s.keyTone),
+                                modifier = Modifier.focusTone(tone).focusRequester(focusRequester)
+                            ) {
+                                if (s.keyTone) {
+                                    TvIcon(Icons.Filled.Check, null)
+                                    Spacer(Modifier.width(6.dp))
+                                }
+                                TvText("开")
                             }
-                            TvText("开")
-                        }
-                        Button(
-                            onClick = { vm.setKeyTone(false) },
-                            colors = segmentPillColors(!s.keyTone),
-                            border = segmentPillBorder(!s.keyTone),
-                            modifier = Modifier.focusTone(tone)
-                        ) {
-                            if (!s.keyTone) {
-                                TvIcon(Icons.Filled.Check, null)
-                                Spacer(Modifier.width(6.dp))
+                            Button(
+                                onClick = { vm.setKeyTone(false) },
+                                colors = segmentPillColors(!s.keyTone),
+                                border = segmentPillBorder(!s.keyTone),
+                                modifier = Modifier.focusTone(tone)
+                            ) {
+                                if (!s.keyTone) {
+                                    TvIcon(Icons.Filled.Check, null)
+                                    Spacer(Modifier.width(6.dp))
+                                }
+                                TvText("关")
                             }
-                            TvText("关")
                         }
                     }
-                }
-                SettingCard(Modifier.weight(1.4f).fillMaxWidth(), "清除学习进度") {
-                    Text(
-                        "清空全部学习记录，需二次确认",
-                        color = T.TextMuted, fontSize = 11.sp
-                    )
-                    Spacer(Modifier.weight(1f))
-                    WipeButton(
-                        onFocusChange = tone,
-                        onClick = { showWipeDialog = true }
-                    )
+                    SettingCard(
+                        icon = Icons.Filled.DeleteSweep,
+                        title = "清除学习进度",
+                        description = "清空全部学习记录，需二次确认",
+                        modifier = Modifier.weight(1f).fillMaxHeight()
+                    ) {
+                        WipeButton(
+                            onFocusChange = tone,
+                            onClick = { showWipeDialog = true }
+                        )
+                    }
                 }
             }
 
             // 底栏：按键提示 | 关于
-            KeyHintBar("← ↑↓ → 选择　OK 修改　B 返回", "关于：版本 1.0 · 唐诗数据来源说明")
+            KeyHintBar("← ↑↓ → 选择　OK 修改　后退键 返回", "关于：版本 1.0 · 唐诗数据来源说明")
         }
 
         // 已清除提示条（覆盖顶部，不挤压布局；停留本页不导航）
@@ -215,24 +242,47 @@ fun SettingsScreen() {
     }
 }
 
-/** 设置卡容器：corner=18 白底静态 Surface + 静息影（常显无焦点视觉，焦点落在内部设置项上） */
+/**
+ * 设置卡：圆形图标 + 标题 + 说明 + 控件，整块内容在卡内垂直居中。
+ *
+ * 图标底与首页统计卡同款（ChipBg 圆底 + 主橙字形），让设置项与首页的卡片语言一致；
+ * 卡高由外部 fillMaxHeight + 主区封顶高度决定，内容整体居中——卡高略有余量时上下均分，
+ * 不像 weight 撑开那样把内容顶到卡顶、底部留一大片空白。
+ */
 @Composable
 private fun SettingCard(
-    modifier: Modifier = Modifier,
+    icon: ImageVector,
     title: String,
-    content: @Composable ColumnScope.() -> Unit
+    description: String,
+    modifier: Modifier = Modifier,
+    control: @Composable () -> Unit
 ) {
     Surface(
-        modifier = modifier.cardRestingShadow(18),
-        shape = RoundedCornerShape(18.dp),
+        modifier = modifier.cardRestingShadow(20),
+        shape = RoundedCornerShape(20.dp),
         colors = SurfaceDefaults.colors(containerColor = T.Card)
     ) {
         Column(
-            Modifier.fillMaxSize().padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            Modifier.fillMaxSize().padding(horizontal = 26.dp, vertical = 22.dp),
+            verticalArrangement = Arrangement.Center
         ) {
-            Text(title, color = T.TextBody, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-            content()
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    Modifier.size(52.dp).background(T.ChipBg, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(icon, null, Modifier.size(26.dp), tint = T.Orange)
+                }
+                Spacer(Modifier.width(16.dp))
+                Text(
+                    title, color = T.TextTitle, fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold, maxLines = 1
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+            Text(description, color = T.TextMuted, fontSize = 13.sp, lineHeight = 19.sp)
+            Spacer(Modifier.height(22.dp))
+            control()
         }
     }
 }
