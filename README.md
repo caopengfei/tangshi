@@ -13,6 +13,7 @@
 ## 目录
 
 - [简介](#简介)
+- [页面截图](#页面截图)
 - [功能特性](#功能特性)
 - [技术栈](#技术栈)
 - [快速开始](#快速开始)
@@ -32,6 +33,17 @@
 - 内容为通行本《唐诗三百首》（蘅塘退士编）清洗后的 **325 首**（76 位诗人、3216 句），含逐字拼音与口语化创作背景。
 - **完全离线**：诗句数据、拼音、语音全部随 APK 打包，运行期不联网、无账号、无广告，也不采集任何数据。
 - 单学习档案（不做多孩子档案），进度与连续天数本地持久化。
+
+## 页面截图
+
+均为 Release 包在 Android TV 模拟器（1920×1080）上的实机截图。
+
+| | |
+|---|---|
+| ![首页](docs/screenshots/home.png)<br>**首页** —— 当前学习大卡、三项统计、四个入口 | ![诗学习详情页](docs/screenshots/poem-detail.png)<br>**诗学习详情页** —— 逐字拼音、整句高亮、连读与「我会背了」 |
+| ![搜索](docs/screenshots/search.png)<br>**搜索** —— 输入 `JYS` 即命中《静夜思》，右侧为屏幕键盘 | ![全部唐诗](docs/screenshots/library.png)<br>**全部唐诗** —— 4×2 分页网格，卡片带进度徽章 |
+| ![背诗小游戏](docs/screenshots/game-setup.png)<br>**背诗小游戏** —— 选玩法与题目范围 | ![填空补诗](docs/screenshots/game-fill.png)<br>**填空补诗** —— 挖字选字，缺字处显示 `?` |
+| ![听音辨诗](docs/screenshots/game-guess.png)<br>**听音辨诗** —— 听朗读选诗名，可重听 3 次 | ![家长设置](docs/screenshots/settings.png)<br>**家长设置** —— 按键提示音、清除学习进度 |
 
 ## 功能特性
 
@@ -130,6 +142,7 @@ tangshi/
 │     │  └─ res/                           # 主题色板、启动图标、TV banner、wenkai.ttf
 │     └─ test/java/com/rakor/tangshi/      # 单元测试（JUnit4 + Robolectric）
 ├─ tools/                                  # 语料清洗、语音合成、banner 生成、校验脚本
+├─ docs/screenshots/                       # README 页面截图（Release 包实机截屏）
 ├─ docs/superpowers/{specs,plans}/         # 设计规格与实施计划
 └─ gradle/libs.versions.toml               # 版本目录
 ```
