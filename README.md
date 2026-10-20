@@ -8,6 +8,7 @@
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.1.20-7F52FF?logo=kotlin&logoColor=white)
 ![Compose](https://img.shields.io/badge/Jetpack%20Compose-TV-4285F4?logo=jetpackcompose&logoColor=white)
 ![Offline](https://img.shields.io/badge/network-完全离线-brightgreen)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## 目录
 
@@ -22,7 +23,7 @@
 - [测试](#测试)
 - [文档](#文档)
 - [已知限制](#已知限制)
-- [第三方内容与许可](#第三方内容与许可)
+- [许可与第三方内容](#许可与第三方内容)
 
 ## 简介
 
@@ -215,7 +216,13 @@ tangshi/
 - 仅适配电视大屏与遥控器（`leanback` 必需），未做触屏与小屏适配。
 - 语音为合成音色，多音字通过 1:1 同音字替换喂给 TTS 规避，个别生僻读音仍可能有偏差。
 
-## 第三方内容与许可
+## 许可与第三方内容
+
+本仓库代码以 **MIT License** 发布，全文见 [LICENSE](LICENSE)。
+
+Copyright (c) 2026 曹鹏飞
+
+随 APK 分发的诗词语料、字体与语音属于第三方内容，**不受 MIT 覆盖**，各自遵循其原许可：
 
 | 内容 | 来源 | 许可 |
 |---|---|---|
@@ -225,5 +232,3 @@ tangshi/
 | 唐诗原文 | 通行本《唐诗三百首》（蘅塘退士编），公有领域 | — |
 
 完整的第三方声明与许可原文见 [`app/THIRD-PARTY-NOTICES.md`](app/THIRD-PARTY-NOTICES.md) 与 [`tools/NOTICE.md`](tools/NOTICE.md)。
-
-本仓库代码部分尚未附带开源许可证文件；如需在他人项目中使用，请先与作者联系明确授权方式。
