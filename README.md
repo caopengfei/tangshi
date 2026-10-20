@@ -70,7 +70,7 @@
 
 ```powershell
 # 克隆
-git clone <your-repo-url> tangshi
+git clone https://github.com/caopengfei/tangshi.git
 cd tangshi
 
 # Debug 构建 / 安装到已连接设备
