@@ -91,7 +91,7 @@ cd tangshi
 .\gradlew.bat installDebug
 ```
 
-macOS / Linux 把 `.\gradlew.bat` 换成 `./gradlew`。产物路径：`app/build/outputs/apk/debug/app-debug.apk`。
+macOS / Linux 把 `.\gradlew.bat` 换成 `./gradlew`。产物路径：`app/build/outputs/apk/debug/tangshi-v1.0-debug.apk`。
 
 **Release 签名**：在仓库根目录放置 `keystore.properties`（已在 `.gitignore` 中，不会入库）：
 
@@ -107,6 +107,10 @@ keyPassword=******
 ```
 
 文件缺失时 release 自动回退 debug 签名，保证任何环境都能出包。
+
+产物文件名由 `app/build.gradle.kts` 里的 `appVersionName` 决定：release 为
+`app/build/outputs/apk/release/tangshi-v1.0.apk`，debug 为 `tangshi-v1.0-debug.apk`。
+发新版本时只改 `appVersionCode` / `appVersionName` 两个值，APK 名会跟着变。
 
 ## 按键操作
 

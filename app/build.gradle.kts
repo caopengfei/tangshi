@@ -15,6 +15,22 @@ val keystoreProps = Properties().apply {
     if (f.exists()) f.inputStream().use { load(it) }
 }
 
+// 版本号只在下面一处定义，产物文件名（tangshi-v<版本号>.apk）与清单里的 versionName 都取这里
+val appVersionCode = 1
+val appVersionName = "1.0"
+
+// 产物文件名：release → tangshi-v1.0.apk，debug → tangshi-v1.0-debug.apk（不再叫 app-release.apk / app-debug.apk）
+androidComponents {
+    onVariants { variant ->
+        variant.outputs.forEach { output ->
+            val suffix = if (variant.buildType == "release") "" else "-${variant.buildType}"
+            (output as? com.android.build.api.variant.impl.VariantOutputImpl)
+                ?.outputFileName
+                ?.set("tangshi-v$appVersionName$suffix.apk")
+        }
+    }
+}
+
 android {
     namespace = "com.rakor.tangshi"
     compileSdk = 35
@@ -22,8 +38,8 @@ android {
         applicationId = "com.rakor.tangshi"
         minSdk = 23
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = appVersionCode
+        versionName = appVersionName
     }
     signingConfigs {
         if (keystoreProps.isNotEmpty()) {
