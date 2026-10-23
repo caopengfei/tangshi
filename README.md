@@ -145,6 +145,8 @@ CI 会剔除 `gradle.properties` 中本机专用的 `org.gradle.java.home` 与�
 
 `KEYSTORE_BASE64` 缺失时自动回退 debug 签名，配齐后即走正式签名。
 
+完整工作流模板、踩坑清单（本机 gradle 配置、gradlew 权限、environment 作用域、debug 签名静默回退等）与换项目检查表见 [GitHub Actions 自动构建与发版](docs/github-actions-android-release.md)。
+
 ## 按键操作
 
 | 按键 | 行为 |
@@ -258,6 +260,7 @@ tangshi/
 - [Compose for TV 组件迁移](docs/superpowers/specs/2026-10-11-compose-tv-migration-design.md)
 - [搜索页拼音/首字母](docs/superpowers/specs/2026-10-12-search-pinyin-initials-design.md)
 - [焦点视觉](docs/superpowers/specs/2026-10-08-focus-style-design.md)、[启动优化](docs/superpowers/specs/2026-10-10-startup-optimization.md)
+- [GitHub Actions 自动构建与发版（可复用模板）](docs/github-actions-android-release.md) —— tag 自动出签名 APK 并发 Release，含踩坑清单与换项目检查表
 - 实施计划见 [`docs/superpowers/plans/`](docs/superpowers/plans/)
 
 ## 已知限制
