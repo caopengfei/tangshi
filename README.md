@@ -17,6 +17,7 @@
 - [功能特性](#功能特性)
 - [技术栈](#技术栈)
 - [快速开始](#快速开始)
+- [自动构建与发版](#自动构建与发版)
 - [按键操作](#按键操作)
 - [项目结构](#项目结构)
 - [数据与语音包](#数据与语音包)
@@ -112,6 +113,33 @@ keyPassword=******
 `app/build/outputs/apk/release/tangshi-v1.0.apk`，debug 为 `tangshi-v1.0-debug.apk`。
 发新版本时只改 `appVersionCode` / `appVersionName` 两个值，APK 名会跟着变。
 
+## 自动构建与发版
+
+打 tag 即发布：APK 由 GitHub Actions（Ubuntu + JDK 17）构建，工作流见 `.github/workflows/release.yml`。
+
+```powershell
+# 1. 先改版本号：app/build.gradle.kts 里的 appVersionCode / appVersionName
+# 2. 提交后打标签并推送（tag 必须与 appVersionName 一致，否则工作流直接失败）
+git commit -am "release: v1.1"
+git tag v1.1
+git push origin main --tags
+```
+
+推送 tag 后 `Actions → Release` 自动执行：构建 `tangshi-v<版本号>.apk`、生成同名 `.sha256`，并在 [Releases](https://github.com/caopengfei/tangshi/releases) 自动创建对应版本页（附提交变更说明）。也可在 Actions 页手动 `Run workflow`，此时只产出 artifact、不发 Release。
+
+CI 会剔除 `gradle.properties` 中本机专用的 `org.gradle.java.home` 与本地代理配置，无需为 CI 单独维护一份构建配置。
+
+**正式签名（推荐）**：未配置签名时 CI 用 debug 签名出包（可安装可测试，但不适合长期分发）。在 `Settings → Secrets and variables → Actions` 添加以下 4 个 Secret：
+
+| Secret | 内容 |
+|---|---|
+| `KEYSTORE_BASE64` | 密钥库文件的 base64，Windows 下生成：`[Convert]::ToBase64String([IO.File]::ReadAllBytes("your.keystore"))` |
+| `KEYSTORE_PASSWORD` | 密钥库口令 |
+| `KEY_ALIAS` | 密钥别名 |
+| `KEY_PASSWORD` | 密钥口令 |
+
+`KEYSTORE_BASE64` 缺失时自动回退 debug 签名，配齐后即走正式签名。
+
 ## 按键操作
 
 | 按键 | 行为 |
@@ -148,6 +176,7 @@ tangshi/
 ├─ tools/                                  # 语料清洗、语音合成、banner 生成、校验脚本
 ├─ docs/screenshots/                       # README 页面截图（Release 包实机截屏）
 ├─ docs/superpowers/{specs,plans}/         # 设计规格与实施计划
+├─ .github/workflows/release.yml          # 打 tag 自动构建 APK 并发 Release
 └─ gradle/libs.versions.toml               # 版本目录
 ```
 
