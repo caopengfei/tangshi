@@ -129,7 +129,12 @@ git push origin main --tags
 
 CI 会剔除 `gradle.properties` 中本机专用的 `org.gradle.java.home` 与本地代理配置，无需为 CI 单独维护一份构建配置。
 
-**正式签名（推荐）**：未配置签名时 CI 用 debug 签名出包（可安装可测试，但不适合长期分发）。在 `Settings → Secrets and variables → Actions` 添加以下 4 个 Secret：
+**正式签名（推荐）**：未配置签名时 CI 用 debug 签名出包（可安装可测试，但不适合长期分发）。工作流绑定了 GitHub environment `release`（见 `release.yml` 的 `environment:`），Secret 放两处任一即可，同名时 environment 优先：
+
+- `Settings → Environments → release → Environment secrets`（可另配 Required reviewers，发版需人工批准）
+- `Settings → Secrets and variables → Actions → Repository secrets`（单仓库最省事）
+
+需要添加以下 4 个：
 
 | Secret | 内容 |
 |---|---|

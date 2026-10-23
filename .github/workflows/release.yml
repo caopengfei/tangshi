@@ -20,6 +20,9 @@ jobs:
   release:
     name: 构建 Release APK
     runs-on: ubuntu-latest
+    # 绑定 GitHub environment：环境内同名 secret 优先于仓库级 secret；
+    # 若该 environment 配了 Required reviewers，发版前需要人工批准
+    environment: release
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
