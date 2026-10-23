@@ -67,16 +67,21 @@ jobs:
           echo "--- 生效的 gradle.properties ---"
           cat gradle.properties
 
-      # 配置了 KEYSTORE_BASE64 就用正式签名；未配置则由 app/build.gradle.kts 回退 debug 签名
+      # 配置了 KEYSTORE_BASE64 就用正式签名；未配置则由 app/build.gradle.kts 回退 debug 签名，
+      # 并在构建后由「校验 APK 签名」步骤核对实际签名证书
       - name: 配置发布签名
+        id: sign
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
+          # 只打印长度与别名，不泄露内容，用于定位 Secret 是否真的被注入
+          echo "KEYSTORE_BASE64 长度=${#KEYSTORE_BASE64} KEYSTORE_PASSWORD 长度=${#KEYSTORE_PASSWORD} KEY_ALIAS=${KEY_ALIAS:-<空>} KEY_PASSWORD 长度=${#KEY_PASSWORD}"
           if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "未配置 KEYSTORE_BASE64，release 将回退 debug 签名"
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::未配置 KEYSTORE_BASE64，产物将回退 debug 签名（仅适合自测）"
             exit 0
           fi
           echo "$KEYSTORE_BASE64" | base64 -d > release.jks
@@ -86,6 +91,7 @@ jobs:
           keyAlias=$KEY_ALIAS
           keyPassword=$KEY_PASSWORD
           EOF
+          echo "enabled=true" >> "$GITHUB_OUTPUT"
           echo "已启用正式签名"
 
       - name: 构建 Release APK
@@ -105,6 +111,26 @@ jobs:
           echo "name=$(basename "$APK")" >> "$GITHUB_OUTPUT"
           echo "dir=$(dirname "$APK")" >> "$GITHUB_OUTPUT"
           echo "产物：$APK"
+
+      - name: 校验 APK 签名
+        id: verify
+        env:
+          SIGNING_ENABLED: ${{ steps.sign.outputs.enabled }}
+        run: |
+          APK="${{ steps.apk.outputs.dir }}/${{ steps.apk.outputs.name }}"
+          APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n1)
+          DN=$("$APKSIGNER" verify --print-certs "$APK" | grep -m1 'certificate DN' || true)
+          echo "apksigner: $APKSIGNER"
+          echo "签名证书：$DN"
+          if [ "$SIGNING_ENABLED" = "true" ]; then
+            if echo "$DN" | grep -q 'CN=Android Debug'; then
+              echo "::error::已配置 KEYSTORE_BASE64，产物却仍是 debug 签名：请核对 Secret（base64 是否完整，KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD 是否与密钥库一致）"
+              exit 1
+            fi
+            echo "正式签名校验通过"
+          else
+            echo "::warning::产物为 debug 签名（未配置 KEYSTORE_BASE64），仅适合自测，不能作为正式分发"
+          fi
 
       - name: 上传 artifact
         uses: actions/upload-artifact@v4
