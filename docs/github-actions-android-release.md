@@ -46,6 +46,8 @@ jobs:
     environment: <env>   # 用 environment Secret 时必须；用 repository Secret 可删
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0   # 生成提交清单需要完整历史与全部 tag
 
       # 版本号从构建脚本里读，避免 tag 与 versionName 各写一份
       - name: 读取版本号
@@ -145,13 +147,40 @@ jobs:
             ${{ steps.apk.outputs.dir }}/*.sha256
           if-no-files-found: error
 
+      # Release 描述 = 固定说明 + 上一 tag 以来的提交清单（git log 生成）
+      - name: 生成提交清单
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          # 上一 tag：取当前 tag 父提交可达的最近一个 tag；首个版本则回退为全部历史
+          PREV=$(git describe --tags --abbrev=0 "${TAG}^" 2>/dev/null || true)
+          if [ -n "$PREV" ]; then
+            RANGE="$PREV..$TAG"
+          else
+            RANGE="$TAG"
+            echo "::warning::未找到上一 tag，提交清单将包含全部历史提交"
+          fi
+          cat > release-notes.md <<'EOF'
+          <应用名> 发行包，下载 `${{ steps.apk.outputs.name }}` 后安装。
+
+          - versionName：`${{ steps.version.outputs.version }}`
+          - versionCode：`${{ steps.version.outputs.code }}`
+          EOF
+          {
+            echo
+            echo "## 提交清单"
+            echo
+            git log --no-merges --pretty=format:'- %h %s' "$RANGE"
+            [ -n "$PREV" ] && printf '\n\n**Full Changelog**: https://github.com/%s/compare/%s...%s\n' "$GITHUB_REPOSITORY" "$PREV" "$TAG"
+          } >> release-notes.md
+
       - name: 创建 GitHub Release
         if: startsWith(github.ref, 'refs/tags/')     # 手动触发时不发版
         uses: softprops/action-gh-release@v2
         with:
           name: <应用名> v${{ steps.version.outputs.version }}
           tag_name: ${{ github.ref_name }}
-          generate_release_notes: true
+          body_path: release-notes.md
           fail_on_unmatched_files: true
           files: |
             ${{ steps.apk.outputs.dir }}/*.apk
@@ -192,6 +221,7 @@ Secret 名：`KEYSTORE_BASE64`、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWO
 | 8 | `Required reviewers` 开着，tag 推上去"卡住" | 环境需要人工批准 | 到 run 页面点 Approve；不需要审批就别开 |
 | 9 | 想验证配置却不想发版 | — | 用 `workflow_dispatch` + Release 步骤 `if: startsWith(github.ref, 'refs/tags/')`，只构建并传 artifact |
 | 10 | 一堆 "Node.js 20 is deprecated" 告警 | 上游 action 尚未切 node24，runner 强制升级运行 | 只升有新主版本的（如 `checkout@v5`、`setup-java@v5`）；`upload-artifact@v4` / `gradle/actions@v4` 属正常，等上游 |
+| 11 | 提交清单只有一条或为空 / `git describe` 找不到上一 tag | checkout 默认 `fetch-depth: 1`，浅克隆没有历史和 tag | checkout 加 `fetch-depth: 0`（见第 2 节模板） |
 
 ## 5. 发版 SOP
 
@@ -242,7 +272,7 @@ keytool -list -v -keystore <name>.jks -alias <alias> | Select-String 'SHA256:'
 
 - **构建检查前移**：加 `on: push: branches: [main]`，Release 步骤已被 tag 守卫，不会误发版，每次 push 都能知道能不能构建。
 - **草稿式发布**：`softprops/action-gh-release` 加 `draft: true`，人工点发布再公开。
-- **Release 说明**：`generate_release_notes: true` 会自动按 commit 汇总；需要更好看可在仓库加 `.github/release.yml` 分类规则。
+- **Release 说明**：工作流自生成——`git log` 列出上一 tag 以来的提交（`- %h %s` 格式），拼上固定安装说明后经 `body_path` 传入；首个版本回退为全部历史提交。不用 `generate_release_notes: true`（会按 PR 汇总，本项目直推 main 时基本为空）。
 - **产物瘦身**：多 ABI 项目用 `splits abi` 后按 ABI 上传多个 APK / 打 AAB。
 - **签名密钥更安全的放法**：改用 GitHub OIDC / 云 KMS 托管签名密钥（`apksigner` 支持 PKCS#11），避免 base64 私钥进 Secret。
 

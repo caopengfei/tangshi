@@ -26,6 +26,9 @@ jobs:
     steps:
       - name: 检出代码
         uses: actions/checkout@v5
+        # 需要完整历史与全部 tag，才能对上一 tag 生成提交清单
+        with:
+          fetch-depth: 0
 
       - name: 读取版本号
         id: version
@@ -141,20 +144,56 @@ jobs:
             ${{ steps.apk.outputs.dir }}/*.sha256
           if-no-files-found: error
 
+      # Release 描述 = 固定说明 + 上一 tag 以来的提交清单（git log 生成）
+      - name: 生成提交清单
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          # 上一 tag：取当前 tag 父提交可达的最近一个 tag；首个版本则回退为全部历史
+          PREV=$(git describe --tags --abbrev=0 "${TAG}^" 2>/dev/null || true)
+          if [ -n "$PREV" ]; then
+            RANGE="$PREV..$TAG"
+            echo "提交清单范围：$RANGE"
+          else
+            RANGE="$TAG"
+            echo "::warning::未找到上一 tag，提交清单将包含全部历史提交"
+          fi
+          cat > release-notes.md <<'EOF'
+          安卓 TV 发行包，下载 `${{ steps.apk.outputs.name }}` 后用 `adb install -r` 安装，或放到 U 盘在电视上安装。
+
+          - versionName：`${{ steps.version.outputs.version }}`
+          - versionCode：`${{ steps.version.outputs.code }}`
+          - 校验：`sha256sum ${{ steps.apk.outputs.name }}` 对比同目录的 `.sha256` 文件
+          EOF
+          if [ -n "$PREV" ]; then
+            {
+              echo
+              echo "## 提交清单"
+              echo
+              git log --no-merges --pretty=format:'- %h %s' "$RANGE"
+              echo
+              echo
+              echo "**Full Changelog**: https://github.com/${GITHUB_REPOSITORY}/compare/${PREV}...${TAG}"
+            } >> release-notes.md
+          else
+            {
+              echo
+              echo "## 提交清单（首个版本）"
+              echo
+              git log --no-merges --pretty=format:'- %h %s' "$RANGE"
+            } >> release-notes.md
+          fi
+          echo "--- release-notes.md ---"
+          cat release-notes.md
+
       - name: 创建 GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           name: 唐诗三百首 · TV v${{ steps.version.outputs.version }}
           tag_name: ${{ github.ref_name }}
-          generate_release_notes: true
+          body_path: release-notes.md
           fail_on_unmatched_files: true
-          body: |
-            安卓 TV 发行包，下载 `${{ steps.apk.outputs.name }}` 后用 `adb install -r` 安装，或放到 U 盘在电视上安装。
-
-            - versionName：`${{ steps.version.outputs.version }}`
-            - versionCode：`${{ steps.version.outputs.code }}`
-            - 校验：`sha256sum ${{ steps.apk.outputs.name }}` 对比同目录的 `.sha256` 文件
           files: |
             ${{ steps.apk.outputs.dir }}/*.apk
             ${{ steps.apk.outputs.dir }}/*.sha256
