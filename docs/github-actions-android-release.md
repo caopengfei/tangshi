@@ -147,7 +147,7 @@ jobs:
             ${{ steps.apk.outputs.dir }}/*.sha256
           if-no-files-found: error
 
-      # Release 描述 = 固定说明 + 上一 tag 以来的提交清单（git log 生成）
+      # Release 描述 = 上一 tag 以来的提交清单（git log 生成），不附加其他内容
       - name: 生成提交清单
         if: startsWith(github.ref, 'refs/tags/')
         run: |
@@ -160,19 +160,20 @@ jobs:
             RANGE="$TAG"
             echo "::warning::未找到上一 tag，提交清单将包含全部历史提交"
           fi
-          cat > release-notes.md <<'EOF'
-          <应用名> 发行包，下载 `${{ steps.apk.outputs.name }}` 后安装。
-
-          - versionName：`${{ steps.version.outputs.version }}`
-          - versionCode：`${{ steps.version.outputs.code }}`
-          EOF
           {
-            echo
-            echo "## 提交清单"
+            if [ -n "$PREV" ]; then
+              echo "## 提交清单"
+            else
+              echo "## 提交清单（首个版本）"
+            fi
             echo
             git log --no-merges --pretty=format:'- %h %s' "$RANGE"
-            [ -n "$PREV" ] && printf '\n\n**Full Changelog**: https://github.com/%s/compare/%s...%s\n' "$GITHUB_REPOSITORY" "$PREV" "$TAG"
-          } >> release-notes.md
+            if [ -n "$PREV" ]; then
+              echo
+              echo
+              echo "**Full Changelog**: https://github.com/${GITHUB_REPOSITORY}/compare/${PREV}...${TAG}"
+            fi
+          } > release-notes.md
 
       - name: 创建 GitHub Release
         if: startsWith(github.ref, 'refs/tags/')     # 手动触发时不发版
@@ -272,7 +273,7 @@ keytool -list -v -keystore <name>.jks -alias <alias> | Select-String 'SHA256:'
 
 - **构建检查前移**：加 `on: push: branches: [main]`，Release 步骤已被 tag 守卫，不会误发版，每次 push 都能知道能不能构建。
 - **草稿式发布**：`softprops/action-gh-release` 加 `draft: true`，人工点发布再公开。
-- **Release 说明**：工作流自生成——`git log` 列出上一 tag 以来的提交（`- %h %s` 格式），拼上固定安装说明后经 `body_path` 传入；首个版本回退为全部历史提交。不用 `generate_release_notes: true`（会按 PR 汇总，本项目直推 main 时基本为空）。
+- **Release 说明**：工作流自生成，只含提交清单——`git log` 列出上一 tag 以来的提交（`- %h %s` 格式）经 `body_path` 传入；首个版本回退为全部历史提交。不用 `generate_release_notes: true`（会按 PR 汇总，本项目直推 main 时基本为空）。
 - **产物瘦身**：多 ABI 项目用 `splits abi` 后按 ABI 上传多个 APK / 打 AAB。
 - **签名密钥更安全的放法**：改用 GitHub OIDC / 云 KMS 托管签名密钥（`apksigner` 支持 PKCS#11），避免 base64 私钥进 Secret。
 
